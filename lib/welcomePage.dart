@@ -23,7 +23,7 @@ class WelcomePage extends StatelessWidget {
             const Padding(
               padding: EdgeInsets.only(top: 70.0),
               child: Text(
-                'TrabajoRapi!',
+                'TrabajoRapid!',
                 style: TextStyle(
                   fontSize: 30,
                   fontFamily: 'Montserrat',

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trabajorapid/moduleMain.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -97,26 +98,34 @@ class LoginPage extends StatelessWidget {
                       const SizedBox(
                         height: 70,
                       ),
-                      Container(
-                        height: 55,
-                        width: 300,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          gradient: const LinearGradient(
-                            colors: [
-                              Color(0xffB81736),
-                              Color(0xff281537),
-                            ],
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const ModuleMain()));
+                        },
+                        child: Container(
+                          height: 55,
+                          width: 300,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(30),
+                            gradient: const LinearGradient(
+                              colors: [
+                                Color(0xffB81736),
+                                Color(0xff281537),
+                              ],
+                            ),
                           ),
-                        ),
-                        child: const Center(
-                          child: Text(
-                            'Iniciar Sesión',
-                            style: TextStyle(
-                              fontFamily: 'Montserrat',
-                              fontWeight: FontWeight.w400,
-                              fontSize: 20,
-                              color: Colors.white,
+                          child: const Center(
+                            child: Text(
+                              'Iniciar Sesión',
+                              style: TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontWeight: FontWeight.w400,
+                                fontSize: 20,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
