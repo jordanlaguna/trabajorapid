@@ -1,4 +1,7 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
+import 'package:trabajorapid/welcomePage.dart';
 
 class NavBar extends StatelessWidget {
   const NavBar({super.key});
@@ -7,6 +10,7 @@ class NavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Drawer(
       child: ListView(
+        padding: EdgeInsets.zero,
         children: [
           UserAccountsDrawerHeader(
             accountName: const Text('Jordan Laguna Rodríguez'),
@@ -49,7 +53,11 @@ class NavBar extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.logout_rounded),
             title: const Text('Salir'),
-            onTap: () => print('Salir presionado'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => const WelcomePage()));
+            },
           ),
         ],
       ),

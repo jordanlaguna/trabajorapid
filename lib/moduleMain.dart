@@ -1,3 +1,4 @@
+// ignore_for_file: file_names
 import 'package:flutter/material.dart';
 import 'package:trabajorapid/navbar.dart';
 
@@ -23,7 +24,7 @@ class _ModuleMainState extends State<ModuleMain> {
         drawer: const NavBar(),
         appBar: AppBar(
           title: const Text(
-            'TrabajoRapid',
+            'TrabajosRapid',
             style: TextStyle(
                 fontSize: 20,
                 fontFamily: 'Montserrat',

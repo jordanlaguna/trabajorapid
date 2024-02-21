@@ -1,4 +1,5 @@
-// ignore: file_names
+// ignore_for_file: file_names
+
 import 'package:flutter/material.dart';
 import 'package:trabajorapid/regPage.dart';
 import 'loginPage.dart';
@@ -23,7 +24,7 @@ class WelcomePage extends StatelessWidget {
             const Padding(
               padding: EdgeInsets.only(top: 70.0),
               child: Text(
-                'TrabajoRapid!',
+                'TrabajosRapid!',
                 style: TextStyle(
                   fontSize: 30,
                   fontFamily: 'Montserrat',
