@@ -30,6 +30,7 @@ class RegPage extends StatelessWidget {
                     fontSize: 30,
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
+                    fontFamily: 'Montserrat',
                   ),
                 ),
               ),
@@ -60,6 +61,7 @@ class RegPage extends StatelessWidget {
                           labelText: 'Nombre Completo',
                           labelStyle: TextStyle(
                             fontWeight: FontWeight.bold,
+                            fontFamily: 'Montserrat',
                             color: Color(0xffB81736),
                           ),
                         ),
@@ -72,6 +74,7 @@ class RegPage extends StatelessWidget {
                           ),
                           labelText: 'Correo Electrónico',
                           labelStyle: TextStyle(
+                            fontFamily: 'Montserrat',
                             fontWeight: FontWeight.bold,
                             color: Color(0xffB81736),
                           ),
@@ -86,6 +89,7 @@ class RegPage extends StatelessWidget {
                           ),
                           labelText: 'Contraseña',
                           labelStyle: TextStyle(
+                            fontFamily: 'Montserrat',
                             fontWeight: FontWeight.bold,
                             color: Color(0xffB81736),
                           ),
@@ -100,6 +104,7 @@ class RegPage extends StatelessWidget {
                           ),
                           labelText: 'Confirmar Contraseña',
                           labelStyle: TextStyle(
+                            fontFamily: 'Montserrat',
                             fontWeight: FontWeight.bold,
                             color: Color(0xffB81736),
                           ),
@@ -129,6 +134,7 @@ class RegPage extends StatelessWidget {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 20,
+                              fontFamily: 'Montserrat',
                               color: Colors.white,
                             ),
                           ),

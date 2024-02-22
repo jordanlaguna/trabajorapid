@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
       title: 'TrabajoRapi',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        fontFamily: ('inter'),
+        fontFamily: ('Montserrat'),
         useMaterial3: true,
       ),
       home: const WelcomePage(),
