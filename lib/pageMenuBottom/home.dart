@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trabajorapid/pageMenuBottom/homeService/homeService.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -9,7 +10,7 @@ class HomePage extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
-          'Ofertas de trabajo',
+          'Ofertas de Servicios',
           style: TextStyle(
             fontSize: 24.0,
             fontWeight: FontWeight.bold,
@@ -27,23 +28,44 @@ class HomePage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              buildCuadro('Cuadro 1', 'Contenido del cuadro 1'),
+              const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Barra de búsqueda
+                    TextField(
+                      decoration: InputDecoration(
+                        hintText: 'Buscar servicios...',
+                        prefixIcon: Icon(Icons.search),
+                      ),
+                    ),
+                    SizedBox(height: 20.0),
+                    // Carrusel
+                  ],
+                ),
+              ),
+              buildCuadro(
+                  context, 'Exteriores', 'Patios, Gardines, Arboles...'),
               const SizedBox(height: 30.0),
-              buildCuadro('Cuadro 2', 'Contenido del cuadro 2'),
+              buildCuadro(context, 'Interiores', 'Limpiesa, Lavanderia...'),
               const SizedBox(height: 30.0),
-              buildCuadro('Cuadro 3', 'Contenido del cuadro 3'),
+              buildCuadro(context, 'Transporte', 'Viajes, Carga, Express...'),
               const SizedBox(height: 30.0),
-              buildCuadro('Cuadro 4', 'Contenido del cuadro 4'),
+              buildCuadro(
+                  context, 'Plomeria', 'Rotura, Goteras, Instalación...'),
               const SizedBox(height: 30.0),
-              buildCuadro('Cuadro 5', 'Contenido del cuadro 5'),
+              buildCuadro(context, 'Electricista',
+                  'Cortes, Mantenimiento, Instalación...'),
               const SizedBox(height: 30.0),
-              buildCuadro('Cuadro 6', 'Contenido del cuadro 6'),
+              buildCuadro(
+                  context, 'Mecanica', 'Llantas, Pintura, Reparación...'),
               const SizedBox(height: 30.0),
-              buildCuadro('Cuadro 7', 'Contenido del cuadro 7'),
+              buildCuadro(context, 'Manicura', 'Pintura, Uñas, Hidratación...'),
               const SizedBox(height: 30.0),
-              buildCuadro('Cuadro 8', 'Contenido del cuadro 8'),
-              const SizedBox(height: 30.0),
-              buildCuadro('Cuadro 9', 'Contenido del cuadro 9'),
+              buildCuadro(
+                  context, 'Culinario', 'Cocinar, Eventos, Platillos...'),
+              const SizedBox(height: 30.0)
             ],
           ),
         ),
@@ -52,7 +74,7 @@ class HomePage extends StatelessWidget {
   }
 }
 
-Widget buildCuadro(String titulo, String contenido) {
+Widget buildCuadro(BuildContext context, String titulo, String contenido) {
   return Container(
     decoration: BoxDecoration(
       border: Border.all(color: Colors.grey),
@@ -61,7 +83,7 @@ Widget buildCuadro(String titulo, String contenido) {
     child: Row(
       children: [
         Expanded(
-          flex: 2,
+          flex: 1,
           child: Container(
             width: 90.0,
             height: 90.0,
@@ -85,9 +107,13 @@ Widget buildCuadro(String titulo, String contenido) {
               const SizedBox(height: 10.0),
               Text(contenido),
               const SizedBox(height: 10.0),
-              ElevatedButton(
-                onPressed: () {
-                  // Acción del botón
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const HomePageService()),
+                  );
                 },
                 child: const Text('Presiona aquí'),
               ),
