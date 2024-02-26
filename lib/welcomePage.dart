@@ -1,4 +1,4 @@
-// ignore_for_file: file_names, avoid_print, use_build_context_synchronously
+// ignore_for_file: file_names, avoid_print, use_build_context_synchronously, no_leading_underscores_for_local_identifiers
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -6,9 +6,14 @@ import 'package:trabajorapid/regPage.dart';
 import 'loginPage.dart';
 import 'package:trabajorapid/moduleMain.dart';
 
-class WelcomePage extends StatelessWidget {
+class WelcomePage extends StatefulWidget {
   const WelcomePage({Key? key}) : super(key: key);
+  @override
+  State<WelcomePage> createState() => _WelcomePage();
+}
 
+class _WelcomePage extends State<WelcomePage> {
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -127,16 +132,11 @@ class WelcomePage extends StatelessWidget {
                     },
                     icon: Image.asset('assets/images/facebook.png', height: 50),
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      _signInWithGoogle(context);
+                  IconButton(
+                    onPressed: () {
+                      signInWithGoogle();
                     },
-                    child: IconButton(
-                      onPressed: () {
-                        _signInWithGoogle(context);
-                      },
-                      icon: Image.asset('assets/images/gmail.png', height: 50),
-                    ),
+                    icon: Image.asset('assets/images/gmail.png', height: 50),
                   ),
                   IconButton(
                     onPressed: () {
@@ -154,29 +154,26 @@ class WelcomePage extends StatelessWidget {
     );
   }
 
-  static void _signInWithGoogle(BuildContext context) async {
-    final GoogleSignIn googleSignIn = GoogleSignIn();
+  signInWithGoogle() async {
+    final GoogleSignIn _googleSignIn = GoogleSignIn();
     try {
       final GoogleSignInAccount? googleSignInAccount =
-          await googleSignIn.signIn();
+          await _googleSignIn.signIn();
       if (googleSignInAccount != null) {
         final GoogleSignInAuthentication googleSignInAuthentication =
             await googleSignInAccount.authentication;
         final AuthCredential credential = GoogleAuthProvider.credential(
-            idToken: googleSignInAuthentication.idToken,
-            accessToken: googleSignInAuthentication.accessToken);
-        final UserCredential userCredential =
-            await FirebaseAuth.instance.signInWithCredential(credential);
-        final User? user = userCredential.user;
-        if (user != null) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const ModuleMain()),
-          );
-        }
+          idToken: googleSignInAuthentication.idToken,
+          accessToken: googleSignInAuthentication.accessToken,
+        );
+        await _firebaseAuth.signInWithCredential(credential);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const ModuleMain()),
+        );
       }
     } catch (e) {
-      print('Error signing in with Google: $e');
+      print("some error occured $e");
     }
   }
 }
