@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "187320601422",
+    "project_id": "trabajosrapid-f63a2",
+    "storage_bucket": "trabajosrapid-f63a2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:187320601422:android:830b6c6cd9fc4f4958ec1f",
+        "android_client_info": {
+          "package_name": "com.example.trabajorapid"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRtbvKx1iBuh6lKmLLxHerpP_iU1mvg74"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

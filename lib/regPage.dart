@@ -1,9 +1,33 @@
-// ignore_for_file: file_names
+// ignore_for_file: file_names, unused_field, use_build_context_synchronously, avoid_print, unused_local_variable
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:trabajorapid/firebaseAuth/firabaseAuthImple.dart';
+import 'package:trabajorapid/moduleMain.dart';
 
-class RegPage extends StatelessWidget {
+class RegPage extends StatefulWidget {
   const RegPage({Key? key}) : super(key: key);
+
+  @override
+  State<RegPage> createState() => _RegPageState();
+}
+
+class _RegPageState extends State<RegPage> {
+  final FirebaseAuthImplements auth = FirebaseAuthImplements();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _passwordConfirmController =
+      TextEditingController();
+
+  @override
+  void dispose() {
+    super.dispose();
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _passwordConfirmController.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,8 +76,9 @@ class RegPage extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const TextField(
-                        decoration: InputDecoration(
+                      TextField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
                           suffixIcon: Icon(
                             Icons.check,
                             color: Colors.grey,
@@ -66,8 +91,9 @@ class RegPage extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const TextField(
-                        decoration: InputDecoration(
+                      TextField(
+                        controller: _emailController,
+                        decoration: const InputDecoration(
                           suffixIcon: Icon(
                             Icons.check,
                             color: Colors.grey,
@@ -80,9 +106,10 @@ class RegPage extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const TextField(
+                      TextField(
+                        controller: _passwordController,
                         obscureText: true,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           suffixIcon: Icon(
                             Icons.visibility_off,
                             color: Colors.grey,
@@ -95,9 +122,10 @@ class RegPage extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const TextField(
+                      TextField(
+                        controller: _passwordConfirmController,
                         obscureText: true,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           suffixIcon: Icon(
                             Icons.visibility_off,
                             color: Colors.grey,
@@ -116,26 +144,31 @@ class RegPage extends StatelessWidget {
                       const SizedBox(
                         height: 70,
                       ),
-                      Container(
-                        height: 55,
-                        width: 300,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          gradient: const LinearGradient(
-                            colors: [
-                              Color(0xffB81736),
-                              Color(0xff281537),
-                            ],
+                      GestureDetector(
+                        onTap: () {
+                          signUp();
+                        },
+                        child: Container(
+                          height: 55,
+                          width: 300,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(30),
+                            gradient: const LinearGradient(
+                              colors: [
+                                Color(0xffB81736),
+                                Color(0xff281537),
+                              ],
+                            ),
                           ),
-                        ),
-                        child: const Center(
-                          child: Text(
-                            'Iniciar Sesión',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                              fontFamily: 'Montserrat',
-                              color: Colors.white,
+                          child: const Center(
+                            child: Text(
+                              'Registrarse',
+                              style: TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
@@ -150,14 +183,14 @@ class RegPage extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              "No tiene una cuenta?",
+                              "Ya tienes una cuenta?",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.grey,
                               ),
                             ),
                             Text(
-                              "Registrarse",
+                              "Iniciar Sesión",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 17,
@@ -176,5 +209,29 @@ class RegPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void signUp() async {
+    String name = _nameController.text;
+    String email = _emailController.text;
+    String password = _passwordController.text;
+    String confirmPassword = _passwordConfirmController.text;
+
+    // Verificar si las contraseñas coinciden
+    if (password != confirmPassword) {
+      print("Las contraseñas no coinciden");
+      return;
+    }
+    User? user = await auth.singUpWithEmailAndPassword(email, password);
+
+    if (user != null) {
+      print("Usuario registrado con éxito");
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const ModuleMain()),
+      );
+    } else {
+      print("Error al registrar");
+    }
   }
 }

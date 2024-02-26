@@ -1,9 +1,26 @@
-// ignore_for_file: file_names
+// ignore_for_file: file_names, use_build_context_synchronously, avoid_print
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:trabajorapid/firebaseAuth/firabaseAuthImple.dart';
 import 'package:trabajorapid/moduleMain.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
+  @override
+  State<LoginPage> createState() => _LoginPage();
+}
+
+class _LoginPage extends State<LoginPage> {
+  final FirebaseAuthImplements auth = FirebaseAuthImplements();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    super.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,8 +69,9 @@ class LoginPage extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const TextField(
-                        decoration: InputDecoration(
+                      TextField(
+                        controller: emailController,
+                        decoration: const InputDecoration(
                           suffixIcon: Icon(
                             Icons.check,
                             color: Colors.grey,
@@ -66,9 +84,10 @@ class LoginPage extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const TextField(
+                      TextField(
+                        controller: passwordController,
                         obscureText: true,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           suffixIcon: Icon(
                             Icons.visibility_off,
                             color: Colors.grey,
@@ -101,10 +120,7 @@ class LoginPage extends StatelessWidget {
                       ),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const ModuleMain()));
+                          signIn();
                         },
                         child: Container(
                           height: 55,
@@ -169,5 +185,22 @@ class LoginPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void signIn() async {
+    String email = emailController.text;
+    String password = passwordController.text;
+    User? user = await auth.singInWithEmailAndPassword(email, password);
+
+    if (user != null) {
+      print("Inicio sesión con éxito");
+      // Navegar a ModuleMain después del registro exitoso
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const ModuleMain()),
+      );
+    } else {
+      print("Error al registrar");
+    }
   }
 }

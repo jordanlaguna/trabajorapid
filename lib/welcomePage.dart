@@ -1,8 +1,10 @@
-// ignore_for_file: file_names
-
+// ignore_for_file: file_names, avoid_print, use_build_context_synchronously
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:trabajorapid/regPage.dart';
 import 'loginPage.dart';
+import 'package:trabajorapid/moduleMain.dart';
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({Key? key}) : super(key: key);
@@ -115,8 +117,7 @@ class WelcomePage extends StatelessWidget {
                   fontWeight: FontWeight.w400),
             ),
             Padding(
-              padding: const EdgeInsets.all(
-                  8.0), // Relleno alrededor de todos los botones
+              padding: const EdgeInsets.all(8.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -126,11 +127,16 @@ class WelcomePage extends StatelessWidget {
                     },
                     icon: Image.asset('assets/images/facebook.png', height: 50),
                   ),
-                  IconButton(
-                    onPressed: () {
-                      // Acción cuando se presiona el botón de Gmail
+                  GestureDetector(
+                    onTap: () {
+                      _signInWithGoogle(context);
                     },
-                    icon: Image.asset('assets/images/gmail.png', height: 50),
+                    child: IconButton(
+                      onPressed: () {
+                        _signInWithGoogle(context);
+                      },
+                      icon: Image.asset('assets/images/gmail.png', height: 50),
+                    ),
                   ),
                   IconButton(
                     onPressed: () {
@@ -146,5 +152,31 @@ class WelcomePage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  static void _signInWithGoogle(BuildContext context) async {
+    final GoogleSignIn googleSignIn = GoogleSignIn();
+    try {
+      final GoogleSignInAccount? googleSignInAccount =
+          await googleSignIn.signIn();
+      if (googleSignInAccount != null) {
+        final GoogleSignInAuthentication googleSignInAuthentication =
+            await googleSignInAccount.authentication;
+        final AuthCredential credential = GoogleAuthProvider.credential(
+            idToken: googleSignInAuthentication.idToken,
+            accessToken: googleSignInAuthentication.accessToken);
+        final UserCredential userCredential =
+            await FirebaseAuth.instance.signInWithCredential(credential);
+        final User? user = userCredential.user;
+        if (user != null) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const ModuleMain()),
+          );
+        }
+      }
+    } catch (e) {
+      print('Error signing in with Google: $e');
+    }
   }
 }

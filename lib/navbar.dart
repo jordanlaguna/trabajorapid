@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:trabajorapid/welcomePage.dart';
 
@@ -151,6 +152,7 @@ class NavBar extends StatelessWidget {
                   color: Colors.black),
             ),
             onTap: () {
+              FirebaseAuth.instance.signOut();
               Navigator.pop(context);
               Navigator.push(context,
                   MaterialPageRoute(builder: (context) => const WelcomePage()));
