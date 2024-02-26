@@ -2,6 +2,7 @@
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:trabajorapid/navbar.dart';
+
 import 'package:trabajorapid/pageMenuBottom/favorite.dart';
 import 'package:trabajorapid/pageMenuBottom/home.dart';
 import 'package:trabajorapid/pageMenuBottom/profile.dart';
@@ -51,7 +52,7 @@ class _ModuleMainState extends State<ModuleMain> {
         drawer: const NavBar(),
         appBar: AppBar(
           title: const Text(
-            'TrabajosRapid',
+            'Rapid Service',
             style: TextStyle(
               fontSize: 20,
               fontFamily: 'Montserrat',
