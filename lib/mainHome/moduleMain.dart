@@ -1,8 +1,7 @@
 // ignore_for_file: file_names
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:trabajorapid/navbar.dart';
-
+import 'package:trabajorapid/components/menuSlider/navbar.dart';
 import 'package:trabajorapid/pageMenuBottom/favorite.dart';
 import 'package:trabajorapid/pageMenuBottom/home.dart';
 import 'package:trabajorapid/pageMenuBottom/profile.dart';
@@ -20,8 +19,7 @@ class ModuleMain extends StatefulWidget {
 }
 
 class _ModuleMainState extends State<ModuleMain> {
-  int index =
-      0; // Cambiar el índice inicial a 0 para que la página de inicio se muestre primero
+  int index = 0;
   final screen = const [
     HomePage(),
     ProfilePage(),
@@ -52,7 +50,7 @@ class _ModuleMainState extends State<ModuleMain> {
         drawer: const NavBar(),
         appBar: AppBar(
           title: const Text(
-            'Rapid Service',
+            'Trabajo Rapid',
             style: TextStyle(
               fontSize: 20,
               fontFamily: 'Montserrat',
@@ -82,10 +80,7 @@ class _ModuleMainState extends State<ModuleMain> {
           index: index,
           onTap: (newIndex) {
             setState(() {
-              // Actualizar el índice al nuevo índice seleccionado
-              index = newIndex %
-                  screen
-                      .length; // Usar el módulo para asegurarse de que el índice esté dentro del rango
+              index = newIndex % screen.length;
             });
           },
         ),

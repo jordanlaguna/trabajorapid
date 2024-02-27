@@ -2,7 +2,7 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:trabajorapid/welcomePage.dart';
+import 'package:trabajorapid/components/welcomeLogin/welcomePage.dart';
 
 class NavBar extends StatelessWidget {
   const NavBar({super.key});

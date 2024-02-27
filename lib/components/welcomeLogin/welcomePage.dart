@@ -2,9 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:trabajorapid/regPage.dart';
-import 'loginPage.dart';
-import 'package:trabajorapid/moduleMain.dart';
+import 'package:trabajorapid/components/register/regPage.dart';
+import 'package:trabajorapid/components/login/loginPage.dart';
+import 'package:trabajorapid/mainHome/moduleMain.dart';
 
 class WelcomePage extends StatefulWidget {
   const WelcomePage({Key? key}) : super(key: key);
@@ -31,7 +31,7 @@ class _WelcomePage extends State<WelcomePage> {
             const Padding(
               padding: EdgeInsets.only(top: 70.0),
               child: Text(
-                'Rapid Service',
+                'Trabajos Rapid',
                 style: TextStyle(
                   fontSize: 30,
                   fontFamily: 'Montserrat',
@@ -52,7 +52,7 @@ class _WelcomePage extends State<WelcomePage> {
               height: 10,
             ),
             const Text(
-              'Bienvenido!',
+              'Bienvenido',
               style: TextStyle(
                   fontSize: 30,
                   color: Colors.white,

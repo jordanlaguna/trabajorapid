@@ -2,8 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:trabajorapid/firebase_options.dart';
-
-import 'welcomePage.dart';
+import 'package:trabajorapid/components/welcomeLogin/welcomePage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
