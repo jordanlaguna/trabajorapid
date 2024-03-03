@@ -71,7 +71,7 @@ class _ModuleMainState extends State<ModuleMain> {
           ),
           iconTheme: const IconThemeData(color: Colors.white, size: 35),
         ),
-        body: screen.elementAt(index), // Usar el índice actual
+        body: screen.elementAt(index),
         bottomNavigationBar: CurvedNavigationBar(
           color: const Color.fromARGB(255, 130, 19, 42),
           backgroundColor: Colors.transparent,

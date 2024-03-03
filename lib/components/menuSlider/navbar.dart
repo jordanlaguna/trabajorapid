@@ -14,24 +14,28 @@ class NavBar extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: [
           UserAccountsDrawerHeader(
-            accountName: const Text(
-              'Jordan Laguna Rodríguez',
-              style: TextStyle(
+            accountName: Text(
+              FirebaseAuth.instance.currentUser?.displayName ??
+                  'Nombre de usuario',
+              style: const TextStyle(
                   fontSize: 20,
                   fontFamily: 'Montserrat',
                   fontWeight: FontWeight.w400,
                   color: Colors.white),
             ),
-            accountEmail: const Text(
-              'jordanlaguna10@gmail.com',
-              style: TextStyle(
+            accountEmail: Text(
+              FirebaseAuth.instance.currentUser?.email ?? 'Correo electrónico',
+              style: const TextStyle(
                   fontSize: 14,
                   fontFamily: 'Montserrat',
                   fontWeight: FontWeight.w400,
                   color: Colors.white),
             ),
             currentAccountPicture: CircleAvatar(
-              child: ClipOval(child: Image.asset('assets/images/profile.jpg')),
+              child: ClipOval(
+                  child: Image.network(
+                      FirebaseAuth.instance.currentUser?.photoURL ??
+                          'URL de la imagen')),
             ),
             decoration: const BoxDecoration(
               gradient: LinearGradient(

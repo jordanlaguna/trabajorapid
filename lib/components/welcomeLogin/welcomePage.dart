@@ -136,7 +136,7 @@ class _WelcomePage extends State<WelcomePage> {
                   ),
                   IconButton(
                     onPressed: () {
-                      signInWithGoogle();
+                      _signInWithGoogle();
                     },
                     icon: Image.asset('assets/images/gmail.png', height: 50),
                   ),
@@ -156,7 +156,7 @@ class _WelcomePage extends State<WelcomePage> {
     );
   }
 
-  signInWithGoogle() async {
+  _signInWithGoogle() async {
     final GoogleSignIn _googleSignIn = GoogleSignIn();
     try {
       final GoogleSignInAccount? googleSignInAccount =

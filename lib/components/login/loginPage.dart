@@ -120,7 +120,7 @@ class _LoginPage extends State<LoginPage> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          signIn();
+                          _signIn();
                         },
                         child: Container(
                           height: 55,
@@ -187,11 +187,10 @@ class _LoginPage extends State<LoginPage> {
     );
   }
 
-  void signIn() async {
+  void _signIn() async {
     String email = emailController.text;
     String password = passwordController.text;
     User? user = await auth.singInWithEmailAndPassword(email, password);
-
     if (user != null) {
       print("Inicio sesión con éxito");
       // Navegar a ModuleMain después del registro exitoso
@@ -200,7 +199,7 @@ class _LoginPage extends State<LoginPage> {
         MaterialPageRoute(builder: (context) => const ModuleMain()),
       );
     } else {
-      print("Error al registrar");
+      print("Error al ingresar");
     }
   }
 }
