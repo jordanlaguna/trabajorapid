@@ -1,4 +1,9 @@
 {
     "cmake.sourceDirectory": "C:/Users/jorda/Documents/TrabajoRapid/trabajorapid/linux",
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "workbench.colorCustomizations": {
+        "activityBar.background": "#07323D",
+        "titleBar.activeBackground": "#0A4656",
+        "titleBar.activeForeground": "#F4FCFE"
+    }
 }
