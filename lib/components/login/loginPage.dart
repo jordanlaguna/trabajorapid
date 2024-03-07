@@ -193,7 +193,6 @@ class _LoginPage extends State<LoginPage> {
     User? user = await auth.singInWithEmailAndPassword(email, password);
     if (user != null) {
       print("Inicio sesión con éxito");
-      // Navegar a ModuleMain después del registro exitoso
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const ModuleMain()),

@@ -2,6 +2,7 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:trabajorapid/components/menuSlider/page_chat/page_home_chat.dart';
 import 'package:trabajorapid/components/welcomeLogin/welcomePage.dart';
 
 class NavBar extends StatelessWidget {
@@ -73,7 +74,11 @@ class NavBar extends StatelessWidget {
                   fontWeight: FontWeight.w400,
                   color: Colors.black),
             ),
-            onTap: () => print('Mensajes presionado'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => const PageChat()));
+            },
           ),
           ListTile(
             leading: const Icon(Icons.attach_money_rounded,

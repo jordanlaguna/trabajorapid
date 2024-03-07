@@ -1,5 +1,6 @@
 // ignore_for_file: file_names, unused_field, use_build_context_synchronously, avoid_print, unused_local_variable
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:trabajorapid/firebaseAuth/firabaseAuthImple.dart';
@@ -14,6 +15,7 @@ class RegPage extends StatefulWidget {
 
 class _RegPageState extends State<RegPage> {
   final FirebaseAuthImplements auth = FirebaseAuthImplements();
+  final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -217,21 +219,26 @@ class _RegPageState extends State<RegPage> {
     String password = _passwordController.text;
     String confirmPassword = _passwordConfirmController.text;
 
-    // Verificar si las contraseñas coinciden
     if (password != confirmPassword) {
       print("Las contraseñas no coinciden");
       return;
     }
-    User? user = await auth.singUpWithEmailAndPassword(email, password);
+    UserCredential userCredential =
+        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
 
-    if (user != null) {
-      print("Usuario registrado con éxito");
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const ModuleMain()),
-      );
-    } else {
-      print("Error al registrar");
-    }
+    String uid = userCredential.user!.uid;
+    await _firebaseFirestore.collection('users').doc(uid).set({
+      'uid': uid,
+      'name': name,
+      'email': email,
+    });
+    print("Usuario registrado con éxito");
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const ModuleMain()),
+    );
   }
 }
