@@ -9,12 +9,22 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text(
-          'Ofertas de Servicios',
-          style: TextStyle(
-            fontSize: 24.0,
-            fontWeight: FontWeight.bold,
-            color: Color.fromARGB(255, 255, 0, 0),
+        title: ShaderMask(
+          shaderCallback: (Rect bounds) {
+            return const LinearGradient(
+              colors: [
+                Color(0xffB81736),
+                Color(0xff281537),
+              ],
+            ).createShader(bounds);
+          },
+          child: const Text(
+            'Ofertas de Servicios',
+            style: TextStyle(
+              fontSize: 24.0,
+              fontWeight: FontWeight.bold,
+              color: Colors.white, // Color del texto después del gradiente
+            ),
           ),
         ),
         centerTitle: true,

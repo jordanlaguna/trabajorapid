@@ -7,7 +7,6 @@ import 'package:trabajorapid/components/login/loginPage.dart';
 import 'package:trabajorapid/mainHome/moduleMain.dart';
 import 'package:flutter_login_facebook/flutter_login_facebook.dart';
 
-
 class WelcomePage extends StatefulWidget {
   const WelcomePage({Key? key}) : super(key: key);
   @override
@@ -33,7 +32,7 @@ class _WelcomePage extends State<WelcomePage> {
             const Padding(
               padding: EdgeInsets.only(top: 70.0),
               child: Text(
-                'Trabajos Rapid',
+                'TrabajosRapid',
                 style: TextStyle(
                   fontSize: 30,
                   fontFamily: 'Montserrat',
@@ -198,7 +197,7 @@ class _WelcomePage extends State<WelcomePage> {
           );
 
           final UserCredential userCredential =
-          await FirebaseAuth.instance.signInWithCredential(credential);
+              await FirebaseAuth.instance.signInWithCredential(credential);
 
           // Verifica si la autenticación con Firebase fue exitosa
           if (userCredential.user != null) {
@@ -210,7 +209,8 @@ class _WelcomePage extends State<WelcomePage> {
           }
           break;
         case FacebookLoginStatus.cancel:
-          print('El inicio de sesión con Facebook fue cancelado por el usuario');
+          print(
+              'El inicio de sesión con Facebook fue cancelado por el usuario');
           break;
         case FacebookLoginStatus.error:
           print('Error al iniciar sesión con Facebook: ${result.error}');

@@ -50,7 +50,7 @@ class _ModuleMainState extends State<ModuleMain> {
         drawer: const NavBar(),
         appBar: AppBar(
           title: const Text(
-            'Trabajo Rapid',
+            'Trabajos Rapid',
             style: TextStyle(
               fontSize: 20,
               fontFamily: 'Montserrat',
@@ -58,6 +58,7 @@ class _ModuleMainState extends State<ModuleMain> {
               color: Colors.white,
             ),
           ),
+          centerTitle: true,
           backgroundColor: Colors.transparent,
           flexibleSpace: Container(
             decoration: const BoxDecoration(
