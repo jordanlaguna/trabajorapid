@@ -19,7 +19,25 @@ class _PageChatState extends State<PageChat> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chats'),
+        title: const Text('Chats',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontFamily: 'Montserrat',
+              fontWeight: FontWeight.w400,
+            )),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color(0xffB81736),
+                Color(0xff281537),
+              ],
+            ),
+          ),
+        ),
       ),
       body: _buildUserList(),
     );
@@ -54,7 +72,7 @@ class _PageChatState extends State<PageChat> {
           context,
           MaterialPageRoute(
             builder: (context) => ChatHome(
-                receiverUserEmail: data['email'], receiverUserID: data['uid']),
+                receiverUserEmail: data['name'], receiverUserID: data['uid']),
           ),
         );
       },

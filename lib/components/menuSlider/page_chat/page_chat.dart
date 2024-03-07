@@ -34,7 +34,25 @@ class _ChatHomeState extends State<ChatHome> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.receiverUserEmail),
+        title: Text(widget.receiverUserEmail,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontFamily: 'Montserrat',
+              fontWeight: FontWeight.w400,
+            )),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color(0xffB81736),
+                Color(0xff281537),
+              ],
+            ),
+          ),
+        ),
       ),
       body: Column(
         children: [
@@ -45,7 +63,7 @@ class _ChatHomeState extends State<ChatHome> {
 
           //user input
           _buildMessageInput(),
-          const SizedBox(height: 15),
+          const SizedBox(height: 10),
         ],
       ),
     );
@@ -90,7 +108,7 @@ class _ChatHomeState extends State<ChatHome> {
             : MainAxisAlignment.start),
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 5.0),
+            padding: const EdgeInsets.only(left: 5.0, top: 7.0),
             child: Text(
               data['senderEmail'],
               style: const TextStyle(
@@ -99,7 +117,7 @@ class _ChatHomeState extends State<ChatHome> {
               ),
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 7.0),
           BurbleChat(message: data['message'])
         ],
       ),
@@ -109,7 +127,11 @@ class _ChatHomeState extends State<ChatHome> {
   //build message input
   Widget _buildMessageInput() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 25.0),
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(20.0),
+      ),
       child: Row(
         children: [
           Expanded(
@@ -117,6 +139,8 @@ class _ChatHomeState extends State<ChatHome> {
               controller: messageTextController,
               decoration: const InputDecoration(
                 hintText: 'Escribir mensaje...',
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
               ),
             ),
           ),
