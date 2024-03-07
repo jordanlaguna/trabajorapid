@@ -1,7 +1,8 @@
 // ignore_for_file: library_private_types_in_public_api, file_names, avoid_print
 
 import 'package:flutter/material.dart';
-import 'package:trabajorapid/mainHome/moduleMain.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:trabajorapid/pageMenuBottom/profileService/profileService.dart';
 
 class HomePageService extends StatefulWidget {
   const HomePageService({Key? key}) : super(key: key);
@@ -42,7 +43,7 @@ class _HomePageServiceState extends State<HomePageService> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
       appBar: AppBar(
         title: const Text(
           'Ofertas de Servicios',
@@ -191,6 +192,25 @@ Widget buildCuadro(BuildContext context, String titulo, String contenido) {
                   fontSize: 18.0,
                 ),
               ),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: RatingBar.builder(
+                  initialRating: 4,
+                  minRating: 1,
+                  direction: Axis.horizontal,
+                  allowHalfRating: true,
+                  itemCount: 5,
+                  itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  itemSize: 20,
+                  itemBuilder: (context, _) => const Icon(
+                    Icons.star,
+                    color: Colors.amber,
+                  ),
+                  onRatingUpdate: (rating) {
+                    // Puedes manejar la actualización de la calificación aquí
+                  },
+                ),
+              ),
               const SizedBox(height: 10.0),
               Text(contenido),
               const SizedBox(height: 10.0),
@@ -198,7 +218,7 @@ Widget buildCuadro(BuildContext context, String titulo, String contenido) {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const ModuleMain()),
+                    MaterialPageRoute(builder: (context) => const Profile()),
                   );
                 },
                 child: const Text('Presiona aquí'),
@@ -214,5 +234,6 @@ Widget buildCuadro(BuildContext context, String titulo, String contenido) {
 void main() {
   runApp(const MaterialApp(
     home: HomePageService(),
+    debugShowCheckedModeBanner: false,
   ));
 }
