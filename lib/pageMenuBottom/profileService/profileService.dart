@@ -1,6 +1,7 @@
 // ignore_for_file: file_names
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:trabajorapid/components/menuSlider/page_chat/page_home_chat.dart';
 
 void main() {
   runApp(
@@ -177,7 +178,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           ElevatedButton(
             onPressed: () {
-              // Acción al presionar el botón (puede ser redirigir a otro enlace, abrir una pantalla de edición, etc.).
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PageChat()),
+              );
             },
             child: const Text('Negociar'),
           ),

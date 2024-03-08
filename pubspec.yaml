@@ -44,6 +44,7 @@ dependencies:
   flutter_login_facebook: ^1.9.0
  
   flutter_rating_bar: ^4.0.1
+  carousel_slider: ^4.0.0
  
 
 dev_dependencies:

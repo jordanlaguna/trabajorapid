@@ -1,8 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:trabajorapid/pageMenuBottom/homeService/homeService.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
+
+  Widget buildCarousel(BuildContext context) {
+    return CarouselSlider(
+      options: CarouselOptions(
+        height: 150.0,
+        enableInfiniteScroll: true,
+        autoPlay: true,
+      ),
+      items: [
+        buildCuadro(context, 'Exteriores', 'Patios, Gardines, Arboles...'),
+        buildCuadro(context, 'Interiores', 'Limpiesa, Lavanderia...'),
+        buildCuadro(context, 'Transporte', 'Viajes, Carga, Express...'),
+        buildCuadro(context, 'Plomeria', 'Rotura, Goteras, Instalación...'),
+        buildCuadro(
+            context, 'Electricista', 'Cortes, Mantenimiento, Instalación...'),
+        buildCuadro(context, 'Mecanica', 'Llantas, Pintura, Reparación...'),
+        buildCuadro(context, 'Manicura', 'Pintura, Uñas, Hidratación...'),
+        buildCuadro(context, 'Culinario', 'Cocinar, Eventos, Platillos...'),
+      ]
+          .map((widget) => Container(
+                margin: const EdgeInsets.symmetric(
+                    horizontal: 8.0), // Ajusta el espacio entre los cuadros
+                child: widget,
+              ))
+          .toList(),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +83,8 @@ class HomePage extends StatelessWidget {
                   ],
                 ),
               ),
+              buildCarousel(context),
+              const SizedBox(height: 30.0),
               buildCuadro(
                   context, 'Exteriores', 'Patios, Gardines, Arboles...'),
               const SizedBox(height: 30.0),
