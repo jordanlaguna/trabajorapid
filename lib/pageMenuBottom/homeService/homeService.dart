@@ -1,3 +1,5 @@
+// ignore_for_file: unused_element, avoid_print, file_names
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +12,7 @@ class HomePageService extends StatefulWidget {
   const HomePageService({Key? key}) : super(key: key);
 
   @override
-  _HomePageServiceState createState() => _HomePageServiceState();
+  State<HomePageService> createState() => _HomePageServiceState();
 }
 
 class _HomePageServiceState extends State<HomePageService> {
