@@ -52,7 +52,7 @@ class _ModuleMainState extends State<ModuleMain> {
           title: const Text(
             'Trabajos Rapid',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 24,
               fontFamily: 'Montserrat',
               fontWeight: FontWeight.w400,
               color: Colors.white,
