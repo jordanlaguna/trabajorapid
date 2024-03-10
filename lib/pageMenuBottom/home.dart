@@ -1,34 +1,55 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:trabajorapid/pageMenuBottom/homeService/homeService.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:firebase_core/firebase_core.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(const MaterialApp(
+    home: HomePage(),
+  ));
+}
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
 
-  Widget buildCarousel(BuildContext context) {
+  Widget buildCarousel(BuildContext context, List<DocumentSnapshot> servicios) {
     return CarouselSlider(
       options: CarouselOptions(
         height: 150.0,
         enableInfiniteScroll: true,
         autoPlay: true,
       ),
-      items: [
-        buildCuadro(context, 'Exteriores', 'Patios, Gardines, Arboles...'),
-        buildCuadro(context, 'Interiores', 'Limpiesa, Lavanderia...'),
-        buildCuadro(context, 'Transporte', 'Viajes, Carga, Express...'),
-        buildCuadro(context, 'Plomeria', 'Rotura, Goteras, Instalación...'),
-        buildCuadro(
-            context, 'Electricista', 'Cortes, Mantenimiento, Instalación...'),
-        buildCuadro(context, 'Mecanica', 'Llantas, Pintura, Reparación...'),
-        buildCuadro(context, 'Manicura', 'Pintura, Uñas, Hidratación...'),
-        buildCuadro(context, 'Culinario', 'Cocinar, Eventos, Platillos...'),
-      ]
+      items: servicios
+          .map((servicio) {
+            String titulo = servicio['titulo'];
+            String contenido = servicio['contenido'];
+            return buildCuadro(context, titulo, contenido);
+          })
           .map((widget) => Container(
                 margin: const EdgeInsets.symmetric(
-                    horizontal: 8.0), // Ajusta el espacio entre los cuadros
+                    horizontal: 6.0), // Ajusta el espacio entre los cuadros
                 child: widget,
               ))
           .toList(),
+    );
+  }
+
+  Widget buildCuadrosDesdeFirestore(
+      BuildContext context, List<DocumentSnapshot> servicios) {
+    return Column(
+      children: servicios.map((servicio) {
+        String titulo = servicio['titulo'];
+        String contenido = servicio['contenido'];
+        return Column(
+          children: [
+            const SizedBox(height: 30.0),
+            buildCuadro(context, titulo, contenido),
+          ],
+        );
+      }).toList(),
     );
   }
 
@@ -79,32 +100,42 @@ class HomePage extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 20.0),
+
                     // Carrusel
                   ],
                 ),
               ),
-              buildCarousel(context),
-              const SizedBox(height: 30.0),
-              buildCuadro(
-                  context, 'Exteriores', 'Patios, Gardines, Arboles...'),
-              const SizedBox(height: 30.0),
-              buildCuadro(context, 'Interiores', 'Limpiesa, Lavanderia...'),
-              const SizedBox(height: 30.0),
-              buildCuadro(context, 'Transporte', 'Viajes, Carga, Express...'),
-              const SizedBox(height: 30.0),
-              buildCuadro(
-                  context, 'Plomeria', 'Rotura, Goteras, Instalación...'),
-              const SizedBox(height: 30.0),
-              buildCuadro(context, 'Electricista',
-                  'Cortes, Mantenimiento, Instalación...'),
-              const SizedBox(height: 30.0),
-              buildCuadro(
-                  context, 'Mecanica', 'Llantas, Pintura, Reparación...'),
-              const SizedBox(height: 30.0),
-              buildCuadro(context, 'Manicura', 'Pintura, Uñas, Hidratación...'),
-              const SizedBox(height: 30.0),
-              buildCuadro(
-                  context, 'Culinario', 'Cocinar, Eventos, Platillos...'),
+              FutureBuilder<QuerySnapshot>(
+                future: FirebaseFirestore.instance
+                    .collection('ofertasServicios')
+                    .get(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  } else {
+                    List<DocumentSnapshot> servicios = snapshot.data!.docs;
+                    return buildCarousel(context, servicios);
+                  }
+                },
+              ),
+              const SizedBox(height: 10.0),
+              FutureBuilder<QuerySnapshot>(
+                future: FirebaseFirestore.instance
+                    .collection('ofertasServicios')
+                    .get(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  } else {
+                    List<DocumentSnapshot> servicios = snapshot.data!.docs;
+                    return buildCuadrosDesdeFirestore(context, servicios);
+                  }
+                },
+              ),
               const SizedBox(height: 30.0)
             ],
           ),
@@ -163,10 +194,4 @@ Widget buildCuadro(BuildContext context, String titulo, String contenido) {
       ],
     ),
   );
-}
-
-void main() {
-  runApp(const MaterialApp(
-    home: HomePage(),
-  ));
 }

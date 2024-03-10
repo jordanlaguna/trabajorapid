@@ -1,8 +1,10 @@
-// ignore_for_file: library_private_types_in_public_api, file_names, avoid_print
-
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:trabajorapid/pageMenuBottom/profileService/profileService.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:carousel_slider/carousel_slider.dart'; // Importa la librería del carrusel
 
 class HomePageService extends StatefulWidget {
   const HomePageService({Key? key}) : super(key: key);
@@ -12,25 +14,54 @@ class HomePageService extends StatefulWidget {
 }
 
 class _HomePageServiceState extends State<HomePageService> {
-  final PageController _pageController =
-      PageController(viewportFraction: 0.8, keepPage: true);
-  int currentPage = 0;
+  double userRating = 0.0;
 
   @override
   void initState() {
     super.initState();
-    // Configurar el desplazamiento automático
+    _fetchUserRating();
+  }
+
+  Future<void> _fetchUserRating() async {
+    // Obtén el ID del usuario actual
+    String? userId = FirebaseAuth.instance.currentUser?.uid;
+
+    // Verifica si el usuario está autenticado
+    if (userId != null) {
+      // Consulta la calificación del usuario desde la colección "calificación" de Firebase
+      DocumentSnapshot userRatingDoc = await FirebaseFirestore.instance
+          .collection('calificación')
+          .doc(userId)
+          .get();
+
+      // Verifica si el documento existe antes de obtener la calificación
+      if (userRatingDoc.exists) {
+        // Actualiza el estado con la calificación del usuario
+        setState(() {
+          userRating = userRatingDoc['estrellas'];
+        });
+      } else {
+        // Si no hay una calificación previa, inicializa con 0.0
+        setState(() {
+          userRating = userRatingDoc['estrellas'];
+        });
+      }
+    }
+  }
+
+  final PageController _pageController =
+      PageController(viewportFraction: 0.8, keepPage: true);
+  int currentPage = 0;
+
+  void _configureAutoScroll(int itemCount) {
     _pageController.addListener(() {
       if (_pageController.page == _pageController.page!.toInt()) {
-        // Desplazarse al siguiente elemento al llegar al final
         Future.delayed(const Duration(seconds: 4), () {
-          if (currentPage == 4) {
-            // Si es la última página, volver a la primera suavemente
+          if (currentPage == itemCount - 1) {
             _pageController.animateToPage(0,
                 duration: const Duration(milliseconds: 500),
                 curve: Curves.bounceOut);
           } else {
-            // Pasar a la siguiente página
             _pageController.nextPage(
                 duration: const Duration(milliseconds: 500),
                 curve: Curves.easeInOut);
@@ -38,6 +69,130 @@ class _HomePageServiceState extends State<HomePageService> {
         });
       }
     });
+  }
+
+  // Agrega la función buildCarousel aquí
+  Widget buildCarousel(BuildContext context, List<DocumentSnapshot> servicios) {
+    return CarouselSlider(
+      options: CarouselOptions(
+        height: 150.0,
+        enableInfiniteScroll: true,
+        autoPlay: true,
+      ),
+      items: servicios
+          .map((servicio) {
+            String titulo = servicio['titulo'];
+            String contenido = servicio['contenido'];
+
+            return buildCuadro(context, titulo, contenido);
+          })
+          .map((widget) => Container(
+                margin: const EdgeInsets.symmetric(
+                    horizontal: 6.0), // Ajusta el espacio entre los cuadros
+                child: widget,
+              ))
+          .toList(),
+    );
+  }
+
+  Widget buildCuadro(BuildContext context, String titulo, String contenido) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 10.0),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey),
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Container(
+              width: 90.0,
+              height: 90.0,
+              color: const Color.fromARGB(255, 0, 0, 0),
+            ),
+          ),
+          const SizedBox(width: 16.0),
+          Expanded(
+            flex: 3,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  titulo,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18.0,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: RatingBar.builder(
+                    initialRating: userRating,
+                    minRating: 1,
+                    direction: Axis.horizontal,
+                    allowHalfRating: true,
+                    itemCount: 5,
+                    itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
+                    itemSize: 20,
+                    itemBuilder: (context, _) => const Icon(
+                      Icons.star,
+                      color: Colors.amber,
+                    ),
+                    onRatingUpdate: (rating) {
+                      String? userId = FirebaseAuth.instance.currentUser?.uid;
+
+                      if (userId != null) {
+                        // Guardar la calificación en la colección "calificación" de Firebase
+
+                        FirebaseFirestore.instance
+                            .collection('calificacion')
+                            .doc(userId)
+                            .set({
+                          'estrellas': rating,
+                          'correo': userId,
+                        });
+                      }
+                      setState(() {
+                        userRating = rating;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 10.0),
+                Text(contenido),
+                const SizedBox(height: 10.0),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const Profile()),
+                    );
+                  },
+                  child: const Text('Presiona aquí'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildCuadrosFromDatabase(
+      BuildContext context, List<DocumentSnapshot> cuadros) {
+    return Column(
+      children: cuadros.map((cuadro) {
+        String titulo = cuadro['titulo'];
+        String contenido = cuadro['contenido'];
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: buildCuadro(context, titulo, contenido),
+        );
+      }).toList(),
+    );
   }
 
   @override
@@ -66,7 +221,6 @@ class _HomePageServiceState extends State<HomePageService> {
         ),
         centerTitle: true,
         actions: [
-          // Agrega el botón de menú aquí
           PopupMenuButton<String>(
             onSelected: (value) {
               // Manejar la selección del menú
@@ -103,66 +257,52 @@ class _HomePageServiceState extends State<HomePageService> {
               ),
             ),
             // Carrusel de cuadros con información y fotos
-            SizedBox(
-              height: 200.0, // Ajusta la altura según tus necesidades
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount:
-                    5, // Cambia el número según la cantidad de cuadros que desees
-                onPageChanged: (int page) {
-                  setState(() {
-                    currentPage = page;
-                  });
-                },
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: buildCuadro(
-                      context,
-                      'Cuadro ${index + 1}',
-                      'Contenido del cuadro ${index + 1}',
-                    ),
-                  );
-                },
-              ),
+            FutureBuilder<QuerySnapshot>(
+              future: FirebaseFirestore.instance.collection('servicios').get(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator(); // Muestra un indicador de carga mientras se obtienen los datos
+                }
+
+                if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                }
+
+                List<QueryDocumentSnapshot> documentos = snapshot.data!.docs;
+
+                return buildCarousel(
+                    context, documentos); // Usa la función buildCarousel
+              },
             ),
             // Indicador de página actual
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (index) {
-                return Container(
-                  width: 8.0,
-                  height: 8.0,
-                  margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: currentPage == index
-                        ? Colors.blue
-                        : Colors.grey.withOpacity(0.6),
-                  ),
-                );
-              }),
-            ),
-
+            const SizedBox(height: 3.0),
             // Otro contenido del código existente
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: 9,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: buildCuadro(
-                      context,
-                      'Cuadro ${index + 1}',
-                      'Contenido del cuadro ${index + 1}',
-                    ),
-                  );
-                },
+            SingleChildScrollView(
+              physics: const NeverScrollableScrollPhysics(),
+              child: Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                child: FutureBuilder<QuerySnapshot>(
+                  future:
+                      FirebaseFirestore.instance.collection('servicios').get(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircularProgressIndicator();
+                    }
+
+                    if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    }
+
+                    List<QueryDocumentSnapshot> documentos =
+                        snapshot.data!.docs;
+
+                    return buildCuadrosFromDatabase(context,
+                        documentos); // Usa la función buildCuadrosFromDatabase
+                  },
+                ),
               ),
             ),
           ],
@@ -172,79 +312,11 @@ class _HomePageServiceState extends State<HomePageService> {
   }
 }
 
-Widget buildCuadro(BuildContext context, String titulo, String contenido) {
-  return Container(
-    margin: const EdgeInsets.symmetric(vertical: 10.0),
-    decoration: BoxDecoration(
-      border: Border.all(color: Colors.grey),
-      borderRadius: BorderRadius.circular(10.0),
-    ),
-    child: Row(
-      children: [
-        Expanded(
-          flex: 2,
-          child: Container(
-            width: 90.0,
-            height: 90.0,
-            color: const Color.fromARGB(255, 0, 0, 0),
-          ),
-        ),
-        const SizedBox(width: 16.0),
-        Expanded(
-          flex: 3,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                titulo,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18.0,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: RatingBar.builder(
-                  initialRating: 4,
-                  minRating: 1,
-                  direction: Axis.horizontal,
-                  allowHalfRating: true,
-                  itemCount: 5,
-                  itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
-                  itemSize: 20,
-                  itemBuilder: (context, _) => const Icon(
-                    Icons.star,
-                    color: Colors.amber,
-                  ),
-                  onRatingUpdate: (rating) {
-                    // Puedes manejar la actualización de la calificación aquí
-                  },
-                ),
-              ),
-              const SizedBox(height: 10.0),
-              Text(contenido),
-              const SizedBox(height: 10.0),
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const Profile()),
-                  );
-                },
-                child: const Text('Presiona aquí'),
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
 
-void main() {
   runApp(const MaterialApp(
     home: HomePageService(),
-    debugShowCheckedModeBanner: false,
   ));
 }
