@@ -9,7 +9,7 @@ class ChatServices extends ChangeNotifier {
   final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
 
   //send message
-  Future<void> sedMessage(String receiverId, String message) async {
+  Future<void> sendMessage(String receiverId, String message) async {
     //get current user
     final String currentUserId = _auth.currentUser!.uid;
     final String currentEmail = _auth.currentUser!.email!;

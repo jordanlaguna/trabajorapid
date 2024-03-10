@@ -1,17 +1,20 @@
+// ignore_for_file: avoid_print
+
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:trabajorapid/components/burbleChat/burble_chat.dart';
 import 'package:trabajorapid/services/chat/chat_services.dart';
 
 class ChatHome extends StatefulWidget {
   final String receiverUserEmail;
   final String receiverUserID;
+
   const ChatHome({
-    super.key,
+    Key? key,
     required this.receiverUserEmail,
     required this.receiverUserID,
-  });
+  }) : super(key: key);
 
   @override
   State<ChatHome> createState() => _ChatHomeState();
@@ -22,9 +25,39 @@ class _ChatHomeState extends State<ChatHome> {
   final ChatServices _chatServices = ChatServices();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  @override
+  void initState() {
+    super.initState();
+    _markMessagesAsRead();
+  }
+
+  void _markMessagesAsRead() async {
+    try {
+      // Obtener los IDs de usuario ordenados alfabéticamente
+      List<String> userIds = [_auth.currentUser!.uid, widget.receiverUserID]
+        ..sort();
+
+      String chatRoomId = userIds.join('_');
+
+      CollectionReference messagesRef = FirebaseFirestore.instance
+          .collection('chatRooms')
+          .doc(chatRoomId)
+          .collection('messages');
+
+      QuerySnapshot messagesSnapshot =
+          await messagesRef.where('read', isEqualTo: false).get();
+
+      for (var doc in messagesSnapshot.docs) {
+        messagesRef.doc(doc.id).update({'read': true});
+      }
+    } catch (e) {
+      print('Error marking messages as read: $e');
+    }
+  }
+
   void _sendMessage() async {
     if (messageTextController.text.isNotEmpty) {
-      await _chatServices.sedMessage(
+      await _chatServices.sendMessage(
           widget.receiverUserID, messageTextController.text);
       messageTextController.clear();
     }
@@ -37,7 +70,7 @@ class _ChatHomeState extends State<ChatHome> {
         title: Text(widget.receiverUserEmail,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 20,
+              fontSize: 24,
               fontFamily: 'Montserrat',
               fontWeight: FontWeight.w400,
             )),
@@ -56,12 +89,9 @@ class _ChatHomeState extends State<ChatHome> {
       ),
       body: Column(
         children: [
-          //message
           Expanded(
             child: _buildMessageList(),
           ),
-
-          //user input
           _buildMessageInput(),
           const SizedBox(height: 10),
         ],
@@ -69,7 +99,6 @@ class _ChatHomeState extends State<ChatHome> {
     );
   }
 
-  //build message list
   Widget _buildMessageList() {
     return StreamBuilder(
         stream: _chatServices.getMessages(
@@ -89,11 +118,9 @@ class _ChatHomeState extends State<ChatHome> {
         });
   }
 
-  //build message item
   Widget _buildMessageItem(DocumentSnapshot document) {
     Map<String, dynamic> data = document.data() as Map<String, dynamic>;
 
-    //alignment of the message item
     var alignment = (data['senderId'] == _auth.currentUser!.uid)
         ? Alignment.centerRight
         : Alignment.centerLeft;
@@ -124,7 +151,6 @@ class _ChatHomeState extends State<ChatHome> {
     );
   }
 
-  //build message input
   Widget _buildMessageInput() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),

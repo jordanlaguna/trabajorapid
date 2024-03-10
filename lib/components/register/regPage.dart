@@ -89,7 +89,7 @@ class _RegPageState extends State<RegPage> {
                           labelStyle: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontFamily: 'Montserrat',
-                            color: Color(0xffB81736),
+                            color: Color.fromARGB(255, 130, 19, 42),
                           ),
                         ),
                       ),
@@ -104,7 +104,7 @@ class _RegPageState extends State<RegPage> {
                           labelStyle: TextStyle(
                             fontFamily: 'Montserrat',
                             fontWeight: FontWeight.bold,
-                            color: Color(0xffB81736),
+                            color: Color.fromARGB(255, 130, 19, 42),
                           ),
                         ),
                       ),
@@ -120,7 +120,7 @@ class _RegPageState extends State<RegPage> {
                           labelStyle: TextStyle(
                             fontFamily: 'Montserrat',
                             fontWeight: FontWeight.bold,
-                            color: Color(0xffB81736),
+                            color: Color.fromARGB(255, 130, 19, 42),
                           ),
                         ),
                       ),
@@ -136,7 +136,7 @@ class _RegPageState extends State<RegPage> {
                           labelStyle: TextStyle(
                             fontFamily: 'Montserrat',
                             fontWeight: FontWeight.bold,
-                            color: Color(0xffB81736),
+                            color: Color.fromARGB(255, 130, 19, 42),
                           ),
                         ),
                       ),

@@ -3,10 +3,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:trabajorapid/components/menuSlider/page_chat/page_home_chat.dart';
+import 'package:trabajorapid/components/menuSlider/perfilDrawer/profile_drawer.dart';
 import 'package:trabajorapid/components/welcomeLogin/welcomePage.dart';
 
 class NavBar extends StatelessWidget {
-  const NavBar({super.key});
+  const NavBar({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +22,7 @@ class NavBar extends StatelessWidget {
               style: const TextStyle(
                   fontSize: 20,
                   fontFamily: 'Montserrat',
-                  fontWeight: FontWeight.w400,
+                  fontWeight: FontWeight.bold,
                   color: Colors.white),
             ),
             accountEmail: Text(
@@ -29,7 +30,7 @@ class NavBar extends StatelessWidget {
               style: const TextStyle(
                   fontSize: 14,
                   fontFamily: 'Montserrat',
-                  fontWeight: FontWeight.w400,
+                  fontWeight: FontWeight.bold,
                   color: Colors.white),
             ),
             currentAccountPicture: CircleAvatar(
@@ -48,30 +49,56 @@ class NavBar extends StatelessWidget {
             ),
           ),
           ListTile(
-            leading: const Icon(
-              Icons.account_circle,
-              color: Colors.black,
-              size: 30,
+            leading: ShaderMask(
+              shaderCallback: (Rect bounds) {
+                return const LinearGradient(
+                  colors: [
+                    Color(0xffB81736),
+                    Color(0xff281537),
+                  ],
+                ).createShader(bounds);
+              },
+              child: const Icon(
+                Icons.account_circle,
+                size: 30,
+                color: Colors.white,
+              ),
             ),
             title: const Text(
               'Perfil',
               style: TextStyle(
                   fontSize: 18,
                   fontFamily: 'Montserrat',
-                  fontWeight: FontWeight.w400,
+                  fontWeight: FontWeight.bold,
                   color: Colors.black),
             ),
-            onTap: () => print('Perfil presionado'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const ProfileDrawer()));
+            },
           ),
           ListTile(
-            leading: const Icon(Icons.message_rounded,
-                color: Colors.black, size: 30),
+            leading: ShaderMask(
+              shaderCallback: (Rect bounds) {
+                return const LinearGradient(
+                  colors: [
+                    Color(0xffB81736),
+                    Color(0xff281537),
+                  ],
+                ).createShader(bounds);
+              },
+              child: const Icon(Icons.message_rounded,
+                  size: 30, color: Colors.white),
+            ),
             title: const Text(
               'Mensajes',
               style: TextStyle(
                   fontSize: 18,
                   fontFamily: 'Montserrat',
-                  fontWeight: FontWeight.w400,
+                  fontWeight: FontWeight.bold,
                   color: Colors.black),
             ),
             onTap: () {
@@ -81,83 +108,143 @@ class NavBar extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.attach_money_rounded,
-                color: Colors.black, size: 30),
+            leading: ShaderMask(
+              shaderCallback: (Rect bounds) {
+                return const LinearGradient(
+                  colors: [
+                    Color(0xffB81736),
+                    Color(0xff281537),
+                  ],
+                ).createShader(bounds);
+              },
+              child: const Icon(Icons.attach_money_rounded,
+                  size: 30, color: Colors.white),
+            ),
             title: const Text(
               'Pagos',
               style: TextStyle(
                   fontSize: 18,
                   fontFamily: 'Montserrat',
-                  fontWeight: FontWeight.w400,
+                  fontWeight: FontWeight.bold,
                   color: Colors.black),
             ),
             onTap: () => print('Pagos presionado'),
           ),
           ListTile(
-            leading:
-                const Icon(Icons.work_history, color: Colors.black, size: 30),
+            leading: ShaderMask(
+              shaderCallback: (Rect bounds) {
+                return const LinearGradient(
+                  colors: [
+                    Color(0xffB81736),
+                    Color(0xff281537),
+                  ],
+                ).createShader(bounds);
+              },
+              child:
+                  const Icon(Icons.work_history, size: 30, color: Colors.white),
+            ),
             title: const Text(
               'Trabajos',
               style: TextStyle(
                   fontSize: 18,
                   fontFamily: 'Montserrat',
-                  fontWeight: FontWeight.w400,
+                  fontWeight: FontWeight.bold,
                   color: Colors.black),
             ),
             onTap: () => print('Trabajos presionado'),
           ),
           ListTile(
-            leading:
-                const Icon(Icons.notifications, color: Colors.black, size: 30),
+            leading: ShaderMask(
+              shaderCallback: (Rect bounds) {
+                return const LinearGradient(
+                  colors: [
+                    Color(0xffB81736),
+                    Color(0xff281537),
+                  ],
+                ).createShader(bounds);
+              },
+              child: const Icon(Icons.notifications,
+                  size: 30, color: Colors.white),
+            ),
             title: const Text(
               'Notificaciones',
               style: TextStyle(
                   fontSize: 18,
                   fontFamily: 'Montserrat',
-                  fontWeight: FontWeight.w400,
+                  fontWeight: FontWeight.bold,
                   color: Colors.black),
             ),
             onTap: () => print('Notificaciones presionado'),
           ),
           const Divider(
             height: 30,
-            color: Colors.black,
+            color: Color(0xffB81736),
           ),
           ListTile(
-            leading:
-                const Icon(Icons.help_rounded, color: Colors.black, size: 30),
+            leading: ShaderMask(
+              shaderCallback: (Rect bounds) {
+                return const LinearGradient(
+                  colors: [
+                    Color(0xffB81736),
+                    Color(0xff281537),
+                  ],
+                ).createShader(bounds);
+              },
+              child:
+                  const Icon(Icons.help_rounded, size: 30, color: Colors.white),
+            ),
             title: const Text(
               'Ayuda',
               style: TextStyle(
                   fontSize: 18,
                   fontFamily: 'Montserrat',
-                  fontWeight: FontWeight.w400,
+                  fontWeight: FontWeight.bold,
                   color: Colors.black),
             ),
             onTap: () => print('Ayuda presionado'),
           ),
           ListTile(
-            leading: const Icon(Icons.settings_rounded,
-                color: Colors.black, size: 30),
+            leading: ShaderMask(
+              shaderCallback: (Rect bounds) {
+                return const LinearGradient(
+                  colors: [
+                    Color(0xffB81736),
+                    Color(0xff281537),
+                  ],
+                ).createShader(bounds);
+              },
+              child: const Icon(Icons.settings_rounded,
+                  size: 30, color: Colors.white),
+            ),
             title: const Text(
               'Configuración',
               style: TextStyle(
                   fontSize: 18,
                   fontFamily: 'Montserrat',
-                  fontWeight: FontWeight.w400,
+                  fontWeight: FontWeight.bold,
                   color: Colors.black),
             ),
             onTap: () => print('Configuracion presionado'),
           ),
           ListTile(
-            leading:
-                const Icon(Icons.logout_rounded, color: Colors.black, size: 30),
+            leading: ShaderMask(
+              shaderCallback: (Rect bounds) {
+                return const LinearGradient(
+                  colors: [
+                    Color(0xffB81736),
+                    Color(0xff281537),
+                  ],
+                ).createShader(bounds);
+              },
+              child: const Icon(Icons.logout_rounded,
+                  size: 30, color: Colors.white),
+            ),
             title: const Text(
               'Salir',
               style: TextStyle(
                   fontSize: 18,
                   fontFamily: 'Montserrat',
-                  fontWeight: FontWeight.w400,
+                  fontWeight: FontWeight.bold,
                   color: Colors.black),
             ),
             onTap: () {

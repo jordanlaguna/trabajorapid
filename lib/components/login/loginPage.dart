@@ -79,8 +79,8 @@ class _LoginPage extends State<LoginPage> {
                           labelText: 'Correo',
                           labelStyle: TextStyle(
                             fontFamily: 'Montserrat',
-                            fontWeight: FontWeight.w400,
-                            color: Color(0xffB81736),
+                            fontWeight: FontWeight.bold,
+                            color: Color.fromARGB(255, 130, 19, 42),
                           ),
                         ),
                       ),
@@ -95,8 +95,8 @@ class _LoginPage extends State<LoginPage> {
                           labelText: 'Contraseña',
                           labelStyle: TextStyle(
                             fontFamily: 'Montserrat',
-                            fontWeight: FontWeight.w400,
-                            color: Color(0xffB81736),
+                            fontWeight: FontWeight.bold,
+                            color: Color.fromARGB(255, 130, 19, 42),
                           ),
                         ),
                       ),
