@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:trabajorapid/pageMenuBottom/profileService/profileService.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:carousel_slider/carousel_slider.dart'; // Importa la librería del carrusel
+import 'package:carousel_slider/carousel_slider.dart';
+import 'dart:async';
 
 class HomePageService extends StatefulWidget {
   const HomePageService({Key? key}) : super(key: key);
@@ -14,61 +15,81 @@ class HomePageService extends StatefulWidget {
 }
 
 class _HomePageServiceState extends State<HomePageService> {
-  double userRating = 0.0;
+  Map<String, double> userRatings = {};
+
+  late final PageController _pageController;
+
+  final StreamController<List<DocumentSnapshot>> _controller =
+      StreamController<List<DocumentSnapshot>>();
+
+  final StreamController<List<DocumentSnapshot>> _star =
+      StreamController<List<DocumentSnapshot>>();
 
   @override
   void initState() {
     super.initState();
-    _fetchUserRating();
+    _fetchDataFromFirebase();
+    _StarDataFromFirebase();
+    _loadUserRatingsFromFirebase();
   }
 
-  Future<void> _fetchUserRating() async {
-    // Obtén el ID del usuario actual
-    String? userId = FirebaseAuth.instance.currentUser?.uid;
+  void _loadUserRatingsFromFirebase() async {
+    try {
+      String? userId = FirebaseAuth.instance.currentUser?.uid;
 
-    // Verifica si el usuario está autenticado
-    if (userId != null) {
-      // Consulta la calificación del usuario desde la colección "calificación" de Firebase
-      DocumentSnapshot userRatingDoc = await FirebaseFirestore.instance
-          .collection('calificación')
-          .doc(userId)
-          .get();
+      if (userId != null) {
+        QuerySnapshot ratingSnapshot = await FirebaseFirestore.instance
+            .collection('calificacion')
+            .where('correo', isEqualTo: userId)
+            .get();
 
-      // Verifica si el documento existe antes de obtener la calificación
-      if (userRatingDoc.exists) {
-        // Actualiza el estado con la calificación del usuario
-        setState(() {
-          userRating = userRatingDoc['estrellas'];
-        });
-      } else {
-        // Si no hay una calificación previa, inicializa con 0.0
-        setState(() {
-          userRating = userRatingDoc['estrellas'];
-        });
+        for (QueryDocumentSnapshot ratingDoc in ratingSnapshot.docs) {
+          String servicioId = ratingDoc['id'];
+          double estrellas = ratingDoc['estrellas'];
+          userRatings[servicioId] = estrellas;
+        }
+
+        setState(() {});
       }
+    } catch (e) {
+      print('Error loading user ratings: $e');
     }
   }
 
-  final PageController _pageController =
-      PageController(viewportFraction: 0.8, keepPage: true);
-  int currentPage = 0;
+  void _StarDataFromFirebase() async {
+    try {
+      QuerySnapshot snapshot =
+          await FirebaseFirestore.instance.collection('calificacion').get();
 
-  void _configureAutoScroll(int itemCount) {
-    _pageController.addListener(() {
-      if (_pageController.page == _pageController.page!.toInt()) {
-        Future.delayed(const Duration(seconds: 4), () {
-          if (currentPage == itemCount - 1) {
-            _pageController.animateToPage(0,
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.bounceOut);
-          } else {
-            _pageController.nextPage(
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.easeInOut);
-          }
-        });
-      }
-    });
+      _star.add(snapshot.docs);
+    } catch (e) {
+      print('Error fetching data: $e');
+    }
+  }
+
+  void _fetchDataFromFirebase() async {
+    try {
+      QuerySnapshot snapshot =
+          await FirebaseFirestore.instance.collection('servicios').get();
+
+      _controller.add(snapshot.docs);
+    } catch (e) {
+      print('Error fetching data: $e');
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _pageController = PageController(viewportFraction: 0.8, keepPage: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.close();
+    _star.close();
+    _pageController.dispose();
+    super.dispose();
   }
 
   // Agrega la función buildCarousel aquí
@@ -78,13 +99,16 @@ class _HomePageServiceState extends State<HomePageService> {
         height: 150.0,
         enableInfiniteScroll: true,
         autoPlay: true,
+        viewportFraction: 0.8,
+        autoPlayInterval:
+            const Duration(seconds: 3), // Agrega esta línea para autoPlay
       ),
       items: servicios
           .map((servicio) {
             String titulo = servicio['titulo'];
             String contenido = servicio['contenido'];
-
-            return buildCuadro(context, titulo, contenido);
+            String idS = servicio['id'];
+            return buildCuadro(context, titulo, contenido, idS);
           })
           .map((widget) => Container(
                 margin: const EdgeInsets.symmetric(
@@ -95,7 +119,9 @@ class _HomePageServiceState extends State<HomePageService> {
     );
   }
 
-  Widget buildCuadro(BuildContext context, String titulo, String contenido) {
+  Widget buildCuadro(
+      BuildContext context, String titulo, String contenido, String idS) {
+    double serviceRating = userRatings[idS] ?? 0.0;
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10.0),
       decoration: BoxDecoration(
@@ -129,7 +155,7 @@ class _HomePageServiceState extends State<HomePageService> {
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   child: RatingBar.builder(
-                    initialRating: userRating,
+                    initialRating: serviceRating,
                     minRating: 1,
                     direction: Axis.horizontal,
                     allowHalfRating: true,
@@ -140,23 +166,55 @@ class _HomePageServiceState extends State<HomePageService> {
                       Icons.star,
                       color: Colors.amber,
                     ),
-                    onRatingUpdate: (rating) {
+                    onRatingUpdate: (rating) async {
                       String? userId = FirebaseAuth.instance.currentUser?.uid;
 
                       if (userId != null) {
-                        // Guardar la calificación en la colección "calificación" de Firebase
-
-                        FirebaseFirestore.instance
+                        // Verificar si el documento ya existe
+                        QuerySnapshot ratingSnapshot = await FirebaseFirestore
+                            .instance
                             .collection('calificacion')
-                            .doc(userId)
-                            .set({
-                          'estrellas': rating,
-                          'correo': userId,
-                        });
+                            .where('correo', isEqualTo: userId)
+                            .get();
+
+                        if (ratingSnapshot.docs.isNotEmpty) {
+                          DocumentSnapshot ratingDoc = ratingSnapshot.docs[0];
+
+                          String calificacionId = ratingDoc['id'];
+
+                          // Actualizar el documento existente con la nueva calificación
+                          if (calificacionId == idS) {
+                            // El id coincide, actualizar solo las estrellas
+                            await FirebaseFirestore.instance
+                                .collection('calificacion')
+                                .doc(ratingDoc
+                                    .id) // Utiliza el ID del documento existente
+                                .update({
+                              'estrellas': rating,
+                            });
+                          } else {
+                            // El id no coincide, crear un nuevo documento
+                            await FirebaseFirestore.instance
+                                .collection('calificacion')
+                                .doc() // Puedes mantener doc() si deseas un nuevo ID automático
+                                .set({
+                              'estrellas': rating,
+                              'correo': userId,
+                              'id': idS,
+                            });
+                          }
+                        } else {
+                          // Crear un nuevo documento si no existe
+                          await FirebaseFirestore.instance
+                              .collection('calificacion')
+                              .doc() // Puedes mantener doc() si deseas un nuevo ID automático
+                              .set({
+                            'estrellas': rating,
+                            'correo': userId,
+                            'id': idS,
+                          });
+                        }
                       }
-                      setState(() {
-                        userRating = rating;
-                      });
                     },
                   ),
                 ),
@@ -186,10 +244,11 @@ class _HomePageServiceState extends State<HomePageService> {
       children: cuadros.map((cuadro) {
         String titulo = cuadro['titulo'];
         String contenido = cuadro['contenido'];
+        String idS = cuadro['id'];
 
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: buildCuadro(context, titulo, contenido),
+          child: buildCuadro(context, titulo, contenido, idS),
         );
       }).toList(),
     );
@@ -263,7 +322,6 @@ class _HomePageServiceState extends State<HomePageService> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const CircularProgressIndicator(); // Muestra un indicador de carga mientras se obtienen los datos
                 }
-
                 if (snapshot.hasError) {
                   return Text('Error: ${snapshot.error}');
                 }
@@ -289,9 +347,8 @@ class _HomePageServiceState extends State<HomePageService> {
                       FirebaseFirestore.instance.collection('servicios').get(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const CircularProgressIndicator();
+                      return const CircularProgressIndicator(); // Muestra un indicador de carga mientras se obtienen los datos
                     }
-
                     if (snapshot.hasError) {
                       return Text('Error: ${snapshot.error}');
                     }
