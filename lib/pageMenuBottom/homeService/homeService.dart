@@ -44,6 +44,31 @@ class _HomePageServiceState extends State<HomePageService> {
             .collection('calificacion')
             .where('correo', isEqualTo: userId)
             .get();
+        // Mapa para almacenar la suma total y la cantidad de documentos por ID de servicio
+        Map<String, Map<String, dynamic>> ratingStats = {};
+
+        for (QueryDocumentSnapshot ratingDoc in ratingSnapshot.docs) {
+          String servicioId = ratingDoc['id'];
+          double estrellas = ratingDoc['estrellas'];
+
+          // Verifica si el ID del servicio ya existe en userRatings
+          if (ratingStats.containsKey(servicioId)) {
+            // Si existe, actualiza la suma total y la cantidad de documentos
+            ratingStats[servicioId]!['sumaTotal'] += estrellas;
+            ratingStats[servicioId]!['cantidadDocumentos'] += 1;
+          } else {
+            // Si no existe, crea una nueva entrada en el mapa
+            ratingStats[servicioId] = {
+              'sumaTotal': estrellas,
+              'cantidadDocumentos': 1,
+            };
+          }
+        }
+        print('Resultados de la calificación:');
+        ratingStats.forEach((key, value) {
+          double media = value['sumaTotal'] / value['cantidadDocumentos'];
+          print('ID de Servicio: $key, Media de Calificación: $media');
+        });
 
         for (QueryDocumentSnapshot ratingDoc in ratingSnapshot.docs) {
           String servicioId = ratingDoc['id'];
@@ -123,7 +148,7 @@ class _HomePageServiceState extends State<HomePageService> {
 
   Widget buildCuadro(
       BuildContext context, String titulo, String contenido, String idS) {
-    double serviceRating = userRatings[idS] ?? 0.0;
+    double mediaEstrellas = userRatings[idS] ?? 0.0;
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10.0),
       decoration: BoxDecoration(
@@ -157,7 +182,7 @@ class _HomePageServiceState extends State<HomePageService> {
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   child: RatingBar.builder(
-                    initialRating: serviceRating,
+                    initialRating: mediaEstrellas,
                     minRating: 1,
                     direction: Axis.horizontal,
                     allowHalfRating: true,
@@ -179,22 +204,32 @@ class _HomePageServiceState extends State<HomePageService> {
                             .where('correo', isEqualTo: userId)
                             .get();
 
+                        print('1');
                         if (ratingSnapshot.docs.isNotEmpty) {
-                          DocumentSnapshot ratingDoc = ratingSnapshot.docs[0];
+                          print('2');
+                          DocumentSnapshot? ratingDoc;
+                          try {
+                            ratingDoc = ratingSnapshot.docs.firstWhere(
+                              (doc) =>
+                                  doc['id'] == idS && doc['correo'] == userId,
+                            );
+                          } catch (e) {
+                            ratingDoc = null;
+                          }
 
-                          String calificacionId = ratingDoc['id'];
-
+                          String calificacionId = ratingDoc?['id'] ?? '';
                           // Actualizar el documento existente con la nueva calificación
-                          if (calificacionId == idS) {
-                            // El id coincide, actualizar solo las estrellas
+                          if (ratingDoc != null) {
+                            print('3');
+                            // El documento existe, actualizar solo las estrellas
                             await FirebaseFirestore.instance
                                 .collection('calificacion')
-                                .doc(ratingDoc
-                                    .id) // Utiliza el ID del documento existente
+                                .doc(ratingDoc.id)
                                 .update({
                               'estrellas': rating,
                             });
                           } else {
+                            print('4');
                             // El id no coincide, crear un nuevo documento
                             await FirebaseFirestore.instance
                                 .collection('calificacion')
@@ -206,6 +241,7 @@ class _HomePageServiceState extends State<HomePageService> {
                             });
                           }
                         } else {
+                          print('5');
                           // Crear un nuevo documento si no existe
                           await FirebaseFirestore.instance
                               .collection('calificacion')
