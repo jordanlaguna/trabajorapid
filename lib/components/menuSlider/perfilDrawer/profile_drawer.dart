@@ -410,36 +410,13 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
     final String telephone = _telephoneController.text;
     final String gender = selectedValue!;
 
-    // Validate that all fields are complete
-    if (identification.isNotEmpty &&
-        date.isNotEmpty &&
-        address.isNotEmpty &&
-        telephone.isNotEmpty &&
-        gender.isNotEmpty) {
-      try {
-        DocumentSnapshot userDoc = await _firebaseFirestore
-            .collection('users')
-            .doc(currentUserId)
-            .get();
-        if (userDoc.exists) {
-          Map<String, dynamic> userData =
-              userDoc.data() as Map<String, dynamic>;
-          // We check if the data is already registered
-          if (userData['identification'] != identification ||
-              userData['date'] != date ||
-              userData['address'] != address ||
-              userData['telephone'] != telephone ||
-              userData['gender'] != gender) {
-            QuickAlert.show(
-              context: context,
-              type: QuickAlertType.warning,
-              text: '¡Todos los datos ya están registrados!',
-              autoCloseDuration: const Duration(seconds: 2),
-              showConfirmBtn: false,
-            );
-            return;
-          }
-        }
+    try {
+      DocumentSnapshot userDoc =
+          await _firebaseFirestore.collection('users').doc(currentUserId).get();
+
+      // Check if user document exists
+      if (!userDoc.exists) {
+        // User is new, register the data
         Map<String, dynamic> newData = {
           if (fullName.isNotEmpty) 'name': fullName,
           if (email.isNotEmpty) 'email': email,
@@ -452,7 +429,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
         await _firebaseFirestore
             .collection('users')
             .doc(currentUserId)
-            .update(newData);
+            .set(newData);
         QuickAlert.show(
           context: context,
           type: QuickAlertType.success,
@@ -460,14 +437,52 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
           autoCloseDuration: const Duration(seconds: 2),
           showConfirmBtn: false,
         );
-      } catch (e) {
-        print(e);
+      } else {
+        // User already exists, check if data is already registered
+        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+        if (userData['identification'] == identification &&
+            userData['date'] == date &&
+            userData['address'] == address &&
+            userData['telephone'] == telephone &&
+            userData['gender'] == gender) {
+          // All data is already registered
+          QuickAlert.show(
+            context: context,
+            type: QuickAlertType.warning,
+            text: '¡Todos los datos ya están registrados!',
+            autoCloseDuration: const Duration(seconds: 2),
+            showConfirmBtn: false,
+          );
+        } else {
+          // Update user data
+          Map<String, dynamic> newData = {
+            if (fullName.isNotEmpty) 'name': fullName,
+            if (email.isNotEmpty) 'email': email,
+            'identification': identification,
+            'gender': gender,
+            'date': date,
+            'address': address,
+            'telephone': telephone
+          };
+          await _firebaseFirestore
+              .collection('users')
+              .doc(currentUserId)
+              .update(newData);
+          QuickAlert.show(
+            context: context,
+            type: QuickAlertType.success,
+            text: '¡Registro exitoso!',
+            autoCloseDuration: const Duration(seconds: 2),
+            showConfirmBtn: false,
+          );
+        }
       }
-    } else {
+    } catch (e) {
+      print(e);
       QuickAlert.show(
         context: context,
         type: QuickAlertType.error,
-        text: '¡Por favor complete todos los campos!',
+        text: 'Hubo un error al procesar la solicitud.',
         autoCloseDuration: const Duration(seconds: 2),
         showConfirmBtn: false,
       );
