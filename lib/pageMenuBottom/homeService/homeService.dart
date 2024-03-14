@@ -42,7 +42,7 @@ class _HomePageServiceState extends State<HomePageService> {
       if (userId != null) {
         QuerySnapshot ratingSnapshot = await FirebaseFirestore.instance
             .collection('calificacion')
-            .where('correo', isEqualTo: userId)
+            .where('uid')
             .get();
         // Mapa para almacenar la suma total y la cantidad de documentos por ID de servicio
         Map<String, Map<String, dynamic>> ratingStats = {};
@@ -67,7 +67,9 @@ class _HomePageServiceState extends State<HomePageService> {
         print('Resultados de la calificación:');
         ratingStats.forEach((key, value) {
           double media = value['sumaTotal'] / value['cantidadDocumentos'];
-          print('ID de Servicio: $key, Media de Calificación: $media');
+          int num = value['cantidadDocumentos'];
+          print(
+              'ID de Servicio: $key, Media de Calificación: $media, cantidad: $num');
         });
 
         for (QueryDocumentSnapshot ratingDoc in ratingSnapshot.docs) {
@@ -149,6 +151,11 @@ class _HomePageServiceState extends State<HomePageService> {
   Widget buildCuadro(
       BuildContext context, String titulo, String contenido, String idS) {
     double mediaEstrellas = userRatings[idS] ?? 0.0;
+
+    int numPersonas = userRatings.entries
+        .where((entry) => entry.value == mediaEstrellas)
+        .length;
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10.0),
       decoration: BoxDecoration(
@@ -179,82 +186,84 @@ class _HomePageServiceState extends State<HomePageService> {
                     fontSize: 18.0,
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: RatingBar.builder(
-                    initialRating: mediaEstrellas,
-                    minRating: 1,
-                    direction: Axis.horizontal,
-                    allowHalfRating: true,
-                    itemCount: 5,
-                    itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    itemSize: 20,
-                    itemBuilder: (context, _) => const Icon(
-                      Icons.star,
-                      color: Colors.amber,
-                    ),
-                    onRatingUpdate: (rating) async {
-                      String? userId = FirebaseAuth.instance.currentUser?.uid;
+                Row(
+                  children: [
+                    RatingBar.builder(
+                      initialRating: mediaEstrellas,
+                      minRating: 1,
+                      direction: Axis.horizontal,
+                      allowHalfRating: true,
+                      itemCount: 5,
+                      itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      itemSize: 20,
+                      itemBuilder: (context, _) => const Icon(
+                        Icons.star,
+                        color: Colors.amber,
+                      ),
+                      onRatingUpdate: (rating) async {
+                        String? userId = FirebaseAuth.instance.currentUser?.uid;
 
-                      if (userId != null) {
-                        // Verificar si el documento ya existe
-                        QuerySnapshot ratingSnapshot = await FirebaseFirestore
-                            .instance
-                            .collection('calificacion')
-                            .where('correo', isEqualTo: userId)
-                            .get();
+                        if (userId != null) {
+                          // Verificar si el documento ya existe
+                          QuerySnapshot ratingSnapshot = await FirebaseFirestore
+                              .instance
+                              .collection('calificacion')
+                              .where('uid', isEqualTo: userId)
+                              .get();
 
-                        print('1');
-                        if (ratingSnapshot.docs.isNotEmpty) {
-                          print('2');
-                          DocumentSnapshot? ratingDoc;
-                          try {
-                            ratingDoc = ratingSnapshot.docs.firstWhere(
-                              (doc) =>
-                                  doc['id'] == idS && doc['correo'] == userId,
-                            );
-                          } catch (e) {
-                            ratingDoc = null;
-                          }
+                          print('1');
+                          if (ratingSnapshot.docs.isNotEmpty) {
+                            print('2');
+                            DocumentSnapshot? ratingDoc;
+                            try {
+                              ratingDoc = ratingSnapshot.docs.firstWhere(
+                                (doc) =>
+                                    doc['id'] == idS && doc['uid'] == userId,
+                              );
+                            } catch (e) {
+                              ratingDoc = null;
+                            }
 
-                          String calificacionId = ratingDoc?['id'] ?? '';
-                          // Actualizar el documento existente con la nueva calificación
-                          if (ratingDoc != null) {
-                            print('3');
-                            // El documento existe, actualizar solo las estrellas
-                            await FirebaseFirestore.instance
-                                .collection('calificacion')
-                                .doc(ratingDoc.id)
-                                .update({
-                              'estrellas': rating,
-                            });
+                            // Actualizar el documento existente con la nueva calificación
+                            if (ratingDoc != null) {
+                              print('3');
+                              // El documento existe, actualizar solo las estrellas
+                              await FirebaseFirestore.instance
+                                  .collection('calificacion')
+                                  .doc(ratingDoc.id)
+                                  .update({
+                                'estrellas': rating,
+                              });
+                            } else {
+                              print('4');
+                              // El id no coincide, crear un nuevo documento
+                              await FirebaseFirestore.instance
+                                  .collection('calificacion')
+                                  .doc() // Puedes mantener doc() si deseas un nuevo ID automático
+                                  .set({
+                                'estrellas': rating,
+                                'uid': userId,
+                                'id': idS,
+                              });
+                            }
                           } else {
-                            print('4');
-                            // El id no coincide, crear un nuevo documento
+                            print('5');
+                            // Crear un nuevo documento si no existe
                             await FirebaseFirestore.instance
                                 .collection('calificacion')
                                 .doc() // Puedes mantener doc() si deseas un nuevo ID automático
                                 .set({
                               'estrellas': rating,
-                              'correo': userId,
+                              'uid': userId,
                               'id': idS,
                             });
                           }
-                        } else {
-                          print('5');
-                          // Crear un nuevo documento si no existe
-                          await FirebaseFirestore.instance
-                              .collection('calificacion')
-                              .doc() // Puedes mantener doc() si deseas un nuevo ID automático
-                              .set({
-                            'estrellas': rating,
-                            'correo': userId,
-                            'id': idS,
-                          });
                         }
-                      }
-                    },
-                  ),
+                      },
+                    ),
+                    const SizedBox(width: 10.0),
+                    Text('($numPersonas)'),
+                  ],
                 ),
                 const SizedBox(height: 10.0),
                 Text(contenido),
