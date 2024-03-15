@@ -32,6 +32,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
   ];
   String? selectedValue;
   File? imageFile;
+
   @override
   void initState() {
     super.initState();
@@ -417,56 +418,66 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
       // Check if user document exists
       if (!userDoc.exists) {
         // User is new, register the data
-    // Validate that all fields are complete
-    if (identification.isNotEmpty &&
-        date.isNotEmpty &&
-        address.isNotEmpty &&
-        telephone.isNotEmpty &&
-        gender.isNotEmpty) {
-      try {
-        DocumentSnapshot userDoc = await _firebaseFirestore
-            .collection('users')
-            .doc(currentUserId)
-            .get();
-        if (userDoc.exists) {
-          Map<String, dynamic> userData =
-              userDoc.data() as Map<String, dynamic>;
-          // We check if the data is already registered
-          if (userData['identification'] == identification &&
-              userData['date'] == date &&
-              userData['address'] == address &&
-              userData['telephone'] == telephone &&
-              userData['gender'] == gender) {
+        if (identification.isNotEmpty &&
+            date.isNotEmpty &&
+            address.isNotEmpty &&
+            telephone.isNotEmpty &&
+            gender.isNotEmpty) {
+          try {
+            DocumentSnapshot userDoc = await _firebaseFirestore
+                .collection('users')
+                .doc(currentUserId)
+                .get();
+            if (userDoc.exists) {
+              Map<String, dynamic> userData =
+                  userDoc.data() as Map<String, dynamic>;
+              // We check if the data is already registered
+              if (userData['identification'] == identification &&
+                  userData['date'] == date &&
+                  userData['address'] == address &&
+                  userData['telephone'] == telephone &&
+                  userData['gender'] == gender) {
+                QuickAlert.show(
+                  context: context,
+                  type: QuickAlertType.warning,
+                  text: '¡Todos los datos ya están registrados!',
+                  autoCloseDuration: const Duration(seconds: 2),
+                  showConfirmBtn: false,
+                );
+                return;
+              }
+            }
+            Map<String, dynamic> newData = {
+              if (fullName.isNotEmpty) 'name': fullName,
+              if (email.isNotEmpty) 'email': email,
+              'identification': identification,
+              'gender': gender,
+              'date': date,
+              'address': address,
+              'telephone': telephone
+            };
+            await _firebaseFirestore
+                .collection('users')
+                .doc(currentUserId)
+                .set(newData);
             QuickAlert.show(
               context: context,
-              type: QuickAlertType.warning,
-              text: '¡Todos los datos ya están registrados!',
+              type: QuickAlertType.success,
+              text: '¡Registro exitoso!',
               autoCloseDuration: const Duration(seconds: 2),
               showConfirmBtn: false,
             );
-            return;
+          } catch (e) {
+            print(e);
+            QuickAlert.show(
+              context: context,
+              type: QuickAlertType.error,
+              text: 'Hubo un error al procesar la solicitud.',
+              autoCloseDuration: const Duration(seconds: 2),
+              showConfirmBtn: false,
+            );
           }
         }
-        Map<String, dynamic> newData = {
-          if (fullName.isNotEmpty) 'name': fullName,
-          if (email.isNotEmpty) 'email': email,
-          'identification': identification,
-          'gender': gender,
-          'date': date,
-          'address': address,
-          'telephone': telephone
-        };
-        await _firebaseFirestore
-            .collection('users')
-            .doc(currentUserId)
-            .set(newData);
-        QuickAlert.show(
-          context: context,
-          type: QuickAlertType.success,
-          text: '¡Registro exitoso!',
-          autoCloseDuration: const Duration(seconds: 2),
-          showConfirmBtn: false,
-        );
       } else {
         // User already exists, check if data is already registered
         Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
@@ -519,7 +530,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
     }
   }
 
-//Selected image from gallery or camera
+  //Selected image from gallery or camera
   void _pickAndUploadImage(BuildContext context) async {
     // Primero, selecciona la imagen
     _pickImage();
@@ -578,71 +589,29 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
       QuickAlert.show(
         context: context,
         type: QuickAlertType.error,
-        text: 'Error al cargar la foto de perfil.',
+        text: 'Hubo un error al cargar la foto de perfil.',
         autoCloseDuration: const Duration(seconds: 2),
         showConfirmBtn: false,
       );
     }
   }
 
-  //create method to register user in firebase when use google sign in
   void updateUserDataFromGoogle(User user) async {
-    final String currentUserId = user.uid;
-    final String fullName = user.displayName ?? '';
-    final String email = user.email ?? '';
-    final String date = _dateController.text;
-    final String address = _addressController.text;
-    final String telephone = _telephoneController.text;
-    final String identification = _identificationController.text;
-    final String gender = selectedValue!;
+    String? email = user.email;
+    String? name = user.displayName;
+    String uid = user.uid;
 
-    DocumentSnapshot userDoc =
-        await _firebaseFirestore.collection('users').doc(currentUserId).get();
-    // We check if the user is already registered in the database
-    if (userDoc.exists) {
-      Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
-      Map<String, dynamic> newData = {
-        if (userData['identification'] != null)
-          'identification': userData['identification'],
-        if (userData['date'] != null) 'date': userData['date'],
-        if (userData['address'] != null) 'address': userData['address'],
-        if (userData['telephone'] != null) 'telephone': userData['telephone'],
-        if (userData['gender'] != null) 'gender': userData['gender'],
-        'name': fullName,
-        'email': email,
-      };
+    if (email != null && name != null) {
+      DocumentSnapshot userDoc =
+          await _firebaseFirestore.collection('users').doc(uid).get();
 
-      await _firebaseFirestore
-          .collection('users')
-          .doc(currentUserId)
-          .update(newData);
-      QuickAlert.show(
-        context: context,
-        type: QuickAlertType.success,
-        text: '¡Actualización exitosa!',
-        autoCloseDuration: const Duration(seconds: 2),
-        showConfirmBtn: false,
-      );
-    } else {
-      await _firebaseFirestore.collection('users').doc(currentUserId).set({
-        'uid': currentUserId,
-        'name': fullName,
-        'email': email,
-        'identification': identification,
-        'date': date,
-        'address': address,
-        'telephone': telephone,
-        'gender': gender,
-      });
-      QuickAlert.show(
-        context: context,
-        type: QuickAlertType.success,
-        text: '¡Registro exitoso!',
-        autoCloseDuration: const Duration(seconds: 2),
-        showConfirmBtn: false,
-      );
+      if (!userDoc.exists) {
+        await _firebaseFirestore.collection('users').doc(uid).set({
+          'email': email,
+          'name': name,
+          'photoUrl': user.photoURL,
+        });
+      }
     }
-  }
-}
   }
 }

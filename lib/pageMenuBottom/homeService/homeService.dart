@@ -1,4 +1,4 @@
-// ignore_for_file: unused_element, avoid_print, file_names
+// ignore_for_file: unused_element, avoid_print, file_names, unused_local_variable, non_constant_identifier_names
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
