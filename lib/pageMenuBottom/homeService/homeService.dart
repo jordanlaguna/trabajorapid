@@ -18,6 +18,7 @@ class HomePageService extends StatefulWidget {
 
 class _HomePageServiceState extends State<HomePageService> {
   Map<String, double> userRatings = {};
+  Map<String, int> cantidadDocumentos = {};
 
   late final PageController _pageController;
 
@@ -40,16 +41,14 @@ class _HomePageServiceState extends State<HomePageService> {
       String? userId = FirebaseAuth.instance.currentUser?.uid;
 
       if (userId != null) {
-        QuerySnapshot ratingSnapshot = await FirebaseFirestore.instance
-            .collection('calificacion')
-            .where('uid')
-            .get();
+        QuerySnapshot ratingSnapshot =
+            await FirebaseFirestore.instance.collection('calificacion').get();
         // Mapa para almacenar la suma total y la cantidad de documentos por ID de servicio
         Map<String, Map<String, dynamic>> ratingStats = {};
 
         for (QueryDocumentSnapshot ratingDoc in ratingSnapshot.docs) {
           String servicioId = ratingDoc['id'];
-          double estrellas = ratingDoc['estrellas'];
+          double estrellas = (ratingDoc['estrellas'] as num).toDouble();
 
           // Verifica si el ID del servicio ya existe en userRatings
           if (ratingStats.containsKey(servicioId)) {
@@ -64,27 +63,38 @@ class _HomePageServiceState extends State<HomePageService> {
             };
           }
         }
+        setState(() {
+          cantidadDocumentos = ratingStats
+              .map((key, value) => MapEntry(key, value['cantidadDocumentos']));
+        });
+
         print('Resultados de la calificación:');
         ratingStats.forEach((key, value) {
           double media = value['sumaTotal'] / value['cantidadDocumentos'];
-          int num = value['cantidadDocumentos'];
+          int nume = value['cantidadDocumentos'];
           print(
-              'ID de Servicio: $key, Media de Calificación: $media, cantidad: $num');
+              'ID de Servicio: $key, Media de Calificación: $media, cantidad: $nume');
         });
 
         for (QueryDocumentSnapshot ratingDoc in ratingSnapshot.docs) {
           String servicioId = ratingDoc['id'];
-          double estrellas = ratingDoc['estrellas'];
+          double estrellas = (ratingDoc['estrellas'] as num).toDouble();
           userRatings[servicioId] = estrellas;
         }
 
-        setState(() {});
+        setState(() {
+          userRatings = ratingStats.map((key, value) =>
+              MapEntry(key, value['sumaTotal'] / value['cantidadDocumentos']));
+          cantidadDocumentos = ratingStats
+              .map((key, value) => MapEntry(key, value['cantidadDocumentos']));
+        });
       }
     } catch (e) {
       print('Error loading user ratings: $e');
     }
   }
 
+  // ignore: non_constant_identifier_names
   void _StarDataFromFirebase() async {
     try {
       QuerySnapshot snapshot =
@@ -121,7 +131,6 @@ class _HomePageServiceState extends State<HomePageService> {
     super.dispose();
   }
 
-  // Agrega la función buildCarousel aquí
   Widget buildCarousel(BuildContext context, List<DocumentSnapshot> servicios) {
     return CarouselSlider(
       options: CarouselOptions(
@@ -150,12 +159,8 @@ class _HomePageServiceState extends State<HomePageService> {
 
   Widget buildCuadro(
       BuildContext context, String titulo, String contenido, String idS) {
-    double mediaEstrellas = userRatings[idS] ?? 0.0;
-
-    int numPersonas = userRatings.entries
-        .where((entry) => entry.value == mediaEstrellas)
-        .length;
-
+    double mediaEstrellas = userRatings[idS] ?? 0.00;
+    int nume = cantidadDocumentos[idS] ?? 0;
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10.0),
       decoration: BoxDecoration(
@@ -262,7 +267,7 @@ class _HomePageServiceState extends State<HomePageService> {
                       },
                     ),
                     const SizedBox(width: 10.0),
-                    Text('($numPersonas)'),
+                    Text('($nume)'),
                   ],
                 ),
                 const SizedBox(height: 10.0),
