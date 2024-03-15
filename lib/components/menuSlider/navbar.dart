@@ -35,9 +35,10 @@ class NavBar extends StatelessWidget {
             ),
             currentAccountPicture: CircleAvatar(
               child: ClipOval(
-                  child: Image.network(
-                      FirebaseAuth.instance.currentUser?.photoURL ??
-                          'URL de la imagen')),
+                child: Image.network(
+                    FirebaseAuth.instance.currentUser?.photoURL ??
+                        'URL de la imagen'),
+              ),
             ),
             decoration: const BoxDecoration(
               gradient: LinearGradient(

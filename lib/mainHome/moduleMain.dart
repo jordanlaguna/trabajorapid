@@ -5,7 +5,7 @@ import 'package:trabajorapid/components/menuSlider/navbar.dart';
 import 'package:trabajorapid/pageMenuBottom/favorite.dart';
 import 'package:trabajorapid/pageMenuBottom/home.dart';
 import 'package:trabajorapid/pageMenuBottom/profile.dart';
-import 'package:trabajorapid/pageMenuBottom/settings.dart';
+import 'package:trabajorapid/pageMenuBottom/works.dart';
 
 void main() {
   runApp(const ModuleMain());
@@ -24,7 +24,7 @@ class _ModuleMainState extends State<ModuleMain> {
     HomePage(),
     ProfilePage(),
     FavoritePage(),
-    SettingsPage(),
+    WorksPage(),
   ];
 
   @override
@@ -41,7 +41,7 @@ class _ModuleMainState extends State<ModuleMain> {
         size: 35,
       ),
       const Icon(Icons.favorite, color: Colors.white, size: 35),
-      const Icon(Icons.settings, color: Colors.white, size: 35),
+      const Icon(Icons.work_rounded, color: Colors.white, size: 35),
     ];
     return MaterialApp(
       debugShowCheckedModeBanner: false,

@@ -417,6 +417,36 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
       // Check if user document exists
       if (!userDoc.exists) {
         // User is new, register the data
+    // Validate that all fields are complete
+    if (identification.isNotEmpty &&
+        date.isNotEmpty &&
+        address.isNotEmpty &&
+        telephone.isNotEmpty &&
+        gender.isNotEmpty) {
+      try {
+        DocumentSnapshot userDoc = await _firebaseFirestore
+            .collection('users')
+            .doc(currentUserId)
+            .get();
+        if (userDoc.exists) {
+          Map<String, dynamic> userData =
+              userDoc.data() as Map<String, dynamic>;
+          // We check if the data is already registered
+          if (userData['identification'] == identification &&
+              userData['date'] == date &&
+              userData['address'] == address &&
+              userData['telephone'] == telephone &&
+              userData['gender'] == gender) {
+            QuickAlert.show(
+              context: context,
+              type: QuickAlertType.warning,
+              text: '¡Todos los datos ya están registrados!',
+              autoCloseDuration: const Duration(seconds: 2),
+              showConfirmBtn: false,
+            );
+            return;
+          }
+        }
         Map<String, dynamic> newData = {
           if (fullName.isNotEmpty) 'name': fullName,
           if (email.isNotEmpty) 'email': email,
@@ -612,5 +642,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
         showConfirmBtn: false,
       );
     }
+  }
+}
   }
 }

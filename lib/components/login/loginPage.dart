@@ -1,6 +1,8 @@
 // ignore_for_file: file_names, use_build_context_synchronously, avoid_print
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:quickalert/models/quickalert_type.dart';
+import 'package:quickalert/widgets/quickalert_dialog.dart';
 import 'package:trabajorapid/firebaseAuth/firabaseAuthImple.dart';
 import 'package:trabajorapid/mainHome/moduleMain.dart';
 
@@ -191,8 +193,15 @@ class _LoginPage extends State<LoginPage> {
     String email = emailController.text;
     String password = passwordController.text;
     User? user = await auth.singInWithEmailAndPassword(email, password);
+    QuickAlert.show(
+      context: context,
+      type: QuickAlertType.success,
+      text: 'Inicio de sesión exitoso!',
+      autoCloseDuration: const Duration(seconds: 2),
+      showConfirmBtn: false,
+    );
+    await Future.delayed(const Duration(seconds: 2));
     if (user != null) {
-      print("Inicio sesión con éxito");
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const ModuleMain()),

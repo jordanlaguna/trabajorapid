@@ -7,6 +7,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:trabajorapid/pageMenuBottom/profileService/profileService.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+
 import 'dart:async';
 
 class HomePageService extends StatefulWidget {

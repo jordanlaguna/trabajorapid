@@ -148,17 +148,31 @@ class HomePage extends StatelessWidget {
 Widget buildCuadro(BuildContext context, String titulo, String contenido) {
   return Container(
     decoration: BoxDecoration(
-      border: Border.all(color: Colors.grey),
+      border: Border.all(color: const Color.fromARGB(255, 130, 19, 42)),
       borderRadius: BorderRadius.circular(10.0),
     ),
     child: Row(
       children: [
         Expanded(
           flex: 1,
-          child: Container(
+          child: SizedBox(
             width: 90.0,
             height: 90.0,
-            color: const Color.fromARGB(255, 0, 0, 0),
+            child: ShaderMask(
+              shaderCallback: (Rect bounds) {
+                return const LinearGradient(
+                  colors: [
+                    Color(0xffB81736),
+                    Color(0xff281537),
+                  ],
+                ).createShader(bounds);
+              },
+              child: const Icon(
+                Icons.work_history_rounded,
+                size: 50.0,
+                color: Colors.white, // Color del icono después del gradiente
+              ),
+            ),
           ),
         ),
         const SizedBox(width: 16.0),
