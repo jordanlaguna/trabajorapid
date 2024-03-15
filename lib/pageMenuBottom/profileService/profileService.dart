@@ -1,7 +1,10 @@
-// ignore_for_file: file_names
+// ignore_for_file: file_names, library_private_types_in_public_api, avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:trabajorapid/components/menuSlider/page_chat/page_home_chat.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() {
   runApp(
@@ -51,15 +54,23 @@ class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
 
   @override
-  // ignore: library_private_types_in_public_api
   _ProfileScreenState createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _commentController = TextEditingController();
-  List<String> comments = [];
-  bool showRatingSection =
-      true; // Variable para alternar entre calificación y comentarios
+  bool showRatingSection = true;
+  List<Comment> comments = [];
+
+  @override
+  void initState() {
+    super.initState();
+    getComments().then((value) {
+      setState(() {
+        comments = value;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -137,39 +148,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
             )
           else
             SingleChildScrollView(
-              child: SizedBox(
-                height: 200, // Ajusta la altura según sea necesario
-                child: ListView.builder(
-                  itemCount: comments.length + 1,
-                  itemBuilder: (context, index) {
-                    if (index < comments.length) {
+              child: Column(
+                children: [
+                  // show news comments list
+                  ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: comments.length,
+                    itemBuilder: (context, index) {
                       return ListTile(
-                        title: Text(comments[index]),
-                        tileColor: const Color.fromARGB(255, 255, 255, 255),
+                        title: Text(comments[index].userName),
+                        subtitle: Text(comments[index].comment),
                       );
-                    } else {
-                      // Ingresar nuevo comentario
-                      return ListTile(
-                        title: TextField(
-                          controller: _commentController,
-                          decoration: const InputDecoration(
-                            hintText: 'Escribe tu comentario',
-                          ),
-                        ),
-                        tileColor: Colors.grey[200],
-                        trailing: IconButton(
-                          icon: const Icon(Icons.send),
-                          onPressed: () {
-                            setState(() {
-                              comments.add(_commentController.text);
-                              _commentController.clear();
-                            });
-                          },
-                        ),
-                      );
-                    }
-                  },
-                ),
+                    },
+                  ),
+                  const SizedBox(
+                    height: 200,
+                  ),
+                  const Divider(),
+                  ListTile(
+                    title: TextField(
+                      controller: _commentController,
+                      decoration: const InputDecoration(
+                        hintText: 'Escribe tu comentario',
+                      ),
+                    ),
+                    tileColor: Colors.grey[200],
+                    trailing: IconButton(
+                      icon: const Icon(Icons.send),
+                      onPressed: () async {
+                        await addComment(_commentController.text);
+                        _commentController.clear();
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
 
@@ -189,4 +201,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
+
+  // add a new comment to Firestore
+  Future<void> addComment(String comment) async {
+    if (comment.isNotEmpty) {
+      User? user = FirebaseAuth.instance.currentUser;
+
+      if (user != null) {
+        String userName = user.displayName ?? '';
+        String uid = user.uid;
+
+        CollectionReference commentsCollection =
+            FirebaseFirestore.instance.collection('comments');
+        await commentsCollection.add({
+          'uid': uid,
+          'userName': userName,
+          'comment': comment,
+          'timestamp': DateTime.now(),
+        }).then((value) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Comentario agregado')),
+          );
+          updateCommentsList();
+        }).catchError((error) {
+          print("Error al guardar el comentario: $error");
+        });
+      } else {
+        // the user is not logged in
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, escribe un comentario')),
+      );
+    }
+  }
+
+// update the comments list after adding a new comment
+  Future<void> updateCommentsList() async {
+    List<Comment> updatedComments = await getComments();
+    setState(() {
+      comments = updatedComments;
+    });
+  }
+}
+
+// get comments from Firestore and return as a list of Comment objects
+Future<List<Comment>> getComments() async {
+  List<Comment> comments = [];
+  CollectionReference commentsCollection =
+      FirebaseFirestore.instance.collection('comments');
+  QuerySnapshot querySnapshot = await commentsCollection.get();
+  querySnapshot.docs.forEach((doc) {
+    comments.add(Comment(
+      userName: doc['userName'],
+      comment: doc['comment'],
+    ));
+  });
+  return comments;
+}
+
+class Comment {
+  final String userName;
+  final String comment;
+
+  Comment({required this.userName, required this.comment});
 }

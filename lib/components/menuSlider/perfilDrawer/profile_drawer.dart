@@ -425,11 +425,11 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
           Map<String, dynamic> userData =
               userDoc.data() as Map<String, dynamic>;
           // We check if the data is already registered
-          if (userData['identification'] != identification ||
-              userData['date'] != date ||
-              userData['address'] != address ||
-              userData['telephone'] != telephone ||
-              userData['gender'] != gender) {
+          if (userData['identification'] == identification &&
+              userData['date'] == date &&
+              userData['address'] == address &&
+              userData['telephone'] == telephone &&
+              userData['gender'] == gender) {
             QuickAlert.show(
               context: context,
               type: QuickAlertType.warning,
