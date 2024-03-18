@@ -1,14 +1,20 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print, unused_element
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:trabajorapid/components/menuSlider/configuration/configPage/page_config.dart';
 import 'package:trabajorapid/components/menuSlider/page_chat/page_home_chat.dart';
 import 'package:trabajorapid/components/menuSlider/perfilDrawer/profile_drawer.dart';
 import 'package:trabajorapid/components/welcomeLogin/welcomePage.dart';
 
-class NavBar extends StatelessWidget {
+class NavBar extends StatefulWidget {
   const NavBar({Key? key}) : super(key: key);
 
+  @override
+  State<NavBar> createState() => _NavBarState();
+}
+
+class _NavBarState extends State<NavBar> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -225,7 +231,11 @@ class NavBar extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                   color: Colors.black),
             ),
-            onTap: () => print('Configuracion presionado'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => const ConfigPage()));
+            },
           ),
           ListTile(
             leading: ShaderMask(

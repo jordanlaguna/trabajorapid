@@ -1,4 +1,4 @@
-// ignore_for_file: file_names, library_private_types_in_public_api, avoid_print
+// ignore_for_file: file_names, library_private_types_in_public_api, avoid_print, avoid_function_literals_in_foreach_calls
 
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';

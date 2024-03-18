@@ -75,7 +75,7 @@ class _LoginPage extends State<LoginPage> {
                         controller: emailController,
                         decoration: const InputDecoration(
                           suffixIcon: Icon(
-                            Icons.check,
+                            Icons.email_rounded,
                             color: Colors.grey,
                           ),
                           labelText: 'Correo',
