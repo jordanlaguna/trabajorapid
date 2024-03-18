@@ -86,6 +86,7 @@ class _ChatHomeState extends State<ChatHome> {
             ),
           ),
         ),
+        iconTheme: const IconThemeData(color: Colors.white, size: 30),
       ),
       body: Column(
         children: [

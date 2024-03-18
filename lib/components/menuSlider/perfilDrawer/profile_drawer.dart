@@ -105,6 +105,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
             ),
           ),
         ),
+        iconTheme: const IconThemeData(color: Colors.white, size: 30),
       ),
       body: Padding(
         padding: const EdgeInsets.only(top: 20.0),
@@ -165,6 +166,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                           TextFormField(
                             controller: _identificationController,
                             decoration: const InputDecoration(
+                              suffixIcon: Icon(Icons.card_giftcard_rounded),
                               labelText: 'Ingrese su cédula',
                               hintText: '000000000',
                               labelStyle: TextStyle(
@@ -191,6 +193,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                             controller: _fullNameController,
                             enabled: false,
                             decoration: const InputDecoration(
+                              suffix: Icon(Icons.person),
                               labelText: 'Ingrese su nombre completo',
                               hintText: 'Nombre completo',
                               labelStyle: TextStyle(
@@ -231,6 +234,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                               );
                             }).toList(),
                             decoration: const InputDecoration(
+                              suffix: Icon(Icons.person_rounded),
                               labelText: 'Género',
                               labelStyle: TextStyle(
                                 color: Color.fromARGB(255, 130, 19, 42),
@@ -256,6 +260,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                             controller: _emailController,
                             enabled: false,
                             decoration: const InputDecoration(
+                              suffix: Icon(Icons.email_rounded),
                               labelText: 'Ingrese su correo',
                               hintText: 'Ejemplo@correo.com',
                               labelStyle: TextStyle(
@@ -281,6 +286,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                           TextFormField(
                             controller: _dateController,
                             decoration: const InputDecoration(
+                              suffix: Icon(Icons.calendar_today_rounded),
                               labelText: 'Ingrese su fecha de nacimiento',
                               hintText: 'dd/mm/aaaa',
                               labelStyle: TextStyle(
@@ -306,6 +312,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                           TextFormField(
                             controller: _addressController,
                             decoration: const InputDecoration(
+                              suffix: Icon(Icons.location_on_rounded),
                               labelText: 'Ingrese su dirección completa',
                               hintText: 'Provincia/Cantón/Distrito/',
                               labelStyle: TextStyle(
@@ -331,6 +338,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                           TextFormField(
                             controller: _telephoneController,
                             decoration: const InputDecoration(
+                              suffix: Icon(Icons.phone_rounded),
                               labelText: 'Ingrese su número de teléfono',
                               hintText: '00000000',
                               labelStyle: TextStyle(
