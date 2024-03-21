@@ -97,7 +97,7 @@ class _RegPageState extends State<RegPage> {
                         controller: _emailController,
                         decoration: const InputDecoration(
                           suffixIcon: Icon(
-                            Icons.check,
+                            Icons.email_rounded,
                             color: Colors.grey,
                           ),
                           labelText: 'Correo Electrónico',

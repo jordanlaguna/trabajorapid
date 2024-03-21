@@ -240,7 +240,5 @@ class _WelcomePage extends State<WelcomePage> {
     }
   }
 
-  _signInWithMicrosoft() async {
-    // Implementación del inicio de sesión con Microsoft
-  }
+  _signInWithMicrosoft() async {}
 }
