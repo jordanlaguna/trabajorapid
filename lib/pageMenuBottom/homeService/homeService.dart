@@ -18,11 +18,13 @@ class HomePageService extends StatefulWidget {
 }
 
 class _HomePageServiceState extends State<HomePageService> {
+  // Maps to store user ratings and document counts
   Map<String, double> userRatings = {};
   Map<String, int> cantidadDocumentos = {};
 
+  // Page controller for carousel
   late final PageController _pageController;
-
+  // Stream controllers for fetching data
   final StreamController<List<DocumentSnapshot>> _controller =
       StreamController<List<DocumentSnapshot>>();
 
@@ -32,6 +34,7 @@ class _HomePageServiceState extends State<HomePageService> {
   @override
   void initState() {
     super.initState();
+    // Fetch data from Firebase on initialization
     _fetchDataFromFirebase();
     _StarDataFromFirebase();
     _loadUserRatingsFromFirebase();
@@ -39,36 +42,43 @@ class _HomePageServiceState extends State<HomePageService> {
 
   void _loadUserRatingsFromFirebase() async {
     try {
+      // Get the current user's ID
       String? userId = FirebaseAuth.instance.currentUser?.uid;
 
       if (userId != null) {
+        // Fetch ratings data from Firestore
         QuerySnapshot ratingSnapshot =
             await FirebaseFirestore.instance.collection('calificacion').get();
-        // Mapa para almacenar la suma total y la cantidad de documentos por ID de servicio
+
+        // Map to store total sum and document count per service ID
         Map<String, Map<String, dynamic>> ratingStats = {};
 
+        // Loop through each document in the ratings collection
         for (QueryDocumentSnapshot ratingDoc in ratingSnapshot.docs) {
+          // Extract service ID and stars rating
           String servicioId = ratingDoc['id'];
           double estrellas = (ratingDoc['estrellas'] as num).toDouble();
 
-          // Verifica si el ID del servicio ya existe en userRatings
+          // Check if the service ID exists in ratingStats
           if (ratingStats.containsKey(servicioId)) {
-            // Si existe, actualiza la suma total y la cantidad de documentos
+            // If it exists, update the total sum and document count
             ratingStats[servicioId]!['sumaTotal'] += estrellas;
             ratingStats[servicioId]!['cantidadDocumentos'] += 1;
           } else {
-            // Si no existe, crea una nueva entrada en el mapa
+            // If it doesn't exist, create a new entry in the map
             ratingStats[servicioId] = {
               'sumaTotal': estrellas,
               'cantidadDocumentos': 1,
             };
           }
         }
+        // Update the document count in the state
         setState(() {
           cantidadDocumentos = ratingStats
               .map((key, value) => MapEntry(key, value['cantidadDocumentos']));
         });
 
+        // Output rating results to the console
         print('Resultados de la calificación:');
         ratingStats.forEach((key, value) {
           double media = value['sumaTotal'] / value['cantidadDocumentos'];
@@ -76,13 +86,13 @@ class _HomePageServiceState extends State<HomePageService> {
           print(
               'ID de Servicio: $key, Media de Calificación: $media, cantidad: $nume');
         });
-
+        // Update userRatings map with the average ratings
         for (QueryDocumentSnapshot ratingDoc in ratingSnapshot.docs) {
           String servicioId = ratingDoc['id'];
           double estrellas = (ratingDoc['estrellas'] as num).toDouble();
           userRatings[servicioId] = estrellas;
         }
-
+        // Update the state with the updated user ratings and document counts
         setState(() {
           userRatings = ratingStats.map((key, value) =>
               MapEntry(key, value['sumaTotal'] / value['cantidadDocumentos']));
@@ -95,12 +105,13 @@ class _HomePageServiceState extends State<HomePageService> {
     }
   }
 
-  // ignore: non_constant_identifier_names
   void _StarDataFromFirebase() async {
     try {
+      // Fetches data (snapshot) from the 'calificacion' collection in Firestore
       QuerySnapshot snapshot =
           await FirebaseFirestore.instance.collection('calificacion').get();
 
+      // Adds the snapshot documents to the '_star' stream controller
       _star.add(snapshot.docs);
     } catch (e) {
       print('Error fetching data: $e');
@@ -140,7 +151,7 @@ class _HomePageServiceState extends State<HomePageService> {
         autoPlay: true,
         viewportFraction: 0.8,
         autoPlayInterval:
-            const Duration(seconds: 3), // Agrega esta línea para autoPlay
+            const Duration(seconds: 4), // Agrega esta línea para autoPlay
       ),
       items: servicios
           .map((servicio) {
@@ -151,7 +162,8 @@ class _HomePageServiceState extends State<HomePageService> {
           })
           .map((widget) => Container(
                 margin: const EdgeInsets.symmetric(
-                    horizontal: 6.0), // Ajusta el espacio entre los cuadros
+                    // Ajusta el espacio entre los cuadros
+                    horizontal: 6.0),
                 child: widget,
               ))
           .toList(),
