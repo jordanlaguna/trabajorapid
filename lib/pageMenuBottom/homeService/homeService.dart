@@ -346,6 +346,7 @@ class _HomePageServiceState extends State<HomePageService> {
         centerTitle: true,
         actions: [
           PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Colors.white),
             onSelected: (value) {
               // Manejar la selección del menú
               print(value);
@@ -355,11 +356,42 @@ class _HomePageServiceState extends State<HomePageService> {
                 'Más contratados',
                 'Mejor calificados',
                 'Más cerca',
-                'Más nuevo'
+                'Más nuevo',
+                'Todos'
               ].map((String choice) {
+                // Agregar iconos después de cada opción en el menú emergente
+                IconData? icon;
+                switch (choice) {
+                  case 'Más contratados':
+                    icon = Icons.thumb_up;
+                    break;
+                  case 'Mejor calificados':
+                    icon = Icons.star;
+                    break;
+                  case 'Más cerca':
+                    icon = Icons.location_on;
+                    break;
+                  case 'Más nuevo':
+                    icon = Icons.new_releases;
+                    break;
+                  case 'Todos':
+                    icon = Icons.list;
+                    break;
+                  default:
+                    icon = null;
+                }
+
                 return PopupMenuItem<String>(
                   value: choice,
-                  child: Text(choice),
+                  child: Row(
+                    children: [
+                      // Texto de la opción del menú
+                      Text(choice),
+                      const SizedBox(width: 8),
+                      // Icono asociado a la opción del menú
+                      if (icon != null) Icon(icon, color: Colors.black),
+                    ],
+                  ),
                 );
               }).toList();
             },
