@@ -157,6 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  // ignore: non_constant_identifier_names
   void _StarDataFromFirebase() async {
     try {
       // Fetches data (snapshot) from the 'calificacion' collection in Firestore

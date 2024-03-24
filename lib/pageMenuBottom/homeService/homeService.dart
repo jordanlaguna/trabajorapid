@@ -129,6 +129,58 @@ class _HomePageServiceState extends State<HomePageService> {
     }
   }
 
+  void _toggleLike(String servicioId) async {
+    try {
+      String? userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId != null) {
+        // Verificar si el usuario ya le dio "Me gusta" al servicio
+        DocumentSnapshot doc = await FirebaseFirestore.instance
+            .collection('likes')
+            .doc(userId)
+            .collection('servicios')
+            .doc(servicioId)
+            .get();
+
+        if (doc.exists) {
+          // Si el usuario ya le dio "Me gusta", eliminar el like
+          await FirebaseFirestore.instance
+              .collection('likes')
+              .doc(userId)
+              .collection('servicios')
+              .doc(servicioId)
+              .delete();
+        } else {
+          // Si el usuario no le ha dado "Me gusta", agregar el like
+          await FirebaseFirestore.instance
+              .collection('likes')
+              .doc(userId)
+              .collection('servicios')
+              .doc(servicioId)
+              .set({
+            'liked': true,
+          });
+        }
+      }
+    } catch (e) {
+      print('Error al alternar "Me gusta": $e');
+    }
+  }
+
+  Future<bool> _isLiked(String servicioId) async {
+    String? userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId != null) {
+      // Verificar si el usuario le ha dado "Me gusta" al servicio
+      DocumentSnapshot doc = await FirebaseFirestore.instance
+          .collection('likes')
+          .doc(userId)
+          .collection('servicios')
+          .doc(servicioId)
+          .get();
+      return doc.exists;
+    }
+    return false;
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -285,15 +337,53 @@ class _HomePageServiceState extends State<HomePageService> {
                 ),
                 const SizedBox(height: 10.0),
                 Text(contenido),
-                const SizedBox(height: 10.0),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const Profile()),
-                    );
-                  },
-                  child: const Text('Presiona aquí'),
+                const SizedBox(height: 3.0),
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () async {
+                        _toggleLike(
+                            idS); // Espera a que se complete la operación asincrónica
+                        setState(
+                            () {}); // Actualiza el estado después de que se complete la operación
+                      },
+                      child: FutureBuilder<bool>(
+                        future: _isLiked(idS), // Llama a la función _isLiked
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            // Muestra un indicador de carga mientras se espera la respuesta
+                            return const CircularProgressIndicator();
+                          } else {
+                            if (snapshot.hasData && snapshot.data!) {
+                              // Si hay datos y el resultado es verdadero, muestra el icono en rojo
+                              return const Icon(
+                                Icons.favorite,
+                                color: Colors.red,
+                              );
+                            } else {
+                              // De lo contrario, muestra el icono en gris
+                              return const Icon(
+                                Icons.favorite_border,
+                                color: Colors.grey,
+                              );
+                            }
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 10.0),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const Profile()),
+                        );
+                      },
+                      child: const Text('Presiona aquí'),
+                    ),
+                  ],
                 ),
               ],
             ),
