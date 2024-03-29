@@ -21,7 +21,7 @@ class _HomePageServiceState extends State<HomePageService> {
   // Maps to store user ratings and document counts
   Map<String, double> userRatings = {};
   Map<String, int> cantidadDocumentos = {};
-
+  List<DocumentSnapshot> _servicios = [];
   // Page controller for carousel
   late final PageController _pageController;
   // Stream controllers for fetching data
@@ -118,12 +118,14 @@ class _HomePageServiceState extends State<HomePageService> {
     }
   }
 
-  void _fetchDataFromFirebase() async {
+  Future<void> _fetchDataFromFirebase() async {
     try {
       QuerySnapshot snapshot =
           await FirebaseFirestore.instance.collection('servicios').get();
 
-      _controller.add(snapshot.docs);
+      setState(() {
+        _servicios = snapshot.docs;
+      });
     } catch (e) {
       print('Error fetching data: $e');
     }
@@ -205,7 +207,7 @@ class _HomePageServiceState extends State<HomePageService> {
         autoPlayInterval:
             const Duration(seconds: 4), // Agrega esta línea para autoPlay
       ),
-      items: servicios
+      items: _servicios
           .map((servicio) {
             String titulo = servicio['titulo'];
             String contenido = servicio['contenido'];
@@ -213,9 +215,7 @@ class _HomePageServiceState extends State<HomePageService> {
             return buildCuadro(context, titulo, contenido, idS);
           })
           .map((widget) => Container(
-                margin: const EdgeInsets.symmetric(
-                    // Ajusta el espacio entre los cuadros
-                    horizontal: 6.0),
+                margin: const EdgeInsets.symmetric(horizontal: 6.0),
                 child: widget,
               ))
           .toList(),
@@ -409,6 +409,8 @@ class _HomePageServiceState extends State<HomePageService> {
     );
   }
 
+  String tituloText = 'Todos';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -437,9 +439,66 @@ class _HomePageServiceState extends State<HomePageService> {
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: Colors.white),
-            onSelected: (value) {
-              // Manejar la selección del menú
-              print(value);
+            onSelected: (value) async {
+              switch (value) {
+                case 'Mejor calificados':
+                  tituloText = 'Mejor calificado ⭐';
+                  // Obtener los servicios y ordenarlos por media de estrellas de mayor a menor
+                  List<DocumentSnapshot> servicios = await FirebaseFirestore
+                      .instance
+                      .collection('servicios')
+                      .get()
+                      .then((snapshot) => snapshot.docs);
+
+                  servicios.sort((a, b) {
+                    double mediaEstrellasA = userRatings[a['id']] ?? 0.00;
+                    double mediaEstrellasB = userRatings[b['id']] ?? 0.00;
+                    return mediaEstrellasB.compareTo(mediaEstrellasA);
+                  });
+
+                  // Filtrar los servicios para guardar solo los que tienen 3 estrellas o más
+                  List<DocumentSnapshot> serviciosFiltrados = [];
+                  for (var servicio in servicios) {
+                    double mediaEstrellas = userRatings[servicio['id']] ?? 0.00;
+                    if (mediaEstrellas >= 3.0) {
+                      serviciosFiltrados.add(servicio);
+                    }
+                  }
+
+                  // Actualizar la UI con los servicios filtrados
+                  setState(() {
+                    _servicios = serviciosFiltrados;
+                  });
+                  break;
+                case 'Más cerca':
+                  tituloText = 'Más cerca';
+                  setState(() {
+                    _servicios;
+                  });
+                  // Código para manejar la opción "Más cerca"
+                  break;
+                case 'Más nuevo':
+                  tituloText = 'Más nuevo';
+                  setState(() {
+                    _servicios;
+                  });
+                  // Código para manejar la opción "Más nuevo"
+                  break;
+                case 'Todos':
+                  tituloText = 'Todos';
+                  setState(() {
+                    _servicios;
+                  });
+                  // Código para manejar la opción "Todos"
+                  break;
+                default:
+                  tituloText = 'Todos';
+                  setState(() {
+                    _servicios;
+                  });
+                  // Código para manejar otras opciones si es necesario
+                  break;
+              }
             },
             itemBuilder: (BuildContext context) {
               return [
@@ -451,6 +510,7 @@ class _HomePageServiceState extends State<HomePageService> {
               ].map((String choice) {
                 // Agregar iconos después de cada opción en el menú emergente
                 IconData? icon;
+
                 switch (choice) {
                   case 'Más contratados':
                     icon = Icons.thumb_up;
@@ -492,14 +552,33 @@ class _HomePageServiceState extends State<HomePageService> {
         child: Column(
           children: [
             // Título
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text(
-                'Mejor calificado ⭐',
-                style: TextStyle(
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.bold,
-                ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Texto del título
+                  Text(
+                    tituloText,
+                    style: const TextStyle(
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  // Espaciador para centrar el contenido
+                  const Center(),
+                  // Icono asociado al texto del título
+                  if (tituloText == 'Más contratados')
+                    const Icon(Icons.thumb_up, color: Colors.black),
+                  if (tituloText == 'Mejor calificados')
+                    const Icon(Icons.star, color: Colors.black),
+                  if (tituloText == 'Más cerca')
+                    const Icon(Icons.location_on, color: Colors.black),
+                  if (tituloText == 'Más nuevo')
+                    const Icon(Icons.new_releases, color: Colors.black),
+                  if (tituloText == 'Todos')
+                    const Icon(Icons.list, color: Colors.black),
+                ],
               ),
             ),
             // Carrusel de cuadros con información y fotos
