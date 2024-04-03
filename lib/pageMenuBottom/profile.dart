@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -101,7 +103,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   children: [
                     Text(
                       rating.toString(), // Mostrar el valor de la calificación
-                      style: TextStyle(fontSize: 20),
+                      style: const TextStyle(fontSize: 20),
                     ),
                     const Icon(
                       Icons.star, // Ícono de estrella completa
@@ -421,6 +423,13 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const Text(
+            'Publicar Servicio',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           DropdownButtonFormField<String>(
             value: _selectedJobType,
             onChanged: (String? newValue) {
@@ -428,7 +437,15 @@ class _ProfilePageState extends State<ProfilePage> {
                 _selectedJobType = newValue!;
               });
             },
-            items: _servicios.map<DropdownMenuItem<String>>((String value) {
+            items: <String>[
+              'Seleccionar...',
+              'Manicura.',
+              'Transporte.',
+              'Culinaria.',
+              'Exteriores.',
+              'Interiores.',
+              'Otro.'
+            ].map<DropdownMenuItem<String>>((String value) {
               return DropdownMenuItem<String>(
                 value: value,
                 child: Text(value),

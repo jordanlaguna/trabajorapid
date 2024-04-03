@@ -31,11 +31,11 @@ class _PageChatState extends State<PageChat> {
         centerTitle: true,
         backgroundColor: Colors.transparent,
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Color(0xffB81736),
-                Color(0xff281537),
+                Theme.of(context).colorScheme.primary,
+                Theme.of(context).colorScheme.secondary,
               ],
             ),
           ),
@@ -80,39 +80,48 @@ class _PageChatState extends State<PageChat> {
                     .where((doc) =>
                         doc['senderId'] != currentUserID && !doc['read'])
                     .length;
-                return ListTile(
-                  title: Row(
-                    children: [
-                      Expanded(
-                        child: Text(doc['name']),
+                return Column(
+                  children: [
+                    ListTile(
+                      title: Row(
+                        children: [
+                          const CircleAvatar(
+                            child: Icon(Icons.person_outline_rounded),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(doc['name']),
+                          ),
+                          if (unreadMessageCount > 0)
+                            CircleAvatar(
+                              backgroundColor: Colors.red,
+                              radius: 10,
+                              child: Text(
+                                unreadMessageCount.toString(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
-                      const Spacer(),
-                      if (unreadMessageCount > 0)
-                        CircleAvatar(
-                          backgroundColor: Colors.red,
-                          radius: 10,
-                          child: Text(
-                            unreadMessageCount.toString(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ChatHome(
+                              receiverUserEmail: doc['name'],
+                              receiverUserID: doc['uid'],
                             ),
                           ),
-                        ),
-                    ],
-                  ),
-                  subtitle: Text(doc['email']),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ChatHome(
-                          receiverUserEmail: doc['name'],
-                          receiverUserID: doc['uid'],
-                        ),
-                      ),
-                    );
-                  },
+                        );
+                      },
+                    ),
+                    const Divider(
+                      color: Color.fromARGB(180, 239, 239, 239),
+                    ),
+                  ],
                 );
               },
             );

@@ -77,11 +77,11 @@ class _ChatHomeState extends State<ChatHome> {
         centerTitle: true,
         backgroundColor: Colors.transparent,
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Color(0xffB81736),
-                Color(0xff281537),
+                Theme.of(context).colorScheme.primary,
+                Theme.of(context).colorScheme.secondary,
               ],
             ),
           ),
@@ -125,6 +125,9 @@ class _ChatHomeState extends State<ChatHome> {
     var alignment = (data['senderId'] == _auth.currentUser!.uid)
         ? Alignment.centerRight
         : Alignment.centerLeft;
+
+    IconData iconData = data['read'] ? Icons.done_all : Icons.done;
+
     return Container(
       alignment: alignment,
       child: Column(
@@ -146,7 +149,21 @@ class _ChatHomeState extends State<ChatHome> {
             ),
           ),
           const SizedBox(height: 7.0),
-          BurbleChat(message: data['message'])
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              BurbleChat(message: data['message']),
+              const SizedBox(width: 2.0),
+              Container(
+                margin: const EdgeInsets.only(top: 33.0),
+                child: Icon(
+                  iconData,
+                  size: 18,
+                  color: const Color.fromARGB(255, 84, 43, 145),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );

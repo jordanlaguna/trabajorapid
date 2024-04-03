@@ -93,14 +93,14 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
             fontWeight: FontWeight.w400,
           ),
         ),
-        centerTitle: true,
         backgroundColor: Colors.transparent,
+        centerTitle: true,
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Color(0xffB81736),
-                Color(0xff281537),
+                Theme.of(context).colorScheme.primary,
+                Theme.of(context).colorScheme.secondary,
               ],
             ),
           ),
@@ -117,7 +117,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
               child: Text(
                 'Información Personal',
                 style: TextStyle(
-                  color: Color.fromARGB(255, 130, 19, 42),
+                  color: Color.fromARGB(255, 46, 77, 142),
                   fontSize: 24,
                   fontFamily: 'Montserrat',
                   fontWeight: FontWeight.bold,
@@ -364,10 +364,10 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                           Container(
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              gradient: const LinearGradient(
+                              gradient: LinearGradient(
                                 colors: [
-                                  Color(0xffB81736),
-                                  Color(0xff281537),
+                                  Theme.of(context).colorScheme.primary,
+                                  Theme.of(context).colorScheme.secondary,
                                 ],
                               ),
                               borderRadius: BorderRadius.circular(25),

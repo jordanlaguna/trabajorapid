@@ -61,11 +61,11 @@ class _ModuleMainState extends State<ModuleMain> {
           centerTitle: true,
           backgroundColor: Colors.transparent,
           flexibleSpace: Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Color(0xffB81736),
-                  Color(0xff281537),
+                  Theme.of(context).colorScheme.primary,
+                  Theme.of(context).colorScheme.secondary,
                 ],
               ),
             ),
@@ -74,7 +74,7 @@ class _ModuleMainState extends State<ModuleMain> {
         ),
         body: screen.elementAt(index),
         bottomNavigationBar: CurvedNavigationBar(
-          color: const Color.fromARGB(255, 130, 19, 42),
+          color: Theme.of(context).colorScheme.primary,
           backgroundColor: Colors.transparent,
           items: items,
           height: 65,
