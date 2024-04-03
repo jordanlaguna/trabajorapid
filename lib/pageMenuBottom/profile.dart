@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 //import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
@@ -12,7 +14,7 @@ class _ProfilePageState extends State<ProfilePage> {
   bool _showWorkHistory = false;
   bool _showJobForm = false;
   double rating = 4.5;
-  String _selectedJobType = 'Seleccionar...'; 
+  String _selectedJobType = 'Seleccionar...';
 
   @override
   Widget build(BuildContext context) {
@@ -21,25 +23,25 @@ class _ProfilePageState extends State<ProfilePage> {
     return SingleChildScrollView(
       child: Center(
         child: Container(
-          padding: EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
           child: Column(
             children: <Widget>[
-              Text(
+              const Text(
                 'Perfil',
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
-                  color: const Color.fromARGB(255, 130, 19, 42),
+                  color: Color.fromARGB(255, 130, 19, 42),
                 ),
               ),
-              CircleAvatar(
+              const CircleAvatar(
                 radius: 90,
                 backgroundImage: AssetImage('assets/images/profile.jpg'),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 15,
               ),
-              Text(
+              const Text(
                 'Jordan Laguna.',
                 style: TextStyle(
                   fontSize: 25,
@@ -49,22 +51,23 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(
                 height: 10,
               ),
-             Container(
+              Container(
                 padding: const EdgeInsets.symmetric(vertical: 6),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center, 
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       rating.toString(), // Mostrar el valor de la calificación
-                      style: TextStyle(fontSize: 20),
+                      style: const TextStyle(fontSize: 20),
                     ),
-                    Icon(
+                    const Icon(
                       Icons.star, // Ícono de estrella completa
                       color: Colors.amber,
                       size: 25,
                     ),
-                    if (fraction > 0) // Mostrar estrella parcial si hay fracción
-                      Icon(
+                    if (fraction >
+                        0) // Mostrar estrella parcial si hay fracción
+                      const Icon(
                         Icons.star_half, // Ícono de estrella parcial
                         color: Colors.amber,
                         size: 25,
@@ -72,7 +75,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     for (int i = 0;
                         i < 5 - fullStars - (fraction > 0 ? 1 : 0);
                         i++) // Mostrar estrellas vacías restantes
-                      Icon(
+                      const Icon(
                         Icons.star_border, // Ícono de estrella vacía
                         color: Colors.amber,
                         size: 25,
@@ -95,7 +98,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
                 child: Material(
-                  color: Color.fromARGB(0, 161, 160, 160),
+                  color: const Color.fromARGB(0, 161, 160, 160),
                   elevation: 2,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -104,8 +107,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     width: double.infinity,
                     height: 60,
                     decoration: BoxDecoration(
-                      color: Colors.grey[200], // Color de fondo gris como ejemplo
-                      boxShadow: [
+                      color:
+                          Colors.grey[200], // Color de fondo gris como ejemplo
+                      boxShadow: const [
                         BoxShadow(
                           blurRadius: 3,
                           color: Color(0x33000000),
@@ -115,25 +119,30 @@ class _ProfilePageState extends State<ProfilePage> {
                       ],
                       borderRadius: BorderRadius.circular(8),
                     ),
-
-                    alignment: AlignmentDirectional(0, 0),
+                    alignment: const AlignmentDirectional(0, 0),
                     child: Padding(
-                      padding: EdgeInsetsDirectional.fromSTEB(12, 12, 12, 12),
+                      padding:
+                          const EdgeInsetsDirectional.fromSTEB(12, 12, 12, 12),
                       child: Row(
                         mainAxisSize: MainAxisSize.max,
                         children: [
                           Icon(
                             Icons.history_rounded,
-                            color: Colors.grey[600], // Color de icono gris como ejemplo
+                            color: Colors
+                                .grey[600], // Color de icono gris como ejemplo
                             size: 24,
                           ),
                           Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(12, 0, 0, 0),
+                            padding: const EdgeInsetsDirectional.fromSTEB(
+                                12, 0, 0, 0),
                             child: Text(
-                              _showWorkHistory ? 'Ocultar trabajos' : 'Mostrar trabajos',
+                              _showWorkHistory
+                                  ? 'Ocultar trabajos'
+                                  : 'Mostrar trabajos',
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Colors.grey[800], // Color de texto gris como ejemplo
+                                color: Colors.grey[
+                                    800], // Color de texto gris como ejemplo
                               ),
                             ),
                           ),
@@ -142,7 +151,8 @@ class _ProfilePageState extends State<ProfilePage> {
                               alignment: Alignment.centerRight,
                               child: Icon(
                                 Icons.arrow_forward_ios,
-                                color: Colors.grey[600], // Color de icono gris como ejemplo
+                                color: Colors.grey[
+                                    600], // Color de icono gris como ejemplo
                                 size: 18,
                               ),
                             ),
@@ -153,8 +163,9 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
               ),
-              SizedBox(height: 18),
-              if (_showWorkHistory) _buildWorkHistory(), // Mostrar historial de trabajos si _showWorkHistory es true
+              const SizedBox(height: 18),
+              if (_showWorkHistory)
+                _buildWorkHistory(), // Mostrar historial de trabajos si _showWorkHistory es true
               ElevatedButton(
                 onPressed: () {
                   setState(() {
@@ -178,8 +189,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     width: double.infinity,
                     height: 60,
                     decoration: BoxDecoration(
-                      color: Colors.grey[200], // Color de fondo gris como ejemplo
-                      boxShadow: [
+                      color:
+                          Colors.grey[200], // Color de fondo gris como ejemplo
+                      boxShadow: const [
                         BoxShadow(
                           blurRadius: 3,
                           color: Color(0x33000000),
@@ -189,24 +201,28 @@ class _ProfilePageState extends State<ProfilePage> {
                       ],
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    alignment: AlignmentDirectional(0, 0),
+                    alignment: const AlignmentDirectional(0, 0),
                     child: Padding(
-                      padding: EdgeInsetsDirectional.fromSTEB(12, 12, 12, 12),
+                      padding:
+                          const EdgeInsetsDirectional.fromSTEB(12, 12, 12, 12),
                       child: Row(
                         mainAxisSize: MainAxisSize.max,
                         children: [
                           Icon(
                             Icons.work_outline_rounded,
-                            color: Colors.grey[600], // Color de icono gris como ejemplo
+                            color: Colors
+                                .grey[600], // Color de icono gris como ejemplo
                             size: 24,
                           ),
                           Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(12, 0, 0, 0),
+                            padding: const EdgeInsetsDirectional.fromSTEB(
+                                12, 0, 0, 0),
                             child: Text(
                               'Ofrecer trabajos',
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Colors.grey[800], // Color de texto gris como ejemplo
+                                color: Colors.grey[
+                                    800], // Color de texto gris como ejemplo
                               ),
                             ),
                           ),
@@ -215,7 +231,8 @@ class _ProfilePageState extends State<ProfilePage> {
                               alignment: Alignment.centerRight,
                               child: Icon(
                                 Icons.arrow_forward_ios,
-                                color: Colors.grey[600], // Color de icono gris como ejemplo
+                                color: Colors.grey[
+                                    600], // Color de icono gris como ejemplo
                                 size: 18,
                               ),
                             ),
@@ -226,7 +243,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
               ),
-              if (_showJobForm) _buildJobForm(), // Mostrar formulario de trabajo si _showJobForm es true
+              if (_showJobForm)
+                _buildJobForm(), // Mostrar formulario de trabajo si _showJobForm es true
             ],
           ),
         ),
@@ -238,7 +256,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildWorkHistory() {
     return Column(
       children: <Widget>[
-        Text(
+        const Text(
           'Historial de trabajos',
           style: TextStyle(
             fontSize: 20,
@@ -264,7 +282,8 @@ class _ProfilePageState extends State<ProfilePage> {
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.black), // Define el borde general
-        borderRadius: BorderRadius.circular(10), // Define el radio del borde general
+        borderRadius:
+            BorderRadius.circular(10), // Define el radio del borde general
       ),
       child: Row(
         children: <Widget>[
@@ -276,14 +295,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 children: <Widget>[
                   Text(
                     s,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
                     t,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 16,
                       color: Color.fromARGB(248, 0, 0, 0),
                     ),
@@ -296,7 +315,7 @@ class _ProfilePageState extends State<ProfilePage> {
             padding: const EdgeInsets.all(10),
             child: Text(
               u,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16,
                 color: Color.fromARGB(248, 0, 0, 0),
               ),
@@ -310,8 +329,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      title: Text('Detalles del trabajo'),
-                      content: SingleChildScrollView(
+                      title: const Text('Detalles del trabajo'),
+                      content: const SingleChildScrollView(
                         child: ListBody(
                           children: <Widget>[
                             Text('Aquí van los detalles del trabajo...'),
@@ -325,7 +344,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             // Cerrar el diálogo cuando se presione el botón
                             Navigator.of(context).pop();
                           },
-                          child: Text('Cerrar'),
+                          child: const Text('Cerrar'),
                         ),
                       ],
                     );
@@ -352,15 +371,14 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
- 
   // Método para construir el formulario de trabajo
   Widget _buildJobForm() {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'Publicar Trabajo',
             style: TextStyle(
               fontSize: 20,
@@ -374,35 +392,43 @@ class _ProfilePageState extends State<ProfilePage> {
                 _selectedJobType = newValue!;
               });
             },
-            items: <String>['Seleccionar...','Manicura.', 'Transporte.', 'Culinaria.', 'Exteriores.','Interiores.', 'Otro.']
-                .map<DropdownMenuItem<String>>((String value) {
+            items: <String>[
+              'Seleccionar...',
+              'Manicura.',
+              'Transporte.',
+              'Culinaria.',
+              'Exteriores.',
+              'Interiores.',
+              'Otro.'
+            ].map<DropdownMenuItem<String>>((String value) {
               return DropdownMenuItem<String>(
                 value: value,
                 child: Text(value),
               );
             }).toList(),
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'Tipo de trabajo.',
             ),
           ),
-           TextFormField(
-            decoration: InputDecoration(labelText: 'Descripción del trabajo.'),
+          TextFormField(
+            decoration:
+                const InputDecoration(labelText: 'Descripción del trabajo.'),
           ),
           TextFormField(
-            decoration: InputDecoration(labelText: 'Ubicación.'),
+            decoration: const InputDecoration(labelText: 'Ubicación.'),
           ),
           TextFormField(
-            decoration: InputDecoration(labelText: 'Dirección exacta.'),
+            decoration: const InputDecoration(labelText: 'Dirección exacta.'),
           ),
           TextFormField(
-            decoration: InputDecoration(labelText: 'Pago.'),
+            decoration: const InputDecoration(labelText: 'Pago.'),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           ElevatedButton(
             onPressed: () {
               // Aquí puedes manejar la lógica para enviar el formulario
             },
-            child: Text('Publicar'),
+            child: const Text('Publicar'),
           ),
         ],
       ),

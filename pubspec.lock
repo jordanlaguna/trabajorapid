@@ -536,7 +536,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.8.3"
-    version: "1.9.0"
   path_parsing:
     dependency: transitive
     description:

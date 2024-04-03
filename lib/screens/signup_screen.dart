@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously, avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:trabajorapid/screens/signin_screen.dart';
@@ -22,7 +24,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   bool agreePersonalData = true;
 
   @override
@@ -121,8 +124,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         decoration: InputDecoration(
                           label: const Text('Correo Electrónico'),
                           hintText: 'Ingrese su correo electrónico',
-                          suffixIcon:
-                              const Icon(FontAwesome.envelope_circle_check_solid),
+                          suffixIcon: const Icon(
+                              FontAwesome.envelope_circle_check_solid),
                           hintStyle: const TextStyle(
                             color: Colors.black26,
                           ),
@@ -157,8 +160,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         decoration: InputDecoration(
                           label: const Text('Contraseña'),
                           hintText: 'Ingrese tu contraseña',
-                          suffixIcon:
-                              const Icon(FontAwesome.lock_solid),
+                          suffixIcon: const Icon(FontAwesome.lock_solid),
                           hintStyle: const TextStyle(
                             color: Colors.black26,
                           ),
@@ -248,7 +250,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            if (_formSignupKey.currentState!.validate() && agreePersonalData) {
+                            if (_formSignupKey.currentState!.validate() &&
+                                agreePersonalData) {
                               _signUp();
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -341,6 +344,4 @@ class _SignUpScreenState extends State<SignUpScreen> {
       MaterialPageRoute(builder: (context) => const ModuleMain()),
     );
   }
-
-
 }
