@@ -1,5 +1,7 @@
 // ignore_for_file: file_names, library_private_types_in_public_api, avoid_print, avoid_function_literals_in_foreach_calls
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:trabajorapid/components/menuSlider/page_chat/page_home_chat.dart';
@@ -59,8 +61,22 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _commentController = TextEditingController();
+
   bool showRatingSection = true;
   List<Comment> comments = [];
+
+  String titulo = '';
+  String contenido = '';
+  String idS = '';
+
+  Map<String, double> userRatings = {};
+  Map<String, int> cantidadDocumentos = {};
+  final StreamController<List<DocumentSnapshot>> _star =
+      StreamController<List<DocumentSnapshot>>();
+
+  // Stream controllers for fetching data
+  final StreamController<List<DocumentSnapshot>> _controller =
+      StreamController<List<DocumentSnapshot>>();
 
   @override
   void initState() {
@@ -70,10 +86,107 @@ class _ProfileScreenState extends State<ProfileScreen> {
         comments = value;
       });
     });
+    _fetchDataFromFirebase();
+    _StarDataFromFirebase();
+    _loadUserRatingsFromFirebase();
+  }
+
+  void _loadUserRatingsFromFirebase() async {
+    try {
+      // Get the current user's ID
+      String? userId = FirebaseAuth.instance.currentUser?.uid;
+
+      if (userId != null) {
+        // Fetch ratings data from Firestore
+        QuerySnapshot ratingSnapshot = await FirebaseFirestore.instance
+            .collection('calificacionPerfil')
+            .get();
+
+        // Map to store total sum and document count per service ID
+        Map<String, Map<String, dynamic>> ratingStats = {};
+
+        // Loop through each document in the ratings collection
+        for (QueryDocumentSnapshot ratingDoc in ratingSnapshot.docs) {
+          // Extract service ID and stars rating
+          String servicioId = ratingDoc['id'];
+          double estrellas = (ratingDoc['estrellas'] as num).toDouble();
+
+          // Check if the service ID exists in ratingStats
+          if (ratingStats.containsKey(servicioId)) {
+            // If it exists, update the total sum and document count
+            ratingStats[servicioId]!['sumaTotal'] += estrellas;
+            ratingStats[servicioId]!['cantidadDocumentos'] += 1;
+          } else {
+            // If it doesn't exist, create a new entry in the map
+            ratingStats[servicioId] = {
+              'sumaTotal': estrellas,
+              'cantidadDocumentos': 1,
+            };
+          }
+        }
+        // Update the document count in the state
+        setState(() {
+          cantidadDocumentos = ratingStats
+              .map((key, value) => MapEntry(key, value['cantidadDocumentos']));
+        });
+
+        // Output rating results to the console
+        print('Resultados de la calificación:');
+        ratingStats.forEach((key, value) {
+          double media = value['sumaTotal'] / value['cantidadDocumentos'];
+          int nume = value['cantidadDocumentos'];
+          print(
+              'ID de Servicio: $key, Media de Calificación: $media, cantidad: $nume');
+        });
+        // Update userRatings map with the average ratings
+        for (QueryDocumentSnapshot ratingDoc in ratingSnapshot.docs) {
+          String servicioId = ratingDoc['id'];
+          double estrellas = (ratingDoc['estrellas'] as num).toDouble();
+          userRatings[servicioId] = estrellas;
+        }
+        // Update the state with the updated user ratings and document counts
+        setState(() {
+          userRatings = ratingStats.map((key, value) =>
+              MapEntry(key, value['sumaTotal'] / value['cantidadDocumentos']));
+          cantidadDocumentos = ratingStats
+              .map((key, value) => MapEntry(key, value['cantidadDocumentos']));
+        });
+      }
+    } catch (e) {
+      print('Error loading user ratings: $e');
+    }
+  }
+
+  // ignore: non_constant_identifier_names
+  void _StarDataFromFirebase() async {
+    try {
+      // Fetches data (snapshot) from the 'calificacion' collection in Firestore
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('calificacionPerfil')
+          .get();
+
+      // Adds the snapshot documents to the '_star' stream controller
+      _star.add(snapshot.docs);
+    } catch (e) {
+      print('Error fetching data: $e');
+    }
+  }
+
+  void _fetchDataFromFirebase() async {
+    try {
+      QuerySnapshot snapshot =
+          await FirebaseFirestore.instance.collection('servicios').get();
+
+      _controller.add(snapshot.docs);
+    } catch (e) {
+      print('Error fetching data: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    double mediaEstrellas = userRatings[idS] ?? 0.00;
+    int nume = cantidadDocumentos[idS] ?? 0;
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -130,20 +243,101 @@ class _ProfileScreenState extends State<ProfileScreen> {
           if (showRatingSection)
             Container(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              child: RatingBar.builder(
-                initialRating: 4,
-                minRating: 1,
-                direction: Axis.horizontal,
-                allowHalfRating: true,
-                itemCount: 5,
-                itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
-                itemBuilder: (context, _) => const Icon(
-                  Icons.star,
-                  color: Colors.amber,
-                ),
-                onRatingUpdate: (rating) {
-                  // Puedes manejar la actualización de la calificación aquí
-                },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    titulo,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18.0,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      RatingBar.builder(
+                        initialRating: mediaEstrellas,
+                        minRating: 1,
+                        direction: Axis.horizontal,
+                        allowHalfRating: true,
+                        itemCount: 5,
+                        itemPadding:
+                            const EdgeInsets.symmetric(horizontal: 4.0),
+                        itemSize: 45,
+                        itemBuilder: (context, _) => const Icon(
+                          Icons.star,
+                          color: Colors.amber,
+                        ),
+                        onRatingUpdate: (rating) async {
+                          String? userId =
+                              FirebaseAuth.instance.currentUser?.uid;
+
+                          if (userId != null) {
+                            // Verificar si el documento ya existe
+                            QuerySnapshot ratingSnapshot =
+                                await FirebaseFirestore.instance
+                                    .collection('calificacionPerfil')
+                                    .where('uid', isEqualTo: userId)
+                                    .get();
+
+                            print('1');
+                            if (ratingSnapshot.docs.isNotEmpty) {
+                              print('2');
+                              DocumentSnapshot? ratingDoc;
+                              try {
+                                ratingDoc = ratingSnapshot.docs.firstWhere(
+                                  (doc) =>
+                                      doc['id'] == idS && doc['uid'] == userId,
+                                );
+                              } catch (e) {
+                                ratingDoc = null;
+                              }
+
+                              // Actualizar el documento existente con la nueva calificación
+                              if (ratingDoc != null) {
+                                print('3');
+                                // El documento existe, actualizar solo las estrellas
+                                await FirebaseFirestore.instance
+                                    .collection('calificacionPerfil')
+                                    .doc(ratingDoc.id)
+                                    .update({
+                                  'estrellas': rating,
+                                });
+                              } else {
+                                print('4');
+                                // El id no coincide, crear un nuevo documento
+                                await FirebaseFirestore.instance
+                                    .collection('calificacionPerfil')
+                                    .doc() // Puedes mantener doc() si deseas un nuevo ID automático
+                                    .set({
+                                  'estrellas': rating,
+                                  'uid': userId,
+                                  'id': idS,
+                                });
+                              }
+                            } else {
+                              print('5');
+                              // Crear un nuevo documento si no existe
+                              await FirebaseFirestore.instance
+                                  .collection('calificacionPerfil')
+                                  .doc() // Puedes mantener doc() si deseas un nuevo ID automático
+                                  .set({
+                                'estrellas': rating,
+                                'uid': userId,
+                                'id': idS,
+                              });
+                            }
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 10.0),
+                      Text('($nume)'),
+                    ],
+                  ),
+                  const SizedBox(height: 10.0),
+                  Text(contenido),
+                ],
               ),
             )
           else
@@ -151,18 +345,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 children: [
                   // show news comments list
-                  ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: comments.length,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(comments[index].userName),
-                        subtitle: Text(comments[index].comment),
-                      );
-                    },
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height *
+                        0.3, // Altura máxima para la lista de comentarios
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: comments.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          title: Text(comments[index].userName),
+                          subtitle: Text(comments[index].comment),
+                        );
+                      },
+                    ),
                   ),
                   const SizedBox(
-                    height: 200,
+                    height: 10, // Espacio para la barra de comentarios
                   ),
                   const Divider(),
                   ListTile(
