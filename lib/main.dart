@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:trabajorapid/components/menuSlider/perfilDrawer/profile_drawer.dart';
 import 'package:trabajorapid/firebase_options.dart';
-import 'package:trabajorapid/components/welcomeLogin/welcomePage.dart';
+import 'package:trabajorapid/screens/welcome_screen.dart';
+import 'package:trabajorapid/theme/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,13 +25,10 @@ class MyApp extends StatelessWidget {
       routes: {
         '/profile': (context) => const ProfileDrawer(),
       },
-      title: 'TrabajosRapid',
+      title: 'Rapid Jobs',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: ('Montserrat'),
-        useMaterial3: true,
-      ),
-      home: const WelcomePage(),
+      theme: lightMode,
+      home: const WelcomeScreen(),
     );
   }
 }

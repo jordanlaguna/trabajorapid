@@ -52,8 +52,7 @@ dependencies:
   flutter_datetime_picker: ^1.5.1
   image_picker: ^1.0.7
   google_fonts: ^6.2.0
-
- 
+  icons_plus: ^5.0.0
 
 dev_dependencies:
   flutter_test:
