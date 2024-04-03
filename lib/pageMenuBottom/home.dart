@@ -60,10 +60,10 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: ShaderMask(
           shaderCallback: (Rect bounds) {
-            return const LinearGradient(
+            return LinearGradient(
               colors: [
-                Color(0xffB81736),
-                Color(0xff281537),
+                Theme.of(context).colorScheme.primary,
+                Theme.of(context).colorScheme.secondary,
               ],
             ).createShader(bounds);
           },
@@ -160,10 +160,10 @@ Widget buildCuadro(BuildContext context, String titulo, String contenido) {
             height: 90.0,
             child: ShaderMask(
               shaderCallback: (Rect bounds) {
-                return const LinearGradient(
+                return LinearGradient(
                   colors: [
-                    Color(0xffB81736),
-                    Color(0xff281537),
+                    Theme.of(context).colorScheme.primary,
+                    Theme.of(context).colorScheme.secondary,
                   ],
                 ).createShader(bounds);
               },

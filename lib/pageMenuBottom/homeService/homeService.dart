@@ -426,15 +426,16 @@ class _HomePageServiceState extends State<HomePageService> {
           ),
         ),
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Color(0xffB81736),
-                Color(0xff281537),
+                Theme.of(context).colorScheme.primary,
+                Theme.of(context).colorScheme.secondary,
               ],
             ),
           ),
         ),
+        iconTheme: const IconThemeData(color: Colors.white, size: 30),
         centerTitle: true,
         actions: [
           PopupMenuButton<String>(
