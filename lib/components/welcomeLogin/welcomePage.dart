@@ -36,7 +36,7 @@ class _WelcomePage extends State<WelcomePage> {
           children: [
             const SizedBox(height: 70.0),
             const Text(
-              'TrabajosRapid',
+              'RapidJobs',
               style: TextStyle(
                 fontSize: 30,
                 fontFamily: 'Montserrat',

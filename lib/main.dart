@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/profile': (context) => const ProfileDrawer(),
       },
-      title: 'TrabajosRapid',
+      title: 'RapidJobs',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         fontFamily: ('Montserrat'),
