@@ -170,7 +170,7 @@ Widget buildCuadro(BuildContext context, String titulo, String contenido) {
               child: const Icon(
                 Icons.work_history_rounded,
                 size: 50.0,
-                color: Colors.white, // Color del icono después del gradiente
+                color: Colors.white,
               ),
             ),
           ),

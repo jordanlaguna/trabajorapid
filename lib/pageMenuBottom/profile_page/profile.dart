@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_import, use_build_context_synchronously
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 // ignore_for_file: library_private_types_in_public_api
 
@@ -86,9 +88,27 @@ class _ProfilePageState extends State<ProfilePage> {
                   color: Color.fromARGB(255, 130, 19, 42),
                 ),
               ),
-              const CircleAvatar(
-                radius: 90,
-                backgroundImage: AssetImage('assets/images/profile.jpg'),
+              CircleAvatar(
+                radius: 80,
+                backgroundColor: Colors.transparent,
+                child: Container(
+                  width: 160,
+                  height: 160,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.grey,
+                      width: 1,
+                    ),
+                  ),
+                  child: ClipOval(
+                    child: Image.network(
+                      FirebaseAuth.instance.currentUser!.photoURL!,
+                      fit: BoxFit
+                          .cover, // Para que la imagen se ajuste correctamente dentro del círculo
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(
                 height: 15,

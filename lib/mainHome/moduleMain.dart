@@ -2,10 +2,10 @@
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:trabajorapid/components/menuSlider/drawer/navbar.dart';
-import 'package:trabajorapid/pageMenuBottom/favorite.dart';
-import 'package:trabajorapid/pageMenuBottom/home.dart';
-import 'package:trabajorapid/pageMenuBottom/profile.dart';
-import 'package:trabajorapid/pageMenuBottom/works.dart';
+import 'package:trabajorapid/pageMenuBottom/favorite_page/favorite.dart';
+import 'package:trabajorapid/pageMenuBottom/home_page/home.dart';
+import 'package:trabajorapid/pageMenuBottom/profile_page/profile.dart';
+import 'package:trabajorapid/pageMenuBottom/work_page/works.dart';
 
 void main() {
   runApp(const ModuleMain());

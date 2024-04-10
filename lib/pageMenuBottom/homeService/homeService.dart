@@ -417,7 +417,6 @@ class _HomePageServiceState extends State<HomePageService> {
         String titulo = cuadro['titulo'];
         String contenido = cuadro['contenido'];
         String idS = cuadro['id'];
-
         return SizedBox(
           height: 170, // Modificar la altura según sea necesario
           child: Padding(
