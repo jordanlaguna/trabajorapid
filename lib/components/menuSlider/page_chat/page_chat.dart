@@ -1,5 +1,4 @@
 // ignore_for_file: avoid_print
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -170,11 +169,14 @@ class _ChatHomeState extends State<ChatHome> {
   }
 
   Widget _buildMessageInput() {
+    final windowSize = MediaQuery.of(context).size;
     return Container(
+      width: windowSize.width * 0.99,
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
       decoration: BoxDecoration(
         color: Colors.grey[200],
         borderRadius: BorderRadius.circular(20.0),
+        border: Border.all(color: Colors.grey[300]!),
       ),
       child: Row(
         children: [
@@ -184,7 +186,7 @@ class _ChatHomeState extends State<ChatHome> {
               decoration: const InputDecoration(
                 hintText: 'Escribir mensaje...',
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
+                contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
               ),
             ),
           ),

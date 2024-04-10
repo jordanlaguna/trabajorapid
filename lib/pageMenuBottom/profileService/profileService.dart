@@ -33,13 +33,15 @@ class Profile extends StatelessWidget {
             color: Colors.white,
           ),
         ),
+        iconTheme: const IconThemeData(color: Colors.white, size: 30),
         centerTitle: true,
+        backgroundColor: Colors.transparent,
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Color(0xffB81736),
-                Color(0xff281537),
+                Theme.of(context).colorScheme.primary,
+                Theme.of(context).colorScheme.secondary,
               ],
             ),
           ),
@@ -363,20 +365,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     height: 10, // Espacio para la barra de comentarios
                   ),
                   const Divider(),
-                  ListTile(
-                    title: TextField(
-                      controller: _commentController,
-                      decoration: const InputDecoration(
-                        hintText: 'Escribe tu comentario',
-                      ),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.grey),
                     ),
-                    tileColor: Colors.grey[200],
-                    trailing: IconButton(
-                      icon: const Icon(Icons.send),
-                      onPressed: () async {
-                        await addComment(_commentController.text);
-                        _commentController.clear();
-                      },
+                    child: ListTile(
+                      title: TextField(
+                          controller: _commentController,
+                          decoration: const InputDecoration(
+                            hintText: 'Escribe tu comentario',
+                          )),
+                      tileColor: Colors.grey[200],
+                      trailing: IconButton(
+                        icon: const Icon(Icons.send),
+                        onPressed: () async {
+                          await addComment(_commentController.text);
+                          _commentController.clear();
+                        },
+                      ),
                     ),
                   ),
                 ],

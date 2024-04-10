@@ -425,6 +425,7 @@ class _HomePageServiceState extends State<HomePageService> {
             color: Color.fromARGB(255, 249, 249, 249),
           ),
         ),
+        backgroundColor: Colors.transparent,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
