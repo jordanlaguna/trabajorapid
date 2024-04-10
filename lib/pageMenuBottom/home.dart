@@ -197,7 +197,8 @@ Widget buildCuadro(BuildContext context, String titulo, String contenido) {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const HomePageService()),
+                      builder: (context) => HomePageService(servicio: titulo),
+                    ),
                   );
                 },
                 child: const Text('Presiona aquí'),

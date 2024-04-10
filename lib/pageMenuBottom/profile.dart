@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 // ignore_for_file: library_private_types_in_public_api
 
 import 'package:flutter/material.dart';
-//import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:flutter/services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -11,10 +13,60 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  List<String> _servicios = [];
   bool _showWorkHistory = false;
   bool _showJobForm = false;
   double rating = 4.5;
   String _selectedJobType = 'Seleccionar...';
+
+  // Declara los controladores para los campos de texto
+  final TextEditingController _descripcionController = TextEditingController();
+  final TextEditingController _direccionController = TextEditingController();
+  final TextEditingController _pagoController = TextEditingController();
+
+  bool _isValidDireccion(String value) {
+    // Expresión regular para verificar el formato de la dirección
+    RegExp regExp = RegExp(r'^[\w\s]+\/[\w\s]+\/[\w\s]+\/[\w\s]+$');
+    return regExp.hasMatch(value);
+  }
+
+  bool _showDireccionError = false;
+  @override
+  void initState() {
+    super.initState();
+    _getServicios(); // Llama a la función para obtener los servicios al inicializar el estado
+  }
+
+  // Resto del código...
+
+  @override
+  void dispose() {
+    // Dispose los controladores al finalizar
+    _descripcionController.dispose();
+    _direccionController.dispose();
+    _pagoController.dispose();
+    _getServicios(); // Llama a la función para obtener los servicios al inicializar el estado
+
+    super.dispose();
+  }
+
+  // Función para obtener los servicios de Firestore
+  Future<void> _getServicios() async {
+    QuerySnapshot querySnapshot =
+        await FirebaseFirestore.instance.collection('ofertasServicios').get();
+
+    setState(() {
+      // Filtra los documentos y convierte explícitamente a String
+      _servicios = querySnapshot.docs
+          .where((doc) => doc.exists && doc['titulo'] != null)
+          .map((doc) => doc['titulo'] as String)
+          .toList();
+
+      // Eliminar duplicados y asegurar que 'Seleccionar...' esté al principio
+      _servicios = _servicios.toSet().toList();
+      _servicios.insert(0, 'Seleccionar...');
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -137,8 +189,8 @@ class _ProfilePageState extends State<ProfilePage> {
                                 12, 0, 0, 0),
                             child: Text(
                               _showWorkHistory
-                                  ? 'Ocultar trabajos'
-                                  : 'Mostrar trabajos',
+                                  ? 'Ocultar servicios'
+                                  : 'Mostrar servicios',
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.grey[
@@ -218,7 +270,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             padding: const EdgeInsetsDirectional.fromSTEB(
                                 12, 0, 0, 0),
                             child: Text(
-                              'Ofrecer trabajos',
+                              'Ofrecer servicios',
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.grey[
@@ -257,7 +309,7 @@ class _ProfilePageState extends State<ProfilePage> {
     return Column(
       children: <Widget>[
         const Text(
-          'Historial de trabajos',
+          'Historial de servicios',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -329,7 +381,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      title: const Text('Detalles del trabajo'),
+                      title: const Text('Detalles del servicio'),
                       content: const SingleChildScrollView(
                         child: ListBody(
                           children: <Widget>[
@@ -373,13 +425,13 @@ class _ProfilePageState extends State<ProfilePage> {
 
   // Método para construir el formulario de trabajo
   Widget _buildJobForm() {
-    return Container(
+    return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Publicar Trabajo',
+            'Publicar Servicio',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -392,44 +444,170 @@ class _ProfilePageState extends State<ProfilePage> {
                 _selectedJobType = newValue!;
               });
             },
-            items: <String>[
-              'Seleccionar...',
-              'Manicura.',
-              'Transporte.',
-              'Culinaria.',
-              'Exteriores.',
-              'Interiores.',
-              'Otro.'
-            ].map<DropdownMenuItem<String>>((String value) {
+            items: _servicios.map((String value) {
               return DropdownMenuItem<String>(
                 value: value,
                 child: Text(value),
               );
             }).toList(),
             decoration: const InputDecoration(
-              labelText: 'Tipo de trabajo.',
+              labelText: 'Tipo de servicio:',
             ),
           ),
           TextFormField(
+            controller:
+                _descripcionController, // Controlador para el campo de descripción
             decoration:
-                const InputDecoration(labelText: 'Descripción del trabajo.'),
+                const InputDecoration(labelText: 'Descripción del servicio:'),
           ),
           TextFormField(
-            decoration: const InputDecoration(labelText: 'Ubicación.'),
-          ),
-          TextFormField(
-            decoration: const InputDecoration(labelText: 'Dirección exacta.'),
-          ),
-          TextFormField(
-            decoration: const InputDecoration(labelText: 'Pago.'),
+            controller: _direccionController,
+            decoration: const InputDecoration(labelText: 'Dirección:'),
+            keyboardType: TextInputType.text,
+            onChanged: (value) {
+              setState(() {
+                _showDireccionError = !_isValidDireccion(value);
+              });
+            },
+            onEditingComplete: () {
+              setState(() {
+                _showDireccionError = false;
+              });
+            },
+            validator: (value) {
+              if (_showDireccionError && !_isValidDireccion(value!)) {
+                return 'La dirección no tiene un formato válido.';
+              }
+              return null;
+            },
           ),
           const SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () {
-              // Aquí puedes manejar la lógica para enviar el formulario
-            },
-            child: const Text('Publicar'),
-          ),
+          Center(
+            child: ElevatedButton(
+              onPressed: () async {
+                // Verificar si hay un usuario autenticado
+                User? user = FirebaseAuth.instance.currentUser;
+
+                if (!_isValidDireccion(_direccionController.text)) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text(
+                        'La dirección no tiene un formato válido. Por ejemplo: '
+                        'Pais/Provincia/Canton/Ciudad'),
+                    backgroundColor: Colors.red,
+                  ));
+                  return; // Detener el proceso de publicación si la dirección no es válida
+                }
+
+                if (user != null) {
+                  String uid = user.uid;
+
+                  // Generar un ID aleatorio para el servicio
+                  String servicioId = FirebaseFirestore.instance
+                      .collection('servicios')
+                      .doc()
+                      .id;
+                  // Verificar si el ID ya existe en la colección de servicios
+                  bool idExiste = await FirebaseFirestore.instance
+                      .collection('servicios')
+                      .doc(servicioId)
+                      .get()
+                      .then((doc) => doc.exists);
+
+                  if (!idExiste) {
+                    // Buscar el usuario en la colección 'users'
+                    DocumentSnapshot userSnapshot = await FirebaseFirestore
+                        .instance
+                        .collection('users')
+                        .doc(uid)
+                        .get();
+
+                    if (userSnapshot.exists) {
+                      // Convertir el resultado de data() a un Map<String, dynamic>
+                      Map<String, dynamic>? userData =
+                          userSnapshot.data() as Map<String, dynamic>?;
+
+                      if (userData != null && userData.containsKey('name')) {
+                        // Extraer el nombre del usuario si está presente en los datos
+                        String userName = userData['name'];
+
+                        // Verificar si el tipo de servicio seleccionado está en la colección ofertasServicio
+                        QuerySnapshot querySnapshot = await FirebaseFirestore
+                            .instance
+                            .collection('ofertasServicios')
+                            .where('titulo', isEqualTo: _selectedJobType)
+                            .limit(1)
+                            .get();
+
+                        if (querySnapshot.docs.isNotEmpty) {
+                          // Obtener la descripción, dirección y pago del formulario
+                          String descripcion = _descripcionController.text;
+                          String direccion = _direccionController.text;
+
+                          // Guardar la información en la colección servicios
+                          await FirebaseFirestore.instance
+                              .collection('servicios')
+                              .doc(servicioId)
+                              .set({
+                            'contenido': descripcion,
+                            'titulo':
+                                userName, // Utilizar el nombre del usuario como título
+                            'tipoServicio': _selectedJobType,
+                            'direccion': direccion,
+                            'id':
+                                servicioId, // Guardar el nuevo ID del servicio
+                          });
+
+                          // Limpiar los campos del formulario después de guardar la información
+                          _descripcionController.clear();
+                          _direccionController.clear();
+                          _pagoController.clear();
+
+                          // Mostrar un mensaje de éxito
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(const SnackBar(
+                            content: Text(
+                                'El servicio ha sido publicado con éxito.'),
+                          ));
+                        } else {
+                          // Si el tipo de servicio no está en la colección ofertasServicio
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(const SnackBar(
+                            content: Text(
+                                'El tipo de servicio seleccionado no está disponible.'),
+                          ));
+                        }
+                      } else {
+                        // Si no se encuentra el nombre del usuario en los datos
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(const SnackBar(
+                          content:
+                              Text('El nombre del usuario no está disponible.'),
+                        ));
+                      }
+                    } else {
+                      // Si no se encuentra el usuario en la colección 'users'
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('El usuario no está registrado.'),
+                      ));
+                    }
+                  } else {
+                    // Si el ID ya existe en la colección de servicios
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text(
+                          'Error: El servicio no se puede publicar debido a un conflicto de ID.'),
+                    ));
+                  }
+                } else {
+                  // Si no hay usuario autenticado
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content:
+                        Text('Debes iniciar sesión para publicar un servicio.'),
+                  ));
+                }
+              },
+              child: const Text('Publicar'),
+            ),
+          )
         ],
       ),
     );

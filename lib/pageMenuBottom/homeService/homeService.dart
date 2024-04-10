@@ -11,8 +11,9 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'dart:async';
 
 class HomePageService extends StatefulWidget {
-  const HomePageService({Key? key}) : super(key: key);
+  final String servicio;
 
+  const HomePageService({Key? key, required this.servicio}) : super(key: key);
   @override
   State<HomePageService> createState() => _HomePageServiceState();
 }
@@ -120,8 +121,11 @@ class _HomePageServiceState extends State<HomePageService> {
 
   Future<void> _fetchDataFromFirebase() async {
     try {
-      QuerySnapshot snapshot =
-          await FirebaseFirestore.instance.collection('servicios').get();
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('servicios')
+          .where('tipoServicio',
+              isEqualTo: widget.servicio) // Filtrar por el tipo de servicio
+          .get();
 
       setState(() {
         _servicios = snapshot.docs;
@@ -129,6 +133,20 @@ class _HomePageServiceState extends State<HomePageService> {
     } catch (e) {
       print('Error fetching data: $e');
     }
+  }
+
+  List<DocumentSnapshot> _filtrarServiciosPorTipo(String tipo) {
+    List<DocumentSnapshot> serviciosFiltrados = [];
+
+    for (var cuadro in _servicios) {
+      String tipoServicio = cuadro['tipoServicio'];
+
+      if (tipoServicio == tipo) {
+        serviciosFiltrados.add(cuadro);
+      }
+    }
+
+    return serviciosFiltrados;
   }
 
   void _toggleLike(String servicioId) async {
@@ -204,10 +222,9 @@ class _HomePageServiceState extends State<HomePageService> {
         enableInfiniteScroll: true,
         autoPlay: true,
         viewportFraction: 0.8,
-        autoPlayInterval:
-            const Duration(seconds: 4), // Agrega esta línea para autoPlay
+        autoPlayInterval: const Duration(seconds: 4),
       ),
-      items: _servicios
+      items: servicios
           .map((servicio) {
             String titulo = servicio['titulo'];
             String contenido = servicio['contenido'];
@@ -401,9 +418,12 @@ class _HomePageServiceState extends State<HomePageService> {
         String contenido = cuadro['contenido'];
         String idS = cuadro['id'];
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: buildCuadro(context, titulo, contenido, idS),
+        return SizedBox(
+          height: 170, // Modificar la altura según sea necesario
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            child: buildCuadro(context, titulo, contenido, idS),
+          ),
         );
       }).toList(),
     );
@@ -413,12 +433,15 @@ class _HomePageServiceState extends State<HomePageService> {
 
   @override
   Widget build(BuildContext context) {
+    List<DocumentSnapshot> serviciosFiltrados =
+        _filtrarServiciosPorTipo(widget.servicio);
+
     return Scaffold(
       backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
       appBar: AppBar(
-        title: const Text(
-          'Ofertas de Servicios',
-          style: TextStyle(
+        title: Text(
+          'Servicios - ${widget.servicio}',
+          style: const TextStyle(
             fontSize: 20,
             fontFamily: 'Montserrat',
             fontWeight: FontWeight.w400,
@@ -583,53 +606,13 @@ class _HomePageServiceState extends State<HomePageService> {
                 ],
               ),
             ),
+            buildCarousel(context, serviciosFiltrados),
             // Carrusel de cuadros con información y fotos
-            FutureBuilder<QuerySnapshot>(
-              future: FirebaseFirestore.instance.collection('servicios').get(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator(); // Muestra un indicador de carga mientras se obtienen los datos
-                }
-                if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                }
-
-                List<QueryDocumentSnapshot> documentos = snapshot.data!.docs;
-
-                return buildCarousel(
-                    context, documentos); // Usa la función buildCarousel
-              },
-            ),
+            const SizedBox(height: 3.0),
+            buildCuadrosFromDatabase(context, serviciosFiltrados),
             // Indicador de página actual
             const SizedBox(height: 3.0),
             // Otro contenido del código existente
-            SingleChildScrollView(
-              physics: const NeverScrollableScrollPhysics(),
-              child: Container(
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                child: FutureBuilder<QuerySnapshot>(
-                  future:
-                      FirebaseFirestore.instance.collection('servicios').get(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const CircularProgressIndicator(); // Muestra un indicador de carga mientras se obtienen los datos
-                    }
-                    if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    }
-
-                    List<QueryDocumentSnapshot> documentos =
-                        snapshot.data!.docs;
-
-                    return buildCuadrosFromDatabase(context,
-                        documentos); // Usa la función buildCuadrosFromDatabase
-                  },
-                ),
-              ),
-            ),
           ],
         ),
       ),
@@ -642,6 +625,6 @@ Future<void> main() async {
   await Firebase.initializeApp();
 
   runApp(const MaterialApp(
-    home: HomePageService(),
+    home: HomePageService(servicio: 'tipoServicio'),
   ));
 }
