@@ -1,7 +1,6 @@
 // ignore_for_file: unused_element, avoid_print, file_names, unused_local_variable, non_constant_identifier_names, duplicate_ignore
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:trabajorapid/pageMenuBottom/profileService/profileService.dart';
@@ -10,15 +9,16 @@ import 'package:carousel_slider/carousel_slider.dart';
 
 import 'dart:async';
 
-class HomePageService extends StatefulWidget {
+class FavoritePageService extends StatefulWidget {
   final String servicio;
 
-  const HomePageService({Key? key, required this.servicio}) : super(key: key);
+  const FavoritePageService({Key? key, required this.servicio})
+      : super(key: key);
   @override
-  State<HomePageService> createState() => _HomePageServiceState();
+  State<FavoritePageService> createState() => _FavoritePageService();
 }
 
-class _HomePageServiceState extends State<HomePageService> {
+class _FavoritePageService extends State<FavoritePageService> {
   // Maps to store user ratings and document counts
   Map<String, double> userRatings = {};
   Map<String, int> cantidadDocumentos = {};
@@ -80,12 +80,10 @@ class _HomePageServiceState extends State<HomePageService> {
         });
 
         // Output rating results to the console
-        print('Resultados de la calificación:');
+
         ratingStats.forEach((key, value) {
           double media = value['sumaTotal'] / value['cantidadDocumentos'];
           int nume = value['cantidadDocumentos'];
-          print(
-              'ID de Servicio: $key, Media de Calificación: $media, cantidad: $nume');
         });
         // Update userRatings map with the average ratings
         for (QueryDocumentSnapshot ratingDoc in ratingSnapshot.docs) {
@@ -127,8 +125,19 @@ class _HomePageServiceState extends State<HomePageService> {
               isEqualTo: widget.servicio) // Filtrar por el tipo de servicio
           .get();
 
+      List<DocumentSnapshot> likedServicios = [];
+
+      // Filtrar los servicios que tienen 'Me gusta'
+      for (var servicio in snapshot.docs) {
+        String servicioId = servicio.id;
+        bool isLiked = await _isLiked(servicioId);
+        if (isLiked) {
+          likedServicios.add(servicio);
+        }
+      }
+
       setState(() {
-        _servicios = snapshot.docs;
+        _servicios = likedServicios;
       });
     } catch (e) {
       print('Error fetching data: $e');
@@ -176,10 +185,10 @@ class _HomePageServiceState extends State<HomePageService> {
               .doc(userId)
               .collection('servicios')
               .doc(servicioId)
-              .set({
-            'liked': true,
-          });
+              .set({'liked': true});
         }
+
+        // Actualizar el estado después de que se complete la operación
         setState(() {});
       }
     } catch (e) {
@@ -360,26 +369,22 @@ class _HomePageServiceState extends State<HomePageService> {
                   children: [
                     GestureDetector(
                       onTap: () async {
-                        _toggleLike(
-                            idS); // Espera a que se complete la operación asincrónica
-                        // Actualiza el estado después de que se complete la operación
+                        _toggleLike(idS);
+                        // Actualizar el estado después de que se complete la operación
                       },
                       child: FutureBuilder<bool>(
-                        future: _isLiked(idS), // Llama a la función _isLiked
+                        future: _isLiked(idS),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
-                            // Muestra un indicador de carga mientras se espera la respuesta
                             return const CircularProgressIndicator();
                           } else {
                             if (snapshot.hasData && snapshot.data!) {
-                              // Si hay datos y el resultado es verdadero, muestra el icono en rojo
                               return const Icon(
                                 Icons.favorite,
                                 color: Colors.red,
                               );
                             } else {
-                              // De lo contrario, muestra el icono en gris
                               return const Icon(
                                 Icons.favorite_border,
                                 color: Colors.grey,
@@ -428,8 +433,6 @@ class _HomePageServiceState extends State<HomePageService> {
     );
   }
 
-  String tituloText = 'Todos';
-
   @override
   Widget build(BuildContext context) {
     List<DocumentSnapshot> serviciosFiltrados =
@@ -438,202 +441,13 @@ class _HomePageServiceState extends State<HomePageService> {
     return Scaffold(
       backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
       appBar: AppBar(
-        title: Text(
-          widget.servicio,
-          style: const TextStyle(
-            fontSize: 20,
-            fontFamily: 'Montserrat',
-            fontWeight: FontWeight.w400,
-            color: Color.fromARGB(255, 249, 249, 249),
-          ),
-        ),
-        backgroundColor: Colors.transparent,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Theme.of(context).colorScheme.primary,
-                Theme.of(context).colorScheme.secondary,
-              ],
-            ),
-          ),
-        ),
-        iconTheme: const IconThemeData(color: Colors.white, size: 30),
-        centerTitle: true,
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
-            onSelected: (value) async {
-              switch (value) {
-                case 'Mejor calificados':
-                  tituloText = 'Mejor calificado ⭐';
-                  // Obtener los servicios y ordenarlos por media de estrellas de mayor a menor
-                  List<DocumentSnapshot> servicios = await FirebaseFirestore
-                      .instance
-                      .collection('servicios')
-                      .get()
-                      .then((snapshot) => snapshot.docs);
-
-                  servicios.sort((a, b) {
-                    double mediaEstrellasA = userRatings[a['id']] ?? 0.00;
-                    double mediaEstrellasB = userRatings[b['id']] ?? 0.00;
-                    return mediaEstrellasB.compareTo(mediaEstrellasA);
-                  });
-
-                  // Filtrar los servicios para guardar solo los que tienen 3 estrellas o más
-                  List<DocumentSnapshot> serviciosFiltrados = [];
-                  for (var servicio in servicios) {
-                    double mediaEstrellas = userRatings[servicio['id']] ?? 0.00;
-                    if (mediaEstrellas >= 3.0) {
-                      serviciosFiltrados.add(servicio);
-                    }
-                  }
-
-                  // Actualizar la UI con los servicios filtrados
-                  setState(() {
-                    _servicios = serviciosFiltrados;
-                  });
-                  break;
-                case 'Más cerca':
-                  tituloText = 'Más cerca';
-                  setState(() {
-                    _servicios;
-                  });
-                  // Código para manejar la opción "Más cerca"
-                  break;
-                case 'Más nuevo':
-                  tituloText = 'Más nuevo';
-                  setState(() {
-                    _servicios;
-                  });
-                  // Código para manejar la opción "Más nuevo"
-                  break;
-                case 'Todos':
-                  tituloText = 'Todos';
-                  setState(() {
-                    _servicios;
-                  });
-                  // Código para manejar la opción "Todos"
-                  break;
-                default:
-                  tituloText = 'Todos';
-                  setState(() {
-                    _servicios;
-                  });
-                  // Código para manejar otras opciones si es necesario
-                  break;
-              }
-            },
-            itemBuilder: (BuildContext context) {
-              return [
-                'Más contratados',
-                'Mejor calificados',
-                'Más cerca',
-                'Más nuevo',
-                'Todos'
-              ].map((String choice) {
-                // Agregar iconos después de cada opción en el menú emergente
-                IconData? icon;
-
-                switch (choice) {
-                  case 'Más contratados':
-                    icon = Icons.thumb_up;
-                    break;
-                  case 'Mejor calificados':
-                    icon = Icons.star;
-                    break;
-                  case 'Más cerca':
-                    icon = Icons.location_on;
-                    break;
-                  case 'Más nuevo':
-                    icon = Icons.new_releases;
-                    break;
-                  case 'Todos':
-                    icon = Icons.list;
-                    break;
-                  default:
-                    icon = null;
-                }
-
-                return PopupMenuItem<String>(
-                  value: choice,
-                  child: Row(
-                    children: [
-                      // Texto de la opción del menú
-                      Text(choice),
-                      const SizedBox(width: 8),
-                      // Icono asociado a la opción del menú
-                      if (icon != null) Icon(icon, color: Colors.black),
-                    ],
-                  ),
-                );
-              }).toList();
-            },
-          ),
-        ],
+        title: Text(widget.servicio),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Título
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Texto del título
-                  Text(
-                    tituloText,
-                    style: const TextStyle(
-                      fontSize: 18.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  // Espaciador para centrar el contenido
-                  const Center(),
-                  // Icono asociado al texto del título
-                  if (tituloText == 'Más contratados')
-                    const Icon(Icons.thumb_up, color: Colors.black),
-                  if (tituloText == 'Mejor calificados')
-                    const Icon(Icons.star, color: Colors.black),
-                  if (tituloText == 'Más cerca')
-                    const Icon(Icons.location_on, color: Colors.black),
-                  if (tituloText == 'Más nuevo')
-                    const Icon(Icons.new_releases, color: Colors.black),
-                  if (tituloText == 'Todos')
-                    const Icon(Icons.list, color: Colors.black),
-                ],
-              ),
+      body: serviciosFiltrados.isNotEmpty
+          ? buildCuadrosFromDatabase(context, serviciosFiltrados)
+          : const Center(
+              child: Text('No hay servicios con "Me gusta"'),
             ),
-            buildCarousel(context, serviciosFiltrados),
-            // Carrusel de cuadros con información y fotos
-            if (serviciosFiltrados.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(20.0),
-                child: Text(
-                  'No se encontraron servicios disponibles.',
-                  style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                ),
-              ),
-            // Si no está vacía, mostrar los cuadros con información
-            const SizedBox(height: 3.0),
-            if (serviciosFiltrados.isNotEmpty)
-              buildCuadrosFromDatabase(context, serviciosFiltrados),
-            // Indicador de página actual
-            const SizedBox(height: 3.0),
-            // Otro contenido del código existente
-          ],
-        ),
-      ),
     );
   }
-}
-
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-
-  runApp(const MaterialApp(
-    home: HomePageService(servicio: 'tipoServicio'),
-  ));
 }

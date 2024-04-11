@@ -1,11 +1,10 @@
 // ignore_for_file: unnecessary_import, use_build_context_synchronously
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 // ignore_for_file: library_private_types_in_public_api
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:geolocator/geolocator.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -20,7 +19,10 @@ class _ProfilePageState extends State<ProfilePage> {
   bool _showJobForm = false;
   double rating = 4.5;
   String _selectedJobType = 'Seleccionar...';
-
+  String _selectedOfferType = 'Seleccionar...';
+  double _pago = 0.0;
+  DateTime currentDate = DateTime.now();
+  Position? position;
   // Declara los controladores para los campos de texto
   final TextEditingController _descripcionController = TextEditingController();
   final TextEditingController _direccionController = TextEditingController();
@@ -36,10 +38,9 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    _getServicios(); // Llama a la función para obtener los servicios al inicializar el estado
+    _getServicios();
+    _getCurrentPosition(); // Llama a la función para obtener los servicios al inicializar el estado
   }
-
-  // Resto del código...
 
   @override
   void dispose() {
@@ -70,6 +71,20 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
+  Future<void> _getCurrentPosition() async {
+    try {
+      Position newPosition = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      setState(() {
+        position = newPosition;
+      });
+    } catch (e) {
+      print("Error al obtener la posición: $e");
+      // Manejar el error de obtener la posición aquí
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     int fullStars = rating.floor(); // Estrellas completas
@@ -92,8 +107,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 radius: 80,
                 backgroundColor: Colors.transparent,
                 child: Container(
-                  width: 160,
-                  height: 160,
+                  width: 150,
+                  height: 150,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
@@ -114,7 +129,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 height: 15,
               ),
               const Text(
-                'Jordan Laguna.',
+                'Nombre',
                 style: TextStyle(
                   fontSize: 25,
                   fontWeight: FontWeight.bold,
@@ -451,7 +466,7 @@ class _ProfilePageState extends State<ProfilePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Publicar Servicio',
+            'Publicar Oferta',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -472,6 +487,24 @@ class _ProfilePageState extends State<ProfilePage> {
             }).toList(),
             decoration: const InputDecoration(
               labelText: 'Tipo de servicio:',
+            ),
+          ),
+          DropdownButtonFormField<String>(
+            value: _selectedOfferType,
+            onChanged: (String? newValue) {
+              setState(() {
+                _selectedOfferType = newValue!;
+              });
+            },
+            items: ['Seleccionar...', 'Oferta de servicio', 'Oferta de empleo']
+                .map((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+            decoration: const InputDecoration(
+              labelText: 'Tipo de oferta:',
             ),
           ),
           TextFormField(
@@ -499,6 +532,18 @@ class _ProfilePageState extends State<ProfilePage> {
                 return 'La dirección no tiene un formato válido.';
               }
               return null;
+            },
+          ),
+
+          // Campo de pago
+          TextFormField(
+            controller: _pagoController,
+            decoration: const InputDecoration(labelText: 'Pago:'),
+            keyboardType: TextInputType.number,
+            onChanged: (value) {
+              setState(() {
+                _pago = double.tryParse(value) ?? 0.0;
+              });
             },
           ),
           const SizedBox(height: 10),
@@ -569,12 +614,15 @@ class _ProfilePageState extends State<ProfilePage> {
                               .doc(servicioId)
                               .set({
                             'contenido': descripcion,
-                            'titulo':
-                                userName, // Utilizar el nombre del usuario como título
+                            'titulo': userName,
                             'tipoServicio': _selectedJobType,
+                            'tipoOferta': _selectedOfferType,
                             'direccion': direccion,
-                            'id':
-                                servicioId, // Guardar el nuevo ID del servicio
+                            'pago': _pago,
+                            'latitude': position?.latitude,
+                            'longitude': position?.longitude,
+                            'fecha': currentDate,
+                            'id': servicioId,
                           });
 
                           // Limpiar los campos del formulario después de guardar la información

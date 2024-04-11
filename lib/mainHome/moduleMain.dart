@@ -23,7 +23,7 @@ class _ModuleMainState extends State<ModuleMain> {
   final screen = const [
     HomePage(),
     ProfilePage(),
-    FavoritePage(),
+    Favorite(),
     WorksPage(),
   ];
 

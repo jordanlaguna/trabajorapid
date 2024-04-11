@@ -87,24 +87,6 @@ class HomePage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Barra de búsqueda
-                    TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Buscar servicios...',
-                        prefixIcon: Icon(Icons.search),
-                      ),
-                    ),
-                    SizedBox(height: 20.0),
-
-                    // Carrusel
-                  ],
-                ),
-              ),
               FutureBuilder<QuerySnapshot>(
                 future: FirebaseFirestore.instance
                     .collection('ofertasServicios')
