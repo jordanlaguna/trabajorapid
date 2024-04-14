@@ -67,12 +67,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       // registrarse
-                      Text(
+                      const Text(
                         'Registrarse \n Rapid Jobs',
                         style: TextStyle(
                           fontSize: 30.0,
                           fontWeight: FontWeight.w900,
-                          color: lightColorScheme.primary,
+                          color: Color.fromARGB(255, 65, 111, 223),
                         ),
                       ),
                       const SizedBox(

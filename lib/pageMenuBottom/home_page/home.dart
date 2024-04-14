@@ -151,24 +151,18 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder<List<DocumentSnapshot>>(
-        future: _getServicios(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else {
-            List<DocumentSnapshot> servicios = snapshot.data!;
-            return Container(
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/images/bg.png'),
-                  fit: BoxFit
-                      .cover, // Ajusta la imagen para cubrir toda la pantalla
-                ),
-              ),
-              child: SingleChildScrollView(
+      body: Container(
+        color: Colors.blue[100],
+        child: FutureBuilder<List<DocumentSnapshot>>(
+          future: _getServicios(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else {
+              List<DocumentSnapshot> servicios = snapshot.data!;
+              return SingleChildScrollView(
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 16.0, vertical: 10.0),
@@ -185,10 +179,10 @@ class HomePage extends StatelessWidget {
                     ],
                   ),
                 ),
-              ),
-            );
-          }
-        },
+              );
+            }
+          },
+        ),
       ),
     );
   }
