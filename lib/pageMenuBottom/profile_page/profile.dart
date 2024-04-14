@@ -30,7 +30,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   bool _isValidDireccion(String value) {
     // Expresión regular para verificar el formato de la dirección
-    RegExp regExp = RegExp(r'^[\w\s]+\/[\w\s]+\/[\w\s]+\/[\w\s]+$');
+    RegExp regExp = RegExp(r'^[\w\s]+\/[\w\s]+\/[\w\s]+$');
     return regExp.hasMatch(value);
   }
 
@@ -39,7 +39,7 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     _getServicios();
-    _getCurrentPosition(); // Llama a la función para obtener los servicios al inicializar el estado
+    //_getCurrentPosition(); // Llama a la función para obtener los servicios al inicializar el estado
   }
 
   @override
@@ -71,18 +71,23 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
-  Future<void> _getCurrentPosition() async {
-    try {
-      Position newPosition = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-      setState(() {
-        position = newPosition;
-      });
-    } catch (e) {
-      print("Error al obtener la posición: $e");
-      // Manejar el error de obtener la posición aquí
+  Future<Position> determinePosicion() async {
+    LocationPermission permission;
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('error');
+      }
     }
+    return await Geolocator.getCurrentPosition();
+  }
+
+  void getCurrentLocation() async {
+    Position newPosition = await determinePosicion();
+    setState(() {
+      position = newPosition;
+    });
   }
 
   @override
@@ -552,12 +557,13 @@ class _ProfilePageState extends State<ProfilePage> {
               onPressed: () async {
                 // Verificar si hay un usuario autenticado
                 User? user = FirebaseAuth.instance.currentUser;
+                getCurrentLocation();
 
                 if (!_isValidDireccion(_direccionController.text)) {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                     content: Text(
                         'La dirección no tiene un formato válido. Por ejemplo: '
-                        'Pais/Provincia/Canton/Ciudad'),
+                        'Provincia/Canton/Ciudad'),
                     backgroundColor: Colors.red,
                   ));
                   return; // Detener el proceso de publicación si la dirección no es válida

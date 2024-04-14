@@ -228,7 +228,7 @@ class _FavoritePageService extends State<FavoritePageService> {
   Widget buildCarousel(BuildContext context, List<DocumentSnapshot> servicios) {
     return CarouselSlider(
       options: CarouselOptions(
-        height: 150.0,
+        height: 250,
         enableInfiniteScroll: true,
         autoPlay: true,
         viewportFraction: 0.8,
@@ -239,7 +239,12 @@ class _FavoritePageService extends State<FavoritePageService> {
             String titulo = servicio['titulo'];
             String contenido = servicio['contenido'];
             String idS = servicio['id'];
-            return buildCuadro(context, titulo, contenido, idS);
+            String tipoOferta = servicio['tipoOferta'];
+            String direccion = servicio['direccion'];
+            final double pagoDouble = servicio['pago']?.toDouble() ?? 0.0;
+            final String pago = pagoDouble.toStringAsFixed(2);
+            return buildCuadro(
+                context, titulo, contenido, idS, tipoOferta, direccion, pago);
           })
           .map((widget) => Container(
                 margin: const EdgeInsets.symmetric(horizontal: 6.0),
@@ -249,8 +254,8 @@ class _FavoritePageService extends State<FavoritePageService> {
     );
   }
 
-  Widget buildCuadro(
-      BuildContext context, String titulo, String contenido, String idS) {
+  Widget buildCuadro(BuildContext context, String titulo, String contenido,
+      String idS, String tipoOferta, String direccion, String pago) {
     double mediaEstrellas = userRatings[idS] ?? 0.00;
     int nume = cantidadDocumentos[idS] ?? 0;
     return Container(
@@ -363,8 +368,26 @@ class _FavoritePageService extends State<FavoritePageService> {
                   ],
                 ),
                 const SizedBox(height: 10.0),
-                Text(contenido),
-                const SizedBox(height: 3.0),
+                Text(
+                  contenido.length > 20
+                      ? '${contenido.substring(0, 5)}...'
+                      : contenido,
+                ),
+                const SizedBox(height: 5.0),
+                Text(
+                  tipoOferta.length > 20
+                      ? '${tipoOferta.substring(0, 20)}...'
+                      : tipoOferta,
+                ),
+                const SizedBox(height: 5.0),
+                Text(
+                  direccion.length > 20
+                      ? '${direccion.substring(0, 20)}...'
+                      : direccion,
+                ),
+                const SizedBox(height: 5.0),
+                Text('$pago ₡'),
+                const SizedBox(height: 5.0),
                 Row(
                   children: [
                     GestureDetector(
@@ -422,11 +445,16 @@ class _FavoritePageService extends State<FavoritePageService> {
         String titulo = cuadro['titulo'];
         String contenido = cuadro['contenido'];
         String idS = cuadro['id'];
+        String tipoOferta = cuadro['tipoOferta'];
+        String direccion = cuadro['direccion'];
+        final double pagoDouble = cuadro['pago']?.toDouble() ?? 0.0;
+        final String pago = pagoDouble.toStringAsFixed(2);
         return SizedBox(
-          height: 170, // Modificar la altura según sea necesario
+          height: 250, // Modificar la altura según sea necesario
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: buildCuadro(context, titulo, contenido, idS),
+            child: buildCuadro(
+                context, titulo, contenido, idS, tipoOferta, direccion, pago),
           ),
         );
       }).toList(),
