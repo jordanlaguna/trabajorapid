@@ -140,7 +140,7 @@ class _ChatHomeState extends State<ChatHome> {
           Padding(
             padding: const EdgeInsets.only(left: 5.0, top: 7.0),
             child: Text(
-              data['senderEmail'],
+              data['senderName'],
               style: const TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w400,
