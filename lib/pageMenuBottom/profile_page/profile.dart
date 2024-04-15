@@ -615,6 +615,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           // Obtener la descripción, dirección y pago del formulario
                           String descripcion = _descripcionController.text;
                           String direccion = _direccionController.text;
+                          String uid = user.uid; // Obtener el UID del usuario
 
                           // Guardar la información en la colección servicios
                           await FirebaseFirestore.instance
@@ -631,6 +632,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             'longitude': position?.longitude,
                             'fecha': currentDate,
                             'id': servicioId,
+                            'uid': uid
                           });
 
                           // Limpiar los campos del formulario después de guardar la información

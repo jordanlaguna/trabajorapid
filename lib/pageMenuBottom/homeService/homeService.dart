@@ -1,5 +1,5 @@
 // ignore_for_file: unused_element, avoid_print, file_names, unused_local_variable, non_constant_identifier_names, duplicate_ignore
-
+import 'package:geolocator/geolocator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +7,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:trabajorapid/pageMenuBottom/profileService/profileService.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-
+import 'dart:math';
 import 'dart:async';
 
 class HomePageService extends StatefulWidget {
@@ -31,6 +31,7 @@ class _HomePageServiceState extends State<HomePageService> {
 
   final StreamController<List<DocumentSnapshot>> _star =
       StreamController<List<DocumentSnapshot>>();
+  // Obtener la ubicación actual del usuario
 
   @override
   void initState() {
@@ -39,6 +40,45 @@ class _HomePageServiceState extends State<HomePageService> {
     _fetchDataFromFirebase();
     _StarDataFromFirebase();
     _loadUserRatingsFromFirebase();
+  }
+
+  // Función para convertir grados a radianes
+  double degreesToRadians(double degrees) {
+    return degrees * pi / 180.0;
+  }
+
+// Función para calcular la distancia entre dos puntos en la superficie de la Tierra utilizando la fórmula de Haversine
+  double calcularDistancia(
+    double latitudUsuario,
+    double longitudUsuario,
+    double latitudServicio,
+    double longitudServicio,
+  ) {
+    const double radioTierra = 6371; // Radio de la Tierra en kilómetros
+
+    double latitud1Rad = degreesToRadians(latitudUsuario);
+    double longitud1Rad = degreesToRadians(longitudUsuario);
+    double latitud2Rad = degreesToRadians(latitudServicio);
+    double longitud2Rad = degreesToRadians(longitudServicio);
+
+    double deltaLatitud = latitud2Rad - latitud1Rad;
+    double deltaLongitud = longitud2Rad - longitud1Rad;
+
+    double a = sin(deltaLatitud / 2) * sin(deltaLatitud / 2) +
+        cos(latitud1Rad) *
+            cos(latitud2Rad) *
+            sin(deltaLongitud / 2) *
+            sin(deltaLongitud / 2);
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+    double distancia = radioTierra * c; // Distancia en kilómetros
+    print(latitud1Rad);
+    print(longitud1Rad);
+    print(latitud2Rad);
+    print(longitud2Rad);
+
+    print(distancia);
+    return distancia;
   }
 
   void _loadUserRatingsFromFirebase() async {
@@ -232,10 +272,11 @@ class _HomePageServiceState extends State<HomePageService> {
             String idS = servicio['id'];
             String tipoOferta = servicio['tipoOferta'];
             String direccion = servicio['direccion'];
+            String uid = servicio['uid'];
             final double pagoDouble = servicio['pago']?.toDouble() ?? 0.0;
             final String pago = pagoDouble.toStringAsFixed(2);
-            return buildCuadro(
-                context, titulo, contenido, idS, tipoOferta, direccion, pago);
+            return buildCuadro(context, titulo, contenido, idS, tipoOferta,
+                direccion, pago, uid);
           })
           .map((widget) => Container(
                 margin: const EdgeInsets.symmetric(horizontal: 6.0),
@@ -245,8 +286,15 @@ class _HomePageServiceState extends State<HomePageService> {
     );
   }
 
-  Widget buildCuadro(BuildContext context, String titulo, String contenido,
-      String idS, String tipoOferta, String direccion, String pago) {
+  Widget buildCuadro(
+      BuildContext context,
+      String titulo,
+      String contenido,
+      String idS,
+      String tipoOferta,
+      String direccion,
+      String pago,
+      String uid) {
     double mediaEstrellas = userRatings[idS] ?? 0.00;
     int nume = cantidadDocumentos[idS] ?? 0;
     return Container(
@@ -418,7 +466,8 @@ class _HomePageServiceState extends State<HomePageService> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const Profile()),
+                            builder: (context) => Profile(uid: uid),
+                          ),
                         );
                       },
                       child: const Text('Presiona aquí'),
@@ -442,14 +491,15 @@ class _HomePageServiceState extends State<HomePageService> {
         String idS = cuadro['id'];
         String tipoOferta = cuadro['tipoOferta'];
         String direccion = cuadro['direccion'];
+        String uid = cuadro['uid'];
         final double pagoDouble = cuadro['pago']?.toDouble() ?? 0.0;
         final String pago = pagoDouble.toStringAsFixed(2);
         return SizedBox(
           height: 250, // Modificar la altura según sea necesario
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: buildCuadro(
-                context, titulo, contenido, idS, tipoOferta, direccion, pago),
+            child: buildCuadro(context, titulo, contenido, idS, tipoOferta,
+                direccion, pago, uid),
           ),
         );
       }).toList(),
@@ -524,10 +574,32 @@ class _HomePageServiceState extends State<HomePageService> {
                   break;
                 case 'Más cerca':
                   tituloText = 'Más cerca';
+                  Position currentPosition =
+                      await Geolocator.getCurrentPosition(
+                          desiredAccuracy: LocationAccuracy.high);
+                  double latitudUsuario = currentPosition.latitude;
+                  double longitudUsuario = currentPosition.longitude;
+
+                  // Iterar sobre los servicios y calcular la distancia
+                  List<DocumentSnapshot> serviciosCercanos = [];
+                  for (var servicio in _servicios) {
+                    double latitudServicio = servicio['latitude'];
+                    double longitudServicio = servicio['longitude'];
+
+                    // Calcular la distancia utilizando la fórmula de Haversine
+                    double distancia = calcularDistancia(latitudUsuario,
+                        longitudUsuario, latitudServicio, longitudServicio);
+
+                    // Si la distancia es menor que 22, añadir el servicio a la lista de servicios cercanos
+                    if (distancia < 0.53) {
+                      serviciosCercanos.add(servicio);
+                    }
+                  }
+
+                  // Actualizar la interfaz de usuario con los servicios cercanos
                   setState(() {
-                    _servicios;
+                    _servicios = serviciosCercanos;
                   });
-                  // Código para manejar la opción "Más cerca"
                   break;
                 case 'Más nuevo':
                   tituloText = 'Más nuevo';

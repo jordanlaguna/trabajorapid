@@ -241,10 +241,11 @@ class _FavoritePageService extends State<FavoritePageService> {
             String idS = servicio['id'];
             String tipoOferta = servicio['tipoOferta'];
             String direccion = servicio['direccion'];
+            String uid = servicio['uid'];
             final double pagoDouble = servicio['pago']?.toDouble() ?? 0.0;
             final String pago = pagoDouble.toStringAsFixed(2);
-            return buildCuadro(
-                context, titulo, contenido, idS, tipoOferta, direccion, pago);
+            return buildCuadro(context, titulo, contenido, idS, tipoOferta,
+                direccion, pago, uid);
           })
           .map((widget) => Container(
                 margin: const EdgeInsets.symmetric(horizontal: 6.0),
@@ -254,8 +255,15 @@ class _FavoritePageService extends State<FavoritePageService> {
     );
   }
 
-  Widget buildCuadro(BuildContext context, String titulo, String contenido,
-      String idS, String tipoOferta, String direccion, String pago) {
+  Widget buildCuadro(
+      BuildContext context,
+      String titulo,
+      String contenido,
+      String idS,
+      String tipoOferta,
+      String direccion,
+      String pago,
+      String uid) {
     double mediaEstrellas = userRatings[idS] ?? 0.00;
     int nume = cantidadDocumentos[idS] ?? 0;
     return Container(
@@ -423,7 +431,9 @@ class _FavoritePageService extends State<FavoritePageService> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const Profile()),
+                              builder: (context) => const Profile(
+                                    uid: 'uid',
+                                  )),
                         );
                       },
                       child: const Text('Presiona aquí'),
@@ -447,14 +457,15 @@ class _FavoritePageService extends State<FavoritePageService> {
         String idS = cuadro['id'];
         String tipoOferta = cuadro['tipoOferta'];
         String direccion = cuadro['direccion'];
+        String uid = cuadro['uid'];
         final double pagoDouble = cuadro['pago']?.toDouble() ?? 0.0;
         final String pago = pagoDouble.toStringAsFixed(2);
         return SizedBox(
           height: 250, // Modificar la altura según sea necesario
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: buildCuadro(
-                context, titulo, contenido, idS, tipoOferta, direccion, pago),
+            child: buildCuadro(context, titulo, contenido, idS, tipoOferta,
+                direccion, pago, uid),
           ),
         );
       }).toList(),

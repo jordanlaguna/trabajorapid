@@ -174,10 +174,11 @@ Widget buildCuadrosDesdeFirestore(
                         // Si el título ya está en titlesSet, incrementar el contador
                         countMap[tipoServicio] = countMap[tipoServicio]! + 1;
                         // Imprimir el mapa para verificar el conteo actualizado
-                        print(countMap);
+
                         // Validar a qué título se le agrega más 1
                         String mostSearchedTitle = '';
                         int maxSearches = 0;
+                        // ignore: avoid_types_as_parameter_names
                         countMap.forEach((titulo, count) {
                           if (count > maxSearches) {
                             maxSearches = count;
