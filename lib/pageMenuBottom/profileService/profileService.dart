@@ -11,14 +11,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 void main() {
   runApp(
     const MaterialApp(
-      home: Profile(),
+      home: Profile(
+        uid: 'uid',
+      ),
       debugShowCheckedModeBanner: false,
     ),
   );
 }
 
 class Profile extends StatelessWidget {
-  const Profile({Key? key}) : super(key: key);
+  const Profile({Key? key, required String uid}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +72,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String titulo = '';
   String contenido = '';
   String idS = '';
+  String nombreDelPerfil = '';
+  String correo = '';
+  String direccion = '';
 
   Map<String, double> userRatings = {};
   Map<String, int> cantidadDocumentos = {};
@@ -87,6 +92,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         comments = value;
       });
+    });
+    getUserData('uid').then((userData) {
+      if (userData != null) {
+        // Aquí puedes actualizar el estado con los datos del usuario, por ejemplo:
+        setState(() {
+          nombreDelPerfil = userData['name'];
+          correo = userData['email'];
+
+          // Suponiendo que 'nombre' es un campo en tus datos de usuario
+        });
+      }
+    });
+    getUserData('uid').then((servicesSnapshot) {
+      if (servicesSnapshot != null) {
+        // Aquí puedes actualizar el estado con los datos del usuario, por ejemplo:
+        setState(() {
+          direccion = servicesSnapshot['direccion'];
+
+          // Suponiendo que 'nombre' es un campo en tus datos de usuario
+        });
+      }
     });
     _fetchDataFromFirebase();
     _StarDataFromFirebase();
@@ -159,6 +185,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<DocumentSnapshot<Map<String, dynamic>>?> getUserData(
+      String uid) async {
+    try {
+      DocumentSnapshot<Map<String, dynamic>> userData =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      return userData;
+    } catch (e) {
+      print('Error obteniendo datos del usuario: $e');
+      return null;
+    }
+  }
+
+// Función para obtener los servicios del usuario con el UID dado
+  Future<List<DocumentSnapshot<Map<String, dynamic>>>> getUserServices(
+      String uid) async {
+    try {
+      QuerySnapshot<Map<String, dynamic>> servicesSnapshot =
+          await FirebaseFirestore.instance
+              .collection('servicios')
+              .where('uid', isEqualTo: uid)
+              .get();
+      return servicesSnapshot.docs;
+    } catch (e) {
+      print('Error obteniendo servicios del usuario: $e');
+      return [];
+    }
+  }
+
   // ignore: non_constant_identifier_names
   void _StarDataFromFirebase() async {
     try {
@@ -204,20 +258,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
             color: Colors.green,
             size: 10,
           ),
-          const Text(
-            'Nombre del perfil',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          Text(
+            nombreDelPerfil,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Ubicación: Ciudad, País',
-            style: TextStyle(fontSize: 16, color: Colors.grey),
+          Text(
+            correo,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Biografía del perfil.',
+          Text(
+            direccion,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16),
+            style: const TextStyle(fontSize: 16),
           ),
           const SizedBox(height: 16),
           const Divider(),
