@@ -122,11 +122,14 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                   child: ClipOval(
-                    child: Image.network(
-                      FirebaseAuth.instance.currentUser!.photoURL!,
-                      fit: BoxFit
-                          .cover, // Para que la imagen se ajuste correctamente dentro del círculo
-                    ),
+                    child: FirebaseAuth.instance.currentUser!.photoURL != null
+                        ? Image.network(
+                            FirebaseAuth.instance.currentUser!.photoURL!,
+                            fit: BoxFit.cover,
+                          )
+                        : const Icon(Icons.account_circle,
+                            size:
+                                150), // Icono de usuario predeterminado si no hay URL de foto
                   ),
                 ),
               ),
