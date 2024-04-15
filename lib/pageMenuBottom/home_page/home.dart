@@ -74,6 +74,7 @@ class HomePage extends StatelessWidget {
       'format_paint': Icons.format_paint,
       'landscape': Icons.landscape,
       'apartment': Icons.apartment,
+      'child_care': Icons.child_care
     };
 
     IconData iconData = iconos[icon] ?? Icons.error;
