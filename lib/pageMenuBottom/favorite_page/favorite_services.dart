@@ -469,7 +469,28 @@ class _FavoritePageService extends State<FavoritePageService> {
     return Scaffold(
       backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
       appBar: AppBar(
-        title: Text(widget.servicio),
+        title: Text(
+          widget.servicio,
+          style: const TextStyle(
+            fontSize: 24,
+            fontFamily: 'Montserrat',
+            fontWeight: FontWeight.w400,
+            color: Colors.white,
+          ),
+        ),
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white, size: 30),
+        backgroundColor: Colors.transparent,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color.fromARGB(255, 65, 111, 223),
+                Color.fromARGB(255, 110, 174, 231),
+              ],
+            ),
+          ),
+        ),
       ),
       body: serviciosFiltrados.isNotEmpty
           ? buildCuadrosFromDatabase(context, serviciosFiltrados)

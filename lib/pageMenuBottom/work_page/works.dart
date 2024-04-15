@@ -5,9 +5,9 @@ class WorksPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(child: Text('Works')),
+    return Scaffold(
+      backgroundColor: Colors.blue[50],
+      body: const Center(child: Text('Works')),
     );
   }
 }

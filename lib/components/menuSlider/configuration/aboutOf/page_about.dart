@@ -19,11 +19,11 @@ class PageAbout extends StatelessWidget {
         centerTitle: true,
         backgroundColor: Colors.transparent,
         flexibleSpace: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Theme.of(context).colorScheme.primary,
-                Theme.of(context).colorScheme.secondary,
+                Color.fromARGB(255, 65, 111, 223),
+                Color.fromARGB(255, 110, 174, 231),
               ],
             ),
           ),
@@ -37,8 +37,8 @@ class PageAbout extends StatelessWidget {
             SizedBox(height: 170.0),
             Image(
               image: AssetImage('assets/images/appLogo.png'),
-              height: 150,
-              width: 150,
+              height: 250,
+              width: 250,
               alignment: Alignment.center,
             ),
             SizedBox(height: 10),
@@ -55,7 +55,7 @@ class PageAbout extends StatelessWidget {
           ],
         ),
       ),
-      backgroundColor: Colors.blue[100],
+      backgroundColor: Colors.blue[50],
     );
   }
 }

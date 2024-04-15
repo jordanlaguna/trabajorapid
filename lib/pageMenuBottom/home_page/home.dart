@@ -153,7 +153,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        color: Colors.blue[100],
+        color: Colors.blue[50],
         child: FutureBuilder<List<DocumentSnapshot>>(
           future: _getServicios(),
           builder: (context, snapshot) {
@@ -174,7 +174,19 @@ class HomePage extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       _buildCarousel(context, servicios),
-                      const SizedBox(height: 20.0),
+                      const SizedBox(height: 10.0),
+                      const Text(
+                        "Servicios",
+                        style: TextStyle(
+                          fontSize: 22.0,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Montserrat',
+                        ),
+                      ),
+                      const Divider(
+                        color: Colors.white,
+                        thickness: 2.0,
+                      ),
                       _buildCuadrosDesdeFirestore(context, servicios),
                       const SizedBox(height: 20.0)
                     ],

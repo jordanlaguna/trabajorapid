@@ -26,77 +26,76 @@ class Favorite extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.blue[50],
       appBar: AppBar(
+        backgroundColor: Colors.blue[50],
         title: ShaderMask(
           shaderCallback: (Rect bounds) {
             return LinearGradient(
               colors: [
-                Theme.of(context).colorScheme.primary,
-                Theme.of(context).colorScheme.secondary,
+                Theme.of(context).colorScheme.shadow,
+                Theme.of(context).colorScheme.shadow,
               ],
             ).createShader(bounds);
           },
           child: const Text(
-            'Favoritos',
+            'Servicios Favoritos',
             style: TextStyle(
               fontSize: 24.0,
               fontWeight: FontWeight.bold,
+              fontFamily: 'Monserrat',
               color: Colors.white, // Color del texto después del gradiente
             ),
           ),
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        child: Container(
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-          child: StreamBuilder<User?>(
-            stream: FirebaseAuth.instance.authStateChanges(),
-            builder: (context, userSnapshot) {
-              if (userSnapshot.connectionState == ConnectionState.waiting) {
-                return const CircularProgressIndicator();
-              } else if (userSnapshot.hasError) {
-                return Text('Error: ${userSnapshot.error}');
+      body: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: StreamBuilder<User?>(
+          stream: FirebaseAuth.instance.authStateChanges(),
+          builder: (context, userSnapshot) {
+            if (userSnapshot.connectionState == ConnectionState.waiting) {
+              return const CircularProgressIndicator();
+            } else if (userSnapshot.hasError) {
+              return Text('Error: ${userSnapshot.error}');
+            } else {
+              final User? user = userSnapshot.data;
+              if (user == null) {
+                // El usuario no ha iniciado sesión
+                return const Text('Usuario no autenticado');
               } else {
-                final User? user = userSnapshot.data;
-                if (user == null) {
-                  // El usuario no ha iniciado sesión
-                  return const Text('Usuario no autenticado');
-                } else {
-                  return StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('likes')
-                        .doc(user.uid)
-                        .collection('servicios')
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const CircularProgressIndicator();
-                      } else if (snapshot.hasError) {
-                        return Text('Error: ${snapshot.error}');
-                      } else {
-                        List<DocumentSnapshot> likedServicios =
-                            snapshot.data!.docs;
-                        // Lista para almacenar los cuadros de información
-                        List<Cuadro> cuadros = [];
-                        return buildCuadrosDesdeFirestore(
-                            context, likedServicios, cuadros);
-                      }
-                    },
-                  );
-                }
+                return StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('likes')
+                      .doc(user.uid)
+                      .collection('servicios')
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircularProgressIndicator();
+                    } else if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    } else {
+                      List<DocumentSnapshot> likedServicios =
+                          snapshot.data!.docs;
+                      // Lista para almacenar los cuadros de información
+                      List<Cuadro> cuadros = [];
+                      return buildCuadrosDesdeFirestore(
+                          context, likedServicios, cuadros);
+                    }
+                  },
+                );
               }
-            },
-          ),
+            }
+          },
         ),
       ),
     );
   }
 }
+
+// El resto del código se mantiene igual...
 
 int num = 0;
 
@@ -223,8 +222,9 @@ Widget buildCuadros(
       String contenido = servicio['contenido'];
       return Column(
         children: [
-          const SizedBox(height: 30.0),
+          const SizedBox(height: 0.0),
           buildCuadro(context, titulo, contenido, num),
+          const Divider(color: Colors.white, thickness: 2.0),
         ],
       );
     }).toList(),
@@ -235,6 +235,7 @@ Widget buildCuadro(
     BuildContext context, String titulo, String contenido, String num) {
   return Container(
     decoration: BoxDecoration(
+      color: Colors.white,
       border: Border.all(color: const Color.fromARGB(255, 130, 19, 42)),
       borderRadius: BorderRadius.circular(10.0),
     ),
@@ -250,7 +251,7 @@ Widget buildCuadro(
                 return LinearGradient(
                   colors: [
                     Theme.of(context).colorScheme.primary,
-                    Theme.of(context).colorScheme.secondary,
+                    Theme.of(context).colorScheme.primary,
                   ],
                 ).createShader(bounds);
               },

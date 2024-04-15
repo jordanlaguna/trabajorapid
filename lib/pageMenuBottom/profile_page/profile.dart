@@ -127,9 +127,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             FirebaseAuth.instance.currentUser!.photoURL!,
                             fit: BoxFit.cover,
                           )
-                        : const Icon(Icons.account_circle,
-                            size:
-                                150), // Icono de usuario predeterminado si no hay URL de foto
+                        : const Icon(Icons.account_circle, size: 150),
                   ),
                 ),
               ),
@@ -202,8 +200,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     width: double.infinity,
                     height: 60,
                     decoration: BoxDecoration(
-                      color:
-                          Colors.grey[200], // Color de fondo gris como ejemplo
+                      color: Colors.grey[200],
                       boxShadow: const [
                         BoxShadow(
                           blurRadius: 3,

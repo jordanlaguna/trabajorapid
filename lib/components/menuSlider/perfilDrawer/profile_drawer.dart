@@ -1,4 +1,5 @@
-// ignore_for_file: prefer_final_fields, unused_element, no_leading_underscores_for_local_identifiers, use_build_context_synchronously, avoid_print
+// ignore_for_file: use_build_context_synchronously, avoid_print
+
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -20,12 +21,13 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
   final FirebaseAuthImplements auth = FirebaseAuthImplements();
   final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
   final _formKey = GlobalKey<FormState>();
-  TextEditingController _identificationController = TextEditingController();
-  TextEditingController _fullNameController = TextEditingController();
-  TextEditingController _emailController = TextEditingController();
-  TextEditingController _dateController = TextEditingController();
-  TextEditingController _addressController = TextEditingController();
-  TextEditingController _telephoneController = TextEditingController();
+  final TextEditingController _identificationController =
+      TextEditingController();
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _telephoneController = TextEditingController();
   final List<String> items = [
     'Masculino',
     'Femenino',
@@ -96,11 +98,11 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
         backgroundColor: Colors.transparent,
         centerTitle: true,
         flexibleSpace: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Theme.of(context).colorScheme.primary,
-                Theme.of(context).colorScheme.secondary,
+                Color.fromARGB(255, 65, 111, 223),
+                Color.fromARGB(255, 110, 174, 231),
               ],
             ),
           ),
@@ -146,257 +148,221 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                     padding: const EdgeInsets.all(20.0),
                     child: Form(
                       key: _formKey,
-                      child: Column(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              _pickAndUploadImage(context);
-                            },
-                            child: CircleAvatar(
-                              radius: 50,
-                              backgroundColor: Colors.grey[200],
-                              backgroundImage: null,
-                              child: Icon(
-                                Icons.add_a_photo,
-                                size: 40,
-                                color: Colors.grey[600],
-                              ),
+                      child: Column(children: [
+                        GestureDetector(
+                          onTap: () {
+                            _pickAndUploadImage(context);
+                          },
+                          child: CircleAvatar(
+                            radius: 50,
+                            backgroundColor: Colors.grey[200],
+                            backgroundImage: null,
+                            child: Icon(
+                              Icons.add_a_photo,
+                              size: 40,
+                              color: Colors.grey[600],
                             ),
                           ),
-                          TextFormField(
-                            controller: _identificationController,
-                            decoration: const InputDecoration(
-                              suffixIcon: Icon(Icons.card_giftcard_rounded),
-                              labelText: 'Ingrese su cédula',
-                              hintText: '000000000',
-                              labelStyle: TextStyle(
+                        ),
+                        TextFormField(
+                          controller: _identificationController,
+                          decoration: const InputDecoration(
+                            suffixIcon: Icon(Icons.card_giftcard_rounded),
+                            labelText: 'Ingrese su cédula',
+                            hintText: '000000000',
+                            labelStyle: TextStyle(
+                              color: Color.fromARGB(255, 130, 19, 42),
+                              fontSize: 18,
+                              fontFamily: 'Montserrat',
+                              fontWeight: FontWeight.bold,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
                                 color: Color.fromARGB(255, 130, 19, 42),
-                                fontSize: 18,
-                                fontFamily: 'Montserrat',
-                                fontWeight: FontWeight.bold,
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: Color.fromARGB(255, 130, 19, 42),
-                                ),
                               ),
                             ),
-                            validator: (value) {
-                              if (value!.isEmpty) {
-                                return 'Por favor ingrese su cédula';
-                              }
-                              return null;
-                            },
                           ),
-                          const SizedBox(height: 10),
-                          TextFormField(
-                            controller: _fullNameController,
-                            enabled: false,
-                            decoration: const InputDecoration(
-                              suffix: Icon(Icons.person),
-                              labelText: 'Ingrese su nombre completo',
-                              hintText: 'Nombre completo',
-                              labelStyle: TextStyle(
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Por favor ingrese su cédula';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          controller: _fullNameController,
+                          enabled: false,
+                          decoration: const InputDecoration(
+                            suffix: Icon(Icons.person),
+                            labelText: 'Ingrese su nombre completo',
+                            hintText: 'Nombre completo',
+                            labelStyle: TextStyle(
+                              color: Color.fromARGB(255, 130, 19, 42),
+                              fontSize: 18,
+                              fontFamily: 'Montserrat',
+                              fontWeight: FontWeight.bold,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
                                 color: Color.fromARGB(255, 130, 19, 42),
-                                fontSize: 18,
-                                fontFamily: 'Montserrat',
-                                fontWeight: FontWeight.bold,
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: Color.fromARGB(255, 130, 19, 42),
-                                ),
                               ),
                             ),
-                            validator: (value) {
-                              if (value!.isEmpty) {
-                                return 'Por favor ingrese su nombre completo';
-                              }
-                              return null;
-                            },
                           ),
-                          const SizedBox(height: 10),
-                          DropdownButtonFormField<String>(
-                            value: selectedValue,
-                            hint: const Text(
-                              'Seleccione',
-                              style: TextStyle(fontSize: 12),
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Por favor ingrese su nombre completo';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        DropdownButtonFormField<String>(
+                          value: selectedValue,
+                          hint: const Text(
+                            'Seleccione',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              selectedValue = newValue;
+                            });
+                          },
+                          items: items.map((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                          decoration: const InputDecoration(
+                            suffix: Icon(Icons.person_rounded),
+                            labelText: 'Género',
+                            labelStyle: TextStyle(
+                              color: Color.fromARGB(255, 130, 19, 42),
+                              fontSize: 18,
+                              fontFamily: 'Montserrat',
+                              fontWeight: FontWeight.bold,
                             ),
-                            onChanged: (String? newValue) {
-                              setState(() {
-                                selectedValue = newValue;
-                              });
-                            },
-                            items: items.map((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                            decoration: const InputDecoration(
-                              suffix: Icon(Icons.person_rounded),
-                              labelText: 'Género',
-                              labelStyle: TextStyle(
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
                                 color: Color.fromARGB(255, 130, 19, 42),
-                                fontSize: 18,
-                                fontFamily: 'Montserrat',
-                                fontWeight: FontWeight.bold,
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: Color.fromARGB(255, 130, 19, 42),
-                                ),
                               ),
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Por favor seleccione el género';
-                              }
-                              return null;
-                            },
                           ),
-                          const SizedBox(height: 10),
-                          TextFormField(
-                            controller: _emailController,
-                            enabled: false,
-                            decoration: const InputDecoration(
-                              suffix: Icon(Icons.email_rounded),
-                              labelText: 'Ingrese su correo',
-                              hintText: 'Ejemplo@correo.com',
-                              labelStyle: TextStyle(
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor seleccione el género';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          controller: _emailController,
+                          enabled: false,
+                          decoration: const InputDecoration(
+                            suffix: Icon(Icons.email_rounded),
+                            labelText: 'Ingrese su correo',
+                            hintText: 'Ejemplo@correo.com',
+                            labelStyle: TextStyle(
+                              color: Color.fromARGB(255, 130, 19, 42),
+                              fontSize: 18,
+                              fontFamily: 'Montserrat',
+                              fontWeight: FontWeight.bold,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
                                 color: Color.fromARGB(255, 130, 19, 42),
-                                fontSize: 18,
-                                fontFamily: 'Montserrat',
-                                fontWeight: FontWeight.bold,
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: Color.fromARGB(255, 130, 19, 42),
-                                ),
                               ),
                             ),
-                            validator: (value) {
-                              if (value!.isEmpty) {
-                                return 'Por favor ingrese un correo válido';
-                              }
-                              return null;
-                            },
                           ),
-                          const SizedBox(height: 10),
-                          TextFormField(
-                            controller: _dateController,
-                            decoration: const InputDecoration(
-                              suffix: Icon(Icons.calendar_today_rounded),
-                              labelText: 'Ingrese su fecha de nacimiento',
-                              hintText: 'dd/mm/aaaa',
-                              labelStyle: TextStyle(
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Por favor ingrese un correo válido';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          controller: _dateController,
+                          decoration: const InputDecoration(
+                            suffix: Icon(Icons.calendar_today_rounded),
+                            labelText: 'Ingrese su fecha de nacimiento',
+                            hintText: 'dd/mm/aaaa',
+                            labelStyle: TextStyle(
+                              color: Color.fromARGB(255, 130, 19, 42),
+                              fontSize: 18,
+                              fontFamily: 'Montserrat',
+                              fontWeight: FontWeight.bold,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
                                 color: Color.fromARGB(255, 130, 19, 42),
-                                fontSize: 18,
-                                fontFamily: 'Montserrat',
-                                fontWeight: FontWeight.bold,
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: Color.fromARGB(255, 130, 19, 42),
-                                ),
                               ),
                             ),
-                            validator: (value) {
-                              if (value!.isEmpty) {
-                                return 'Por favor ingrese su fecha de nacimiento';
-                              }
-                              return null;
-                            },
                           ),
-                          const SizedBox(height: 10),
-                          TextFormField(
-                            controller: _addressController,
-                            decoration: const InputDecoration(
-                              suffix: Icon(Icons.location_on_rounded),
-                              labelText: 'Ingrese su dirección completa',
-                              hintText: 'Provincia/Cantón/Distrito/',
-                              labelStyle: TextStyle(
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Por favor ingrese su fecha de nacimiento';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          controller: _addressController,
+                          decoration: const InputDecoration(
+                            suffix: Icon(Icons.location_on_rounded),
+                            labelText: 'Ingrese su dirección completa',
+                            hintText: 'Provincia/Cantón/Distrito/',
+                            labelStyle: TextStyle(
+                              color: Color.fromARGB(255, 130, 19, 42),
+                              fontSize: 18,
+                              fontFamily: 'Montserrat',
+                              fontWeight: FontWeight.bold,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
                                 color: Color.fromARGB(255, 130, 19, 42),
-                                fontSize: 18,
-                                fontFamily: 'Montserrat',
-                                fontWeight: FontWeight.bold,
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: Color.fromARGB(255, 130, 19, 42),
-                                ),
                               ),
                             ),
-                            validator: (value) {
-                              if (value!.isEmpty) {
-                                return 'Por favor ingrese su dirección completa';
-                              }
-                              return null;
-                            },
                           ),
-                          const SizedBox(height: 10),
-                          TextFormField(
-                            controller: _telephoneController,
-                            decoration: const InputDecoration(
-                              suffix: Icon(Icons.phone_rounded),
-                              labelText: 'Ingrese su número de teléfono',
-                              hintText: '00000000',
-                              labelStyle: TextStyle(
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Por favor ingrese su dirección completa';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          controller: _telephoneController,
+                          decoration: const InputDecoration(
+                            suffix: Icon(Icons.phone_rounded),
+                            labelText: 'Ingrese su número de teléfono',
+                            hintText: '00000000',
+                            labelStyle: TextStyle(
+                              color: Color.fromARGB(255, 130, 19, 42),
+                              fontSize: 18,
+                              fontFamily: 'Montserrat',
+                              fontWeight: FontWeight.bold,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
                                 color: Color.fromARGB(255, 130, 19, 42),
-                                fontSize: 18,
-                                fontFamily: 'Montserrat',
-                                fontWeight: FontWeight.bold,
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: Color.fromARGB(255, 130, 19, 42),
-                                ),
                               ),
                             ),
-                            validator: (value) {
-                              if (value!.isEmpty) {
-                                return 'Por favor ingrese su número de teléfono';
-                              }
-                              return null;
-                            },
                           ),
-                          const SizedBox(height: 25),
-                          Container(
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  Theme.of(context).colorScheme.primary,
-                                  Theme.of(context).colorScheme.secondary,
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                            child: ElevatedButton(
-                              onPressed: () {
-                                // action to register user
-                                if (_formKey.currentState!.validate()) {
-                                  _registerUser(context);
-                                } else {
-                                  User? user =
-                                      FirebaseAuth.instance.currentUser;
-                                  if (user != null) {
-                                    updateUserDataFromGoogle(user);
-                                  }
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                foregroundColor: Colors.white,
-                                backgroundColor: Colors.transparent,
-                                padding: const EdgeInsets.all(16),
-                              ),
-                              child: const Text('Registrar',
-                                  style: TextStyle(
-                                      fontSize: 18, fontFamily: 'Montserrat')),
-                            ),
-                          )
-                        ],
-                      ),
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Por favor ingrese su número de teléfono';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 25),
+                      ]),
                     ),
                   ),
                 ),
@@ -405,6 +371,40 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          if (_formKey.currentState!.validate()) {
+            _registerUser(context);
+          } else {
+            User? user = FirebaseAuth.instance.currentUser;
+            if (user != null) {
+              updateUserDataFromGoogle(user);
+            }
+          }
+        },
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color.fromARGB(255, 65, 111, 223),
+                Color.fromARGB(255, 110, 174, 231),
+              ],
+            ),
+            shape: BoxShape.circle,
+          ),
+          child: const Padding(
+            padding: EdgeInsets.all(10.0),
+            child: Icon(
+              Icons.add,
+              size: 32,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
     );
   }
 

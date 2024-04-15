@@ -76,11 +76,11 @@ class _ChatHomeState extends State<ChatHome> {
         centerTitle: true,
         backgroundColor: Colors.transparent,
         flexibleSpace: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Theme.of(context).colorScheme.primary,
-                Theme.of(context).colorScheme.secondary,
+                Color.fromARGB(255, 65, 111, 223),
+                Color.fromARGB(255, 110, 174, 231),
               ],
             ),
           ),
@@ -96,7 +96,7 @@ class _ChatHomeState extends State<ChatHome> {
           const SizedBox(height: 10),
         ],
       ),
-      backgroundColor: Colors.blue[100],
+      backgroundColor: Colors.blue[50],
     );
   }
 
@@ -122,48 +122,44 @@ class _ChatHomeState extends State<ChatHome> {
   Widget _buildMessageItem(DocumentSnapshot document) {
     Map<String, dynamic> data = document.data() as Map<String, dynamic>;
 
-    var alignment = (data['senderId'] == _auth.currentUser!.uid)
-        ? Alignment.centerRight
-        : Alignment.centerLeft;
+    bool isMe = (data['senderId'] == _auth.currentUser!.uid);
 
     IconData iconData = data['read'] ? Icons.done_all : Icons.done;
 
     return Container(
-      alignment: alignment,
+      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Column(
-        crossAxisAlignment: (data['senderId'] == _auth.currentUser!.uid)
-            ? CrossAxisAlignment.end
-            : CrossAxisAlignment.start,
-        mainAxisAlignment: (data['senderId'] == _auth.currentUser!.uid
-            ? MainAxisAlignment.end
-            : MainAxisAlignment.start),
+        crossAxisAlignment:
+            isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.only(left: 5.0, top: 7.0),
             child: Text(
               data['senderName'],
               style: const TextStyle(
-                fontSize: 15,
+                fontSize: 16,
                 fontWeight: FontWeight.w400,
               ),
             ),
           ),
-          const SizedBox(height: 7.0),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              BurbleChat(message: data['message']),
-              const SizedBox(width: 2.0),
-              Container(
-                margin: const EdgeInsets.only(top: 33.0),
-                child: Icon(
-                  iconData,
-                  size: 18,
-                  color: const Color.fromARGB(255, 84, 43, 145),
-                ),
+          const SizedBox(height: 3.0),
+          Row(mainAxisSize: MainAxisSize.min, children: [
+            if (!isMe) const Flexible(child: SizedBox()),
+            BurbleChat(
+              message: data['message'],
+              isMe: isMe,
+            ),
+            if (isMe) const SizedBox(width: 2.0),
+            Container(
+              margin: const EdgeInsets.only(top: 33.0),
+              child: Icon(
+                iconData,
+                size: 18,
+                color: const Color.fromARGB(255, 84, 43, 145),
               ),
-            ],
-          ),
+            ),
+          ]),
         ],
       ),
     );
@@ -175,9 +171,9 @@ class _ChatHomeState extends State<ChatHome> {
       width: windowSize.width * 0.99,
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
       decoration: BoxDecoration(
-        color: Colors.grey[200],
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20.0),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: Colors.black),
       ),
       child: Row(
         children: [

@@ -3,6 +3,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:quickalert/models/quickalert_type.dart';
+import 'package:quickalert/widgets/quickalert_dialog.dart';
 import 'package:trabajorapid/mainHome/moduleMain.dart';
 import 'package:flutter_login_facebook/flutter_login_facebook.dart';
 
@@ -22,6 +24,15 @@ class SocialAuth {
           accessToken: googleSignInAuthentication.accessToken,
         );
         await _firebaseAuth.signInWithCredential(credential);
+        QuickAlert.show(
+          // ignore: use_build_context_synchronously
+          context: context,
+          type: QuickAlertType.success,
+          text: 'Inicio de sesión exitoso!',
+          autoCloseDuration: const Duration(seconds: 2),
+          showConfirmBtn: false,
+        );
+        await Future.delayed(const Duration(seconds: 2));
         Navigator.pushReplacement(
           // ignore: use_build_context_synchronously
           context,
@@ -29,7 +40,15 @@ class SocialAuth {
         );
       }
     } catch (e) {
-      print("Error al registrar con Google: $e");
+      QuickAlert.show(
+        // ignore: use_build_context_synchronously
+        context: context,
+        type: QuickAlertType.error,
+        text: 'Error, no se pudo iniciar sesión!',
+        autoCloseDuration: const Duration(seconds: 2),
+        showConfirmBtn: false,
+      );
+      await Future.delayed(const Duration(seconds: 2));
     }
   }
 
@@ -52,7 +71,15 @@ class SocialAuth {
 
           final UserCredential userCredential =
               await FirebaseAuth.instance.signInWithCredential(credential);
-
+          QuickAlert.show(
+            // ignore: use_build_context_synchronously
+            context: context,
+            type: QuickAlertType.success,
+            text: 'Inicio de sesión exitoso!',
+            autoCloseDuration: const Duration(seconds: 2),
+            showConfirmBtn: false,
+          );
+          await Future.delayed(const Duration(seconds: 2));
           // Verifica si la autenticación con Firebase fue exitosa
           if (userCredential.user != null) {
             // Navega a ModuleMain() después del inicio de sesión exitoso

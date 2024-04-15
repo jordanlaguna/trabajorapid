@@ -21,11 +21,11 @@ class ConfigPage extends StatelessWidget {
         centerTitle: true,
         backgroundColor: Colors.transparent,
         flexibleSpace: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Theme.of(context).colorScheme.primary,
-                Theme.of(context).colorScheme.secondary,
+                Color.fromARGB(255, 65, 111, 223),
+                Color.fromARGB(255, 110, 174, 231),
               ],
             ),
           ),
@@ -38,9 +38,9 @@ class ConfigPage extends StatelessWidget {
           Container(
             height: 70,
             width: double.infinity,
-            margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 3),
+            margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
             decoration: BoxDecoration(
-              color: const Color.fromARGB(126, 239, 239, 239),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(10),
             ),
             child: ListTile(
@@ -63,15 +63,15 @@ class ConfigPage extends StatelessWidget {
             ),
           ),
           const Divider(
-            height: 0,
-            color: Color.fromARGB(126, 239, 239, 239),
+            color: Colors.white,
+            thickness: 2.0,
           ),
           Container(
             height: 70,
             width: double.infinity,
-            margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 3),
+            margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
             decoration: BoxDecoration(
-              color: const Color.fromARGB(126, 239, 239, 239),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(10),
             ),
             child: ListTile(
@@ -94,15 +94,15 @@ class ConfigPage extends StatelessWidget {
             ),
           ),
           const Divider(
-            height: 0,
-            color: Color.fromARGB(126, 239, 239, 239),
+            color: Colors.white,
+            thickness: 2.0,
           ),
           Container(
             height: 70,
             width: double.infinity,
-            margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 3),
+            margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
             decoration: BoxDecoration(
-              color: const Color.fromARGB(126, 239, 239, 239),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(10),
             ),
             child: ListTile(
@@ -128,9 +128,9 @@ class ConfigPage extends StatelessWidget {
           Container(
             height: 70,
             width: double.infinity,
-            margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 3),
+            margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
             decoration: BoxDecoration(
-              color: const Color.fromARGB(126, 239, 239, 239),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(10),
             ),
             child: ListTile(
@@ -153,15 +153,15 @@ class ConfigPage extends StatelessWidget {
             ),
           ),
           const Divider(
-            height: 0,
-            color: Color.fromARGB(126, 239, 239, 239),
+            color: Colors.white,
+            thickness: 2.0,
           ),
           Container(
             height: 70,
             width: double.infinity,
-            margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 3),
+            margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
             decoration: BoxDecoration(
-              color: const Color.fromARGB(126, 239, 239, 239),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(10),
             ),
             child: ListTile(
@@ -187,9 +187,9 @@ class ConfigPage extends StatelessWidget {
           Container(
             height: 70,
             width: double.infinity,
-            margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 3),
+            margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
             decoration: BoxDecoration(
-              color: const Color.fromARGB(126, 239, 239, 239),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(10),
             ),
             child: ListTile(
@@ -211,15 +211,15 @@ class ConfigPage extends StatelessWidget {
             ),
           ),
           const Divider(
-            height: 0,
-            color: Color.fromARGB(126, 239, 239, 239),
+            color: Colors.white,
+            thickness: 2.0,
           ),
           Container(
             height: 70,
             width: double.infinity,
-            margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 3),
+            margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
             decoration: BoxDecoration(
-              color: const Color.fromARGB(126, 239, 239, 239),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(10),
             ),
             child: ListTile(
@@ -243,7 +243,7 @@ class ConfigPage extends StatelessWidget {
           ),
         ],
       ),
-      backgroundColor: Colors.blue[100],
+      backgroundColor: Colors.blue[50],
     );
   }
 }

@@ -51,11 +51,11 @@ class _NavBarState extends State<NavBar> {
                   ),
                 ),
               ),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Theme.of(context).colorScheme.primary,
-                    Theme.of(context).colorScheme.surface,
+                    Color.fromARGB(255, 65, 111, 223),
+                    Color.fromARGB(255, 110, 174, 231),
                   ],
                 ),
               ),
@@ -63,10 +63,10 @@ class _NavBarState extends State<NavBar> {
             ListTile(
               leading: ShaderMask(
                 shaderCallback: (Rect bounds) {
-                  return LinearGradient(
+                  return const LinearGradient(
                     colors: [
-                      Theme.of(context).colorScheme.primary,
-                      Theme.of(context).colorScheme.secondary,
+                      Color.fromARGB(255, 65, 111, 223),
+                      Color.fromARGB(255, 110, 174, 231),
                     ],
                   ).createShader(bounds);
                 },
@@ -95,10 +95,10 @@ class _NavBarState extends State<NavBar> {
             ListTile(
               leading: ShaderMask(
                 shaderCallback: (Rect bounds) {
-                  return LinearGradient(
+                  return const LinearGradient(
                     colors: [
-                      Theme.of(context).colorScheme.primary,
-                      Theme.of(context).colorScheme.secondary,
+                      Color.fromARGB(255, 65, 111, 223),
+                      Color.fromARGB(255, 110, 174, 231),
                     ],
                   ).createShader(bounds);
                 },
@@ -122,10 +122,10 @@ class _NavBarState extends State<NavBar> {
             ListTile(
               leading: ShaderMask(
                 shaderCallback: (Rect bounds) {
-                  return LinearGradient(
+                  return const LinearGradient(
                     colors: [
-                      Theme.of(context).colorScheme.primary,
-                      Theme.of(context).colorScheme.secondary,
+                      Color.fromARGB(255, 65, 111, 223),
+                      Color.fromARGB(255, 110, 174, 231),
                     ],
                   ).createShader(bounds);
                 },
@@ -145,10 +145,10 @@ class _NavBarState extends State<NavBar> {
             ListTile(
               leading: ShaderMask(
                 shaderCallback: (Rect bounds) {
-                  return LinearGradient(
+                  return const LinearGradient(
                     colors: [
-                      Theme.of(context).colorScheme.primary,
-                      Theme.of(context).colorScheme.secondary,
+                      Color.fromARGB(255, 65, 111, 223),
+                      Color.fromARGB(255, 110, 174, 231),
                     ],
                   ).createShader(bounds);
                 },
@@ -168,10 +168,10 @@ class _NavBarState extends State<NavBar> {
             ListTile(
               leading: ShaderMask(
                 shaderCallback: (Rect bounds) {
-                  return LinearGradient(
+                  return const LinearGradient(
                     colors: [
-                      Theme.of(context).colorScheme.primary,
-                      Theme.of(context).colorScheme.secondary,
+                      Color.fromARGB(255, 65, 111, 223),
+                      Color.fromARGB(255, 110, 174, 231),
                     ],
                   ).createShader(bounds);
                 },
@@ -195,10 +195,10 @@ class _NavBarState extends State<NavBar> {
             ListTile(
               leading: ShaderMask(
                 shaderCallback: (Rect bounds) {
-                  return LinearGradient(
+                  return const LinearGradient(
                     colors: [
-                      Theme.of(context).colorScheme.primary,
-                      Theme.of(context).colorScheme.secondary,
+                      Color.fromARGB(255, 65, 111, 223),
+                      Color.fromARGB(255, 110, 174, 231),
                     ],
                   ).createShader(bounds);
                 },
@@ -218,10 +218,10 @@ class _NavBarState extends State<NavBar> {
             ListTile(
               leading: ShaderMask(
                 shaderCallback: (Rect bounds) {
-                  return LinearGradient(
+                  return const LinearGradient(
                     colors: [
-                      Theme.of(context).colorScheme.primary,
-                      Theme.of(context).colorScheme.secondary,
+                      Color.fromARGB(255, 65, 111, 223),
+                      Color.fromARGB(255, 110, 174, 231),
                     ],
                   ).createShader(bounds);
                 },
@@ -247,10 +247,10 @@ class _NavBarState extends State<NavBar> {
             ListTile(
               leading: ShaderMask(
                 shaderCallback: (Rect bounds) {
-                  return LinearGradient(
+                  return const LinearGradient(
                     colors: [
-                      Theme.of(context).colorScheme.primary,
-                      Theme.of(context).colorScheme.secondary,
+                      Color.fromARGB(255, 65, 111, 223),
+                      Color.fromARGB(255, 110, 174, 231),
                     ],
                   ).createShader(bounds);
                 },

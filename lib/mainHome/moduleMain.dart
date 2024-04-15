@@ -46,7 +46,7 @@ class _ModuleMainState extends State<ModuleMain> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        backgroundColor: Colors.blue[100],
+        backgroundColor: Colors.blue[50],
         drawer: const NavBar(),
         appBar: AppBar(
           title: const Text(

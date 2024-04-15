@@ -252,6 +252,7 @@ class _HomePageServiceState extends State<HomePageService> {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10.0),
       decoration: BoxDecoration(
+        color: Colors.white,
         border: Border.all(color: Colors.grey),
         borderRadius: BorderRadius.circular(10.0),
       ),
@@ -464,7 +465,7 @@ class _HomePageServiceState extends State<HomePageService> {
         _filtrarServiciosPorTipo(widget.servicio);
 
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
+      backgroundColor: Colors.blue[50],
       appBar: AppBar(
         title: Text(
           widget.servicio,
@@ -477,11 +478,11 @@ class _HomePageServiceState extends State<HomePageService> {
         ),
         backgroundColor: Colors.transparent,
         flexibleSpace: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Theme.of(context).colorScheme.primary,
-                Theme.of(context).colorScheme.secondary,
+                Color.fromARGB(255, 65, 111, 223),
+                Color.fromARGB(255, 110, 174, 231),
               ],
             ),
           ),

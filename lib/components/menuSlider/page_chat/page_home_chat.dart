@@ -31,11 +31,11 @@ class _PageChatState extends State<PageChat> {
         centerTitle: true,
         backgroundColor: Colors.transparent,
         flexibleSpace: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Theme.of(context).colorScheme.primary,
-                Theme.of(context).colorScheme.secondary,
+                Color.fromARGB(255, 65, 111, 223),
+                Color.fromARGB(255, 110, 174, 231),
               ],
             ),
           ),
@@ -43,7 +43,7 @@ class _PageChatState extends State<PageChat> {
         iconTheme: const IconThemeData(color: Colors.white, size: 30),
       ),
       body: _buildUserList(),
-      backgroundColor: Colors.blue[100],
+      backgroundColor: Colors.blue[50],
     );
   }
 
@@ -58,75 +58,88 @@ class _PageChatState extends State<PageChat> {
           return const Text('Loading..');
         }
         return ListView(
-          children: snapshot.data!.docs.map((doc) {
-            String currentUserID = _auth.currentUser!.uid;
-            List<String> chatRoomParticipants =
-                [currentUserID, doc['uid']].cast<String>().toList();
-            chatRoomParticipants.sort();
-            String chatRoomID = chatRoomParticipants.join('_');
-            return StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('chatRooms')
-                  .doc(chatRoomID)
-                  .collection('messages')
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return const Text('Error');
-                }
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Text('Loading..');
-                }
-                int unreadMessageCount = snapshot.data!.docs
-                    .where((doc) =>
-                        doc['senderId'] != currentUserID && !doc['read'])
-                    .length;
-                return Column(
-                  children: [
-                    ListTile(
-                      title: Row(
-                        children: [
-                          const CircleAvatar(
-                            child: Icon(Icons.person_outline_rounded),
+          children: snapshot.data!.docs.map(
+            (doc) {
+              String currentUserID = _auth.currentUser!.uid;
+              List<String> chatRoomParticipants =
+                  [currentUserID, doc['uid']].cast<String>().toList();
+              chatRoomParticipants.sort();
+              String chatRoomID = chatRoomParticipants.join('_');
+              return StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('chatRooms')
+                    .doc(chatRoomID)
+                    .collection('messages')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return const Text('Error');
+                  }
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Text('Loading..');
+                  }
+                  int unreadMessageCount = snapshot.data!.docs
+                      .where((doc) =>
+                          doc['senderId'] != currentUserID && !doc['read'])
+                      .length;
+                  return Column(
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.symmetric(vertical: 6.0),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(15.0),
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          title: Row(
+                            children: [
+                              const CircleAvatar(
+                                child: Icon(Icons.person_outline_rounded),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(doc['name']),
+                              ),
+                              if (unreadMessageCount > 0)
+                                CircleAvatar(
+                                  backgroundColor: Colors.red,
+                                  radius: 10,
+                                  child: Text(
+                                    unreadMessageCount.toString(),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(doc['name']),
-                          ),
-                          if (unreadMessageCount > 0)
-                            CircleAvatar(
-                              backgroundColor: Colors.red,
-                              radius: 10,
-                              child: Text(
-                                unreadMessageCount.toString(),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ChatHome(
+                                  receiverUserEmail: doc['name'],
+                                  receiverUserID: doc['uid'],
                                 ),
                               ),
-                            ),
-                        ],
+                            );
+                          },
+                        ),
                       ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ChatHome(
-                              receiverUserEmail: doc['name'],
-                              receiverUserID: doc['uid'],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                    const Divider(
-                      color: Color.fromARGB(180, 239, 239, 239),
-                    ),
-                  ],
-                );
-              },
-            );
-          }).toList(),
+                      const Divider(
+                        color: Colors.white,
+                        height: 0.0,
+                        thickness: 2.0,
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ).toList(),
         );
       },
     );
