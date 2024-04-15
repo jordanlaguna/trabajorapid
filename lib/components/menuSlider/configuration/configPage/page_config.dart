@@ -243,6 +243,7 @@ class ConfigPage extends StatelessWidget {
           ),
         ],
       ),
+      backgroundColor: Colors.blue[100],
     );
   }
 }

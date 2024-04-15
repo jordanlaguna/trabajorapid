@@ -36,7 +36,7 @@ class PageAbout extends StatelessWidget {
           children: [
             SizedBox(height: 170.0),
             Image(
-              image: AssetImage('assets/images/Logo.png'),
+              image: AssetImage('assets/images/appLogo.png'),
               height: 150,
               width: 150,
               alignment: Alignment.center,
@@ -55,6 +55,7 @@ class PageAbout extends StatelessWidget {
           ],
         ),
       ),
+      backgroundColor: Colors.blue[100],
     );
   }
 }

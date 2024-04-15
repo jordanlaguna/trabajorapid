@@ -43,6 +43,7 @@ class _PageChatState extends State<PageChat> {
         iconTheme: const IconThemeData(color: Colors.white, size: 30),
       ),
       body: _buildUserList(),
+      backgroundColor: Colors.blue[100],
     );
   }
 

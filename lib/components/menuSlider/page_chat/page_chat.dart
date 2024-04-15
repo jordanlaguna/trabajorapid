@@ -96,6 +96,7 @@ class _ChatHomeState extends State<ChatHome> {
           const SizedBox(height: 10),
         ],
       ),
+      backgroundColor: Colors.blue[100],
     );
   }
 

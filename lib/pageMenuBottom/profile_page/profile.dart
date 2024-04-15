@@ -373,9 +373,8 @@ class _ProfilePageState extends State<ProfilePage> {
       padding: const EdgeInsets.symmetric(vertical: 6),
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.black), // Define el borde general
-        borderRadius:
-            BorderRadius.circular(10), // Define el radio del borde general
+        border: Border.all(color: Colors.black),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
         children: <Widget>[
