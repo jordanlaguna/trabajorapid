@@ -13,6 +13,7 @@ void main() {
     const MaterialApp(
       home: Profile(
         uid: 'uid',
+        idS: 'idS',
       ),
       debugShowCheckedModeBanner: false,
     ),
@@ -20,7 +21,8 @@ void main() {
 }
 
 class Profile extends StatelessWidget {
-  const Profile({Key? key, required String uid}) : super(key: key);
+  const Profile({Key? key, required String uid, required String idS})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -72,8 +74,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String titulo = '';
   String contenido = '';
   String idS = '';
-  String nombreDelPerfil = '';
-  String correo = '';
+  String name = '';
+  String email = '';
   String direccion = '';
 
   Map<String, double> userRatings = {};
@@ -97,8 +99,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (userData != null) {
         // Aquí puedes actualizar el estado con los datos del usuario, por ejemplo:
         setState(() {
-          nombreDelPerfil = userData['name'];
-          correo = userData['email'];
+          email = userData['email'];
+
+          print(email);
 
           // Suponiendo que 'nombre' es un campo en tus datos de usuario
         });
@@ -109,7 +112,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         // Aquí puedes actualizar el estado con los datos del usuario, por ejemplo:
         setState(() {
           direccion = servicesSnapshot['direccion'];
-
+          name = servicesSnapshot['titulo'];
+          print(name);
+          print(direccion);
           // Suponiendo que 'nombre' es un campo en tus datos de usuario
         });
       }
@@ -197,19 +202,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-// Función para obtener los servicios del usuario con el UID dado
-  Future<List<DocumentSnapshot<Map<String, dynamic>>>> getUserServices(
-      String uid) async {
+  Future<DocumentSnapshot<Map<String, dynamic>>?> getUserServices(
+      String uid, String id) async {
     try {
-      QuerySnapshot<Map<String, dynamic>> servicesSnapshot =
-          await FirebaseFirestore.instance
+      DocumentSnapshot<Map<String, dynamic>> servicesSnapshot =
+          (await FirebaseFirestore.instance
               .collection('servicios')
               .where('uid', isEqualTo: uid)
-              .get();
-      return servicesSnapshot.docs;
+              .where('id', isEqualTo: idS)
+              .get()) as DocumentSnapshot<Map<String, dynamic>>;
+      return servicesSnapshot;
     } catch (e) {
-      print('Error obteniendo servicios del usuario: $e');
-      return [];
+      print('Error obteniendo datos del usuario: $e');
+      return null;
     }
   }
 
@@ -250,7 +255,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           const CircleAvatar(
             radius: 60,
-            backgroundImage: NetworkImage('URL_DE_TU_IMAGEN'),
+            backgroundImage: AssetImage('assets/images/profile.jpg'),
           ),
           const SizedBox(height: 16),
           const Icon(
@@ -259,19 +264,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
             size: 10,
           ),
           Text(
-            nombreDelPerfil,
+            name,
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Text(
-            correo,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            email,
+            style: const TextStyle(
+                fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
           ),
           const SizedBox(height: 16),
           Text(
             direccion,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 16),
+            style: const TextStyle(fontSize: 16, color: Colors.black),
           ),
           const SizedBox(height: 16),
           const Divider(),

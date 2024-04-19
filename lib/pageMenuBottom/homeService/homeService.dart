@@ -467,7 +467,7 @@ class _HomePageServiceState extends State<HomePageService> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => Profile(uid: uid),
+                            builder: (context) => Profile(uid: uid, idS: idS),
                           ),
                         );
                       },

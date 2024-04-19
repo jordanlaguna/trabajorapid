@@ -431,9 +431,8 @@ class _FavoritePageService extends State<FavoritePageService> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const Profile(
-                                    uid: 'uid',
-                                  )),
+                              builder: (context) =>
+                                  const Profile(uid: 'uid', idS: 'idS')),
                         );
                       },
                       child: const Text('Presiona aquí'),
