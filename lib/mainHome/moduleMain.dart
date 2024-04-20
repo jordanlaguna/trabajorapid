@@ -61,11 +61,11 @@ class _ModuleMainState extends State<ModuleMain> {
           centerTitle: true,
           backgroundColor: Colors.transparent,
           flexibleSpace: Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Theme.of(context).colorScheme.primary,
-                  Theme.of(context).colorScheme.secondary,
+                  Color.fromARGB(255, 65, 111, 223),
+                  Color.fromARGB(255, 110, 174, 231),
                 ],
               ),
             ),

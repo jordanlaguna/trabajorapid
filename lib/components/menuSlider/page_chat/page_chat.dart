@@ -125,43 +125,71 @@ class _ChatHomeState extends State<ChatHome> {
     bool isMe = (data['senderId'] == _auth.currentUser!.uid);
 
     IconData iconData = data['read'] ? Icons.done_all : Icons.done;
+    Timestamp timestamp = data['timestamp'] as Timestamp;
 
-    return Container(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Column(
-        crossAxisAlignment:
-            isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 5.0, top: 7.0),
-            child: Text(
-              data['senderName'],
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w400,
-              ),
+    DateTime dateTime = timestamp.toDate();
+    String hour = '${dateTime.hour}';
+    String minute = '${dateTime.minute}'.padLeft(2, '0');
+
+    String formattedTime = '$hour:$minute';
+
+    return Column(
+      crossAxisAlignment:
+          isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(right: 4.0, top: 7.0),
+          child: Text(
+            data['senderName'],
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
             ),
           ),
-          const SizedBox(height: 3.0),
-          Row(mainAxisSize: MainAxisSize.min, children: [
+        ),
+        const SizedBox(height: 3.0),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
             if (!isMe) const Flexible(child: SizedBox()),
-            BurbleChat(
-              message: data['message'],
-              isMe: isMe,
+            Column(
+              crossAxisAlignment:
+                  isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              children: [
+                BurbleChat(
+                  message: "${data['message']}",
+                  isMe: isMe,
+                ),
+                Padding(
+                  padding: isMe
+                      ? const EdgeInsets.only(
+                          right: 5.0,
+                        )
+                      : const EdgeInsets.only(
+                          left: 16.0,
+                        ),
+                  child: Text(
+                    formattedTime,
+                    style: const TextStyle(
+                      color: Colors.black54,
+                      fontSize: 12.0,
+                    ),
+                  ),
+                ),
+              ],
             ),
             if (isMe) const SizedBox(width: 2.0),
             Container(
-              margin: const EdgeInsets.only(top: 33.0),
+              margin: const EdgeInsets.only(top: 25.0),
               child: Icon(
                 iconData,
                 size: 18,
                 color: const Color.fromARGB(255, 84, 43, 145),
               ),
             ),
-          ]),
-        ],
-      ),
+          ],
+        ),
+      ],
     );
   }
 
