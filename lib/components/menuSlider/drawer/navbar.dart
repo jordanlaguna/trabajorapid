@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print, unused_element
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:trabajorapid/components/menuSlider/configuration/configPage/page_config.dart';
@@ -44,10 +45,18 @@ class _NavBarState extends State<NavBar> {
               ),
               currentAccountPicture: CircleAvatar(
                 child: ClipOval(
-                  child: Image.network(
-                    _getUserPhotoURL() ??
-                        '', // Si _getUserPhotoURL() devuelve null, se usa una cadena vacía
-                    fit: BoxFit.cover,
+                  child: FutureBuilder<String?>(
+                    future: _getUserPhotoURL(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const CircularProgressIndicator();
+                      } else {
+                        return Image.network(
+                          snapshot.data ?? '',
+                          fit: BoxFit.cover,
+                        );
+                      }
+                    },
                   ),
                 ),
               ),
@@ -280,8 +289,8 @@ class _NavBarState extends State<NavBar> {
     );
   }
 
-  // me queda revisar esta funcion para facebook no carga la foto de perfil aun
-  String? _getUserPhotoURL() {
+// me queda revisar esta funcion para facebook no carga la foto de perfil aun
+  Future<String?> _getUserPhotoURL() async {
     if (FirebaseAuth.instance.currentUser != null) {
       //  si el usuario ha iniciado sesion con google
       if (FirebaseAuth.instance.currentUser!.providerData
@@ -295,7 +304,27 @@ class _NavBarState extends State<NavBar> {
         return 'https://graph.facebook.com/${FirebaseAuth.instance.currentUser?.uid}/picture?height=500';
       }
     }
-    // si no hay usuario o no se ha iniciado session con Google ni Facebook, retorna null
-    return null;
+    try {
+      CollectionReference users =
+          FirebaseFirestore.instance.collection('users');
+      final DocumentSnapshot document =
+          await users.doc(FirebaseAuth.instance.currentUser!.uid).get();
+
+      if (document.exists) {
+        Map<String, dynamic>? userData =
+            document.data() as Map<String, dynamic>?;
+
+        if (userData != null && userData['photoURL'] != null) {
+          return userData['photoURL'];
+        } else {
+          return null;
+        }
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print(e);
+      return null;
+    }
   }
 }
