@@ -1,12 +1,12 @@
 // ignore_for_file: avoid_print, unused_element
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:trabajorapid/components/menuSlider/configuration/configPage/page_config.dart';
 import 'package:trabajorapid/components/menuSlider/page_chat/page_home_chat.dart';
 import 'package:trabajorapid/components/menuSlider/perfilDrawer/profile_drawer.dart';
 import 'package:trabajorapid/screens/welcome_screen.dart';
+import 'package:trabajorapid/services/export_photos/photos_users.dart';
 
 class NavBar extends StatefulWidget {
   const NavBar({Key? key}) : super(key: key);
@@ -46,7 +46,8 @@ class _NavBarState extends State<NavBar> {
               currentAccountPicture: CircleAvatar(
                 child: ClipOval(
                   child: FutureBuilder<String?>(
-                    future: _getUserPhotoURL(),
+                    future:
+                        getUserPhotoURL(FirebaseAuth.instance.currentUser!.uid),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const CircularProgressIndicator();
@@ -287,44 +288,5 @@ class _NavBarState extends State<NavBar> {
         ),
       ),
     );
-  }
-
-// me queda revisar esta funcion para facebook no carga la foto de perfil aun
-  Future<String?> _getUserPhotoURL() async {
-    if (FirebaseAuth.instance.currentUser != null) {
-      //  si el usuario ha iniciado sesion con google
-      if (FirebaseAuth.instance.currentUser!.providerData
-          .any((userInfo) => userInfo.providerId == 'google.com')) {
-        // devuelve URL de la foto de perfil de Google
-        return FirebaseAuth.instance.currentUser?.photoURL;
-      }
-      // si el usuario ha iniciado sesion con Facebook
-      else if (FirebaseAuth.instance.currentUser!.providerData
-          .any((userInfo) => userInfo.providerId == 'facebook.com')) {
-        return 'https://graph.facebook.com/${FirebaseAuth.instance.currentUser?.uid}/picture?height=500';
-      }
-    }
-    try {
-      CollectionReference users =
-          FirebaseFirestore.instance.collection('users');
-      final DocumentSnapshot document =
-          await users.doc(FirebaseAuth.instance.currentUser!.uid).get();
-
-      if (document.exists) {
-        Map<String, dynamic>? userData =
-            document.data() as Map<String, dynamic>?;
-
-        if (userData != null && userData['photoURL'] != null) {
-          return userData['photoURL'];
-        } else {
-          return null;
-        }
-      } else {
-        return null;
-      }
-    } catch (e) {
-      print(e);
-      return null;
-    }
   }
 }
