@@ -258,6 +258,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<String?> getUserPhotoUrl(String uid) async {
+    try {
+      // Intenta obtener la URL de la foto del usuario desde la base de datos
+      DocumentSnapshot<Map<String, dynamic>> userData =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+      // Si la URL de la foto está disponible en la base de datos, úsala
+      if (userData.exists && userData['photoURL'] != null) {
+        return userData['photoURL'];
+      } else {
+        // Si la URL de la foto no está disponible en la base de datos, utiliza la foto de perfil de la autenticación
+        return FirebaseAuth.instance.currentUser?.photoURL;
+      }
+    } catch (e) {
+      print('Error obteniendo la URL de la foto del usuario: $e');
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     double mediaEstrellas = userRatings[idS] ?? 0.00;
@@ -281,15 +300,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               child: ClipOval(
-                child: FirebaseAuth.instance.currentUser!.photoURL != null
-                    ? Image.network(
-                        FirebaseAuth.instance.currentUser!.photoURL!,
+                child: FutureBuilder<String?>(
+                  future: getUserPhotoUrl(
+                      widget.uid), // Aquí pasas el uid del usuario actual
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      // Muestra un indicador de carga mientras se carga la URL de la foto
+                      return const CircularProgressIndicator();
+                    } else if (snapshot.hasError) {
+                      // Maneja cualquier error que pueda ocurrir al obtener la URL de la foto
+                      return const Icon(Icons.error_outline,
+                          size: 150, color: Colors.red);
+                    } else if (snapshot.hasData) {
+                      // Si se obtiene la URL de la foto, muestra la imagen
+                      return Image.network(
+                        snapshot.data!,
                         fit: BoxFit.cover,
-                      )
-                    : const Icon(Icons.account_circle, size: 150),
+                      );
+                    } else {
+                      // Si no se pudo obtener la URL de la foto, muestra un icono por defecto
+                      return const Icon(Icons.account_circle, size: 150);
+                    }
+                  },
+                ),
               ),
             ),
           ),
+
           const SizedBox(height: 16),
           const Icon(
             Icons.circle,
