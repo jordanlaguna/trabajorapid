@@ -1,8 +1,9 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:trabajorapid/components/menuSlider/page_chat/page_chat.dart';
-import 'package:trabajorapid/services/export_photos/photos_users.dart';
 
 class PageChat extends StatefulWidget {
   const PageChat({Key? key}) : super(key: key);
