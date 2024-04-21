@@ -6,6 +6,7 @@ import 'package:trabajorapid/components/menuSlider/configuration/configPage/page
 import 'package:trabajorapid/components/menuSlider/page_chat/page_home_chat.dart';
 import 'package:trabajorapid/components/menuSlider/perfilDrawer/profile_drawer.dart';
 import 'package:trabajorapid/screens/welcome_screen.dart';
+import 'package:trabajorapid/services/export_photos/photos_users.dart';
 
 class NavBar extends StatefulWidget {
   const NavBar({Key? key}) : super(key: key);
@@ -44,10 +45,19 @@ class _NavBarState extends State<NavBar> {
               ),
               currentAccountPicture: CircleAvatar(
                 child: ClipOval(
-                  child: Image.network(
-                    _getUserPhotoURL() ??
-                        '', // Si _getUserPhotoURL() devuelve null, se usa una cadena vacía
-                    fit: BoxFit.cover,
+                  child: FutureBuilder<String?>(
+                    future:
+                        getUserPhotoURL(FirebaseAuth.instance.currentUser!.uid),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const CircularProgressIndicator();
+                      } else {
+                        return Image.network(
+                          snapshot.data ?? '',
+                          fit: BoxFit.cover,
+                        );
+                      }
+                    },
                   ),
                 ),
               ),
@@ -278,24 +288,5 @@ class _NavBarState extends State<NavBar> {
         ),
       ),
     );
-  }
-
-  // me queda revisar esta funcion para facebook no carga la foto de perfil aun
-  String? _getUserPhotoURL() {
-    if (FirebaseAuth.instance.currentUser != null) {
-      //  si el usuario ha iniciado sesion con google
-      if (FirebaseAuth.instance.currentUser!.providerData
-          .any((userInfo) => userInfo.providerId == 'google.com')) {
-        // devuelve URL de la foto de perfil de Google
-        return FirebaseAuth.instance.currentUser?.photoURL;
-      }
-      // si el usuario ha iniciado sesion con Facebook
-      else if (FirebaseAuth.instance.currentUser!.providerData
-          .any((userInfo) => userInfo.providerId == 'facebook.com')) {
-        return 'https://graph.facebook.com/${FirebaseAuth.instance.currentUser?.uid}/picture?height=500';
-      }
-    }
-    // si no hay usuario o no se ha iniciado session con Google ni Facebook, retorna null
-    return null;
   }
 }

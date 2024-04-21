@@ -1,7 +1,5 @@
-// ignore_for_file: use_build_context_synchronously, avoid_print
-
+// ignore_for_file: use_build_context_synchronously, avoid_print, non_constant_identifier_names
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -9,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:trabajorapid/firebaseAuth/firabaseAuthImple.dart';
 import 'package:quickalert/quickalert.dart';
+import 'package:trabajorapid/services/upload_image/select_image.dart';
+import 'package:trabajorapid/services/upload_image/upload_image.dart';
 
 class ProfileDrawer extends StatefulWidget {
   const ProfileDrawer({Key? key}) : super(key: key);
@@ -33,7 +33,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
     'Femenino',
   ];
   String? selectedValue;
-  File? imageFile;
+  File? image_upload;
 
   @override
   void initState() {
@@ -150,19 +150,32 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                       key: _formKey,
                       child: Column(children: [
                         GestureDetector(
-                          onTap: () {
-                            _pickAndUploadImage(context);
+                          onTap: () async {
+                            final XFile? image = await getImage();
+                            setState(() {
+                              image_upload = File(image!.path);
+                            });
                           },
-                          child: CircleAvatar(
-                            radius: 50,
-                            backgroundColor: Colors.grey[200],
-                            backgroundImage: null,
-                            child: Icon(
-                              Icons.add_a_photo,
-                              size: 40,
-                              color: Colors.grey[600],
-                            ),
-                          ),
+                          child: image_upload != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(100),
+                                  child: Image.file(
+                                    image_upload!,
+                                    width: 200,
+                                    height: 200,
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              : CircleAvatar(
+                                  radius: 80,
+                                  backgroundColor: Colors.grey[200],
+                                  backgroundImage: null,
+                                  child: Icon(
+                                    Icons.add_a_photo,
+                                    size: 40,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
                         ),
                         TextFormField(
                           controller: _identificationController,
@@ -372,7 +385,20 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
+        onPressed: () async {
+          if (image_upload == null) {
+            QuickAlert.show(
+              context: context,
+              type: QuickAlertType.error,
+              text: 'Error: No se ha seleccionado ninguna imagen.',
+              autoCloseDuration: const Duration(seconds: 2),
+              showConfirmBtn: false,
+            );
+            return;
+          }
+
+          final uploaded = await uploadImage(image_upload!);
+
           if (_formKey.currentState!.validate()) {
             _registerUser(context);
           } else {
@@ -539,24 +565,6 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
   }
 
   //Selected image from gallery or camera
-  void _pickAndUploadImage(BuildContext context) async {
-    // Primero, selecciona la imagen
-    _pickImage();
-  }
-
-  // Method for upload photo of profile
-  void _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      setState(() {
-        imageFile = File(pickedFile.path);
-      });
-      // Upload the image to Firebase Storage
-      uploadProfilePhoto(imageFile);
-    }
-  }
 
   //Method for upload photo of profile in firebase storage and get url of photo
   Future<void> uploadProfilePhoto(File? imageFile) async {

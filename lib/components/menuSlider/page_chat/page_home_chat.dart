@@ -1,9 +1,8 @@
-// ignore_for_file: unused_local_variable
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:trabajorapid/components/menuSlider/page_chat/page_chat.dart';
+import 'package:trabajorapid/services/export_photos/photos_users.dart';
 
 class PageChat extends StatefulWidget {
   const PageChat({Key? key}) : super(key: key);
@@ -95,8 +94,27 @@ class _PageChatState extends State<PageChat> {
                               horizontal: 20, vertical: 10),
                           title: Row(
                             children: [
-                              const CircleAvatar(
-                                child: Icon(Icons.person_outline_rounded),
+                              CircleAvatar(
+                                child: ClipOval(
+                                  child: FutureBuilder<String?>(
+                                    future: getUserPhotoColletion(doc['uid']),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return const CircularProgressIndicator();
+                                      } else {
+                                        if (snapshot.hasError) {
+                                          return const Icon(Icons.error);
+                                        } else {
+                                          return Image.network(
+                                            snapshot.data ?? '',
+                                            fit: BoxFit.cover,
+                                          );
+                                        }
+                                      }
+                                    },
+                                  ),
+                                ),
                               ),
                               const SizedBox(width: 10),
                               Expanded(
@@ -143,5 +161,32 @@ class _PageChatState extends State<PageChat> {
         );
       },
     );
+  }
+}
+
+Future<String?> getUserPhotoColletion(String userID) async {
+  if (userID.isEmpty) {
+    return null;
+  }
+
+  try {
+    // Si no es un inicio de sesión de Google o Facebook, obtenemos la foto de Firestore
+    CollectionReference users = FirebaseFirestore.instance.collection('users');
+    final DocumentSnapshot document = await users.doc(userID).get();
+
+    if (document.exists) {
+      Map<String, dynamic>? userData = document.data() as Map<String, dynamic>?;
+
+      if (userData != null && userData['photoURL'] != null) {
+        return userData['photoURL'];
+      } else {
+        return null;
+      }
+    } else {
+      return null;
+    }
+  } catch (e) {
+    print(e);
+    return null;
   }
 }
