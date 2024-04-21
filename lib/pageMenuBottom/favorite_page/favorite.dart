@@ -118,8 +118,7 @@ Widget buildCuadrosDesdeFirestore(
     children: likedServicios.map((likedServicio) {
       if (likedServicio['liked'] == true) {
         String servicioCode = likedServicio.id;
-        // Este FutureBuilder se utiliza para obtener el documento
-        // correspondiente al servicio en la colección 'Servicios'
+
         return FutureBuilder<DocumentSnapshot>(
           future: FirebaseFirestore.instance
               .collection('servicios')
@@ -134,12 +133,8 @@ Widget buildCuadrosDesdeFirestore(
             else if (snapshot.hasError) {
               return Text('Error: ${snapshot.error}');
             } else {
-              // Si la operación es exitosa, se obtiene el tipo de servicio
-              // del documento obtenido
               String tipoServicio = snapshot.data!['tipoServicio'];
-              // Luego, se utiliza otro FutureBuilder para obtener los servicios
-              // de la colección 'ofertasServicios' que coincidan con el tipo de
-              // servicio y el título del servicio
+
               return FutureBuilder<QuerySnapshot>(
                 future: FirebaseFirestore.instance
                     .collection('ofertasServicios')

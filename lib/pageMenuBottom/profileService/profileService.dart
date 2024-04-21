@@ -21,7 +21,10 @@ void main() {
 }
 
 class Profile extends StatelessWidget {
-  const Profile({Key? key, required String uid, required String idS})
+  final String uid;
+  final String idS;
+
+  const Profile({Key? key, required this.uid, required this.idS})
       : super(key: key);
 
   @override
@@ -51,22 +54,29 @@ class Profile extends StatelessWidget {
           ),
         ),
       ),
-      body: const SingleChildScrollView(
-        child: ProfileScreen(),
+      body: SingleChildScrollView(
+        child: ProfileScreen(
+          uid: uid,
+          idS: idS,
+        ),
       ),
     );
   }
 }
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  final String uid;
+  final String idS;
 
+  const ProfileScreen({Key? key, required this.uid, required this.idS})
+      : super(key: key);
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _commentController = TextEditingController();
+  // Define uid as a property
 
   bool showRatingSection = true;
   List<Comment> comments = [];
@@ -95,26 +105,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
         comments = value;
       });
     });
-    getUserData('uid').then((userData) {
+    getUserData(widget.uid).then((userData) {
       if (userData != null) {
-        // Aquí puedes actualizar el estado con los datos del usuario, por ejemplo:
         setState(() {
           email = userData['email'];
-
-          print(email);
-
+          name = userData['name'];
           // Suponiendo que 'nombre' es un campo en tus datos de usuario
         });
       }
     });
-    getUserData('uid').then((servicesSnapshot) {
+
+    // Obtener los datos de los servicios del usuario utilizando las variables uid e idS reales
+    getUserServices(widget.uid, widget.idS).then((servicesSnapshot) {
       if (servicesSnapshot != null) {
-        // Aquí puedes actualizar el estado con los datos del usuario, por ejemplo:
         setState(() {
           direccion = servicesSnapshot['direccion'];
-          name = servicesSnapshot['titulo'];
-          print(name);
-          print(direccion);
+
           // Suponiendo que 'nombre' es un campo en tus datos de usuario
         });
       }
@@ -193,8 +199,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<DocumentSnapshot<Map<String, dynamic>>?> getUserData(
       String uid) async {
     try {
-      DocumentSnapshot<Map<String, dynamic>> userData =
-          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      DocumentSnapshot<Map<String, dynamic>> userData = await FirebaseFirestore
+          .instance
+          .collection('users')
+          .doc(widget.uid)
+          .get();
       return userData;
     } catch (e) {
       print('Error obteniendo datos del usuario: $e');
@@ -205,13 +214,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<DocumentSnapshot<Map<String, dynamic>>?> getUserServices(
       String uid, String id) async {
     try {
-      DocumentSnapshot<Map<String, dynamic>> servicesSnapshot =
-          (await FirebaseFirestore.instance
-              .collection('servicios')
-              .where('uid', isEqualTo: uid)
-              .where('id', isEqualTo: idS)
-              .get()) as DocumentSnapshot<Map<String, dynamic>>;
-      return servicesSnapshot;
+      var servicesSnapshot = await FirebaseFirestore.instance
+          .collection('servicios')
+          .where('uid', isEqualTo: widget.uid)
+          .where('id', isEqualTo: widget.idS)
+          .get();
+
+      if (servicesSnapshot.docs.isNotEmpty) {
+        return servicesSnapshot.docs.first
+            as DocumentSnapshot<Map<String, dynamic>>;
+      } else {
+        return null;
+      }
     } catch (e) {
       print('Error obteniendo datos del usuario: $e');
       return null;
@@ -253,9 +267,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const CircleAvatar(
-            radius: 60,
-            backgroundImage: AssetImage('assets/images/profile.jpg'),
+          CircleAvatar(
+            radius: 80,
+            backgroundColor: Colors.transparent,
+            child: Container(
+              width: 150,
+              height: 150,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.grey,
+                  width: 1,
+                ),
+              ),
+              child: ClipOval(
+                child: FirebaseAuth.instance.currentUser!.photoURL != null
+                    ? Image.network(
+                        FirebaseAuth.instance.currentUser!.photoURL!,
+                        fit: BoxFit.cover,
+                      )
+                    : const Icon(Icons.account_circle, size: 150),
+              ),
+            ),
           ),
           const SizedBox(height: 16),
           const Icon(
@@ -267,13 +300,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             name,
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 8),
           Text(
             email,
-            style: const TextStyle(
-                fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+            style: const TextStyle(fontSize: 16, color: Colors.black),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           Text(
             direccion,
             textAlign: TextAlign.center,

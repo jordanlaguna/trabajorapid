@@ -48,27 +48,35 @@ class _ProfilePageState extends State<ProfilePage> {
     _descripcionController.dispose();
     _direccionController.dispose();
     _pagoController.dispose();
-    _getServicios(); // Llama a la función para obtener los servicios al inicializar el estado
-
     super.dispose();
   }
 
-  // Función para obtener los servicios de Firestore
   Future<void> _getServicios() async {
-    QuerySnapshot querySnapshot =
-        await FirebaseFirestore.instance.collection('ofertasServicios').get();
+    if (!mounted) return; // Verifica si el widget todavía está montado
 
-    setState(() {
-      // Filtra los documentos y convierte explícitamente a String
-      _servicios = querySnapshot.docs
-          .where((doc) => doc.exists && doc['titulo'] != null)
-          .map((doc) => doc['titulo'] as String)
-          .toList();
+    try {
+      QuerySnapshot querySnapshot =
+          await FirebaseFirestore.instance.collection('ofertasServicios').get();
 
-      // Eliminar duplicados y asegurar que 'Seleccionar...' esté al principio
-      _servicios = _servicios.toSet().toList();
-      _servicios.insert(0, 'Seleccionar...');
-    });
+      if (!mounted) {
+        return; // Verifica de nuevo después de la operación asincrónica
+      }
+
+      setState(() {
+        // Filtra los documentos y convierte explícitamente a String
+        _servicios = querySnapshot.docs
+            .where((doc) => doc.exists && doc['titulo'] != null)
+            .map((doc) => doc['titulo'] as String)
+            .toList();
+
+        // Eliminar duplicados y asegurar que 'Seleccionar...' esté al principio
+        _servicios = _servicios.toSet().toList();
+        _servicios.insert(0, 'Seleccionar...');
+      });
+    } catch (e) {
+      // Manejar cualquier error que ocurra durante la obtención de los servicios
+      print('Error al obtener servicios: $e');
+    }
   }
 
   Future<Position> determinePosicion() async {
@@ -121,6 +129,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       width: 1,
                     ),
                   ),
+                  
                   child: ClipOval(
                     child: FirebaseAuth.instance.currentUser!.photoURL != null
                         ? Image.network(
