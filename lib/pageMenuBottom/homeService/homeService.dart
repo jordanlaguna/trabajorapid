@@ -259,7 +259,7 @@ class _HomePageServiceState extends State<HomePageService> {
   Widget buildCarousel(BuildContext context, List<DocumentSnapshot> servicios) {
     return CarouselSlider(
       options: CarouselOptions(
-        height: 250,
+        height: 255,
         enableInfiniteScroll: true,
         autoPlay: true,
         viewportFraction: 0.8,
@@ -286,6 +286,25 @@ class _HomePageServiceState extends State<HomePageService> {
     );
   }
 
+  Future<String?> getUserPhotoUrl(String uid) async {
+    try {
+      // Intenta obtener la URL de la foto del usuario desde la base de datos
+      DocumentSnapshot<Map<String, dynamic>> userData =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+      // Si la URL de la foto está disponible en la base de datos, úsala
+      if (userData.exists && userData['photoURL'] != null) {
+        return userData['photoURL'];
+      } else {
+        // Si la URL de la foto no está disponible en la base de datos, utiliza la foto de perfil de la autenticación
+        return FirebaseAuth.instance.currentUser?.photoURL;
+      }
+    } catch (e) {
+      print('Error obteniendo la URL de la foto del usuario: $e');
+      return null;
+    }
+  }
+
   Widget buildCuadro(
       BuildContext context,
       String titulo,
@@ -299,86 +318,142 @@ class _HomePageServiceState extends State<HomePageService> {
     int nume = cantidadDocumentos[idS] ?? 0;
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10.0),
+      padding: const EdgeInsets.all(20.0),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: Colors.grey),
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 2,
-            child: Container(
-              width: 90.0,
-              height: 90.0,
-              color: const Color.fromARGB(255, 0, 0, 0),
-            ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: const Offset(0, 3), // changes position of shadow
           ),
-          const SizedBox(width: 12.0),
-          Expanded(
-            flex: 3,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  titulo,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18.0,
+        ],
+        borderRadius: BorderRadius.circular(15.0),
+      ),
+      child: SingleChildScrollView(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 50, // Establece el ancho deseado
+              height: 50, // Establece la altura deseada
+              child: CircleAvatar(
+                backgroundColor: Colors.transparent,
+                child: Container(
+                  width: 50, // Ancho del contenedor interno
+                  height: 50, // Altura del contenedor interno
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.grey,
+                      width: 1,
+                    ),
+                  ),
+                  child: ClipOval(
+                    child: FutureBuilder<String?>(
+                      future: getUserPhotoUrl(uid),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        } else if (snapshot.hasError) {
+                          return const Icon(Icons.error_outline,
+                              size: 30, color: Colors.red); // Tamaño modificado
+                        } else if (snapshot.hasData) {
+                          return Image.network(
+                            snapshot.data!,
+                            fit: BoxFit.cover,
+                          );
+                        } else {
+                          return const Icon(Icons.account_circle,
+                              size: 30); // Tamaño modificado
+                        }
+                      },
+                    ),
                   ),
                 ),
-                Row(
-                  children: [
-                    RatingBar.builder(
-                      initialRating: mediaEstrellas,
-                      minRating: 1,
-                      direction: Axis.horizontal,
-                      allowHalfRating: true,
-                      itemCount: 5,
-                      itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      itemSize: 20,
-                      itemBuilder: (context, _) => const Icon(
-                        Icons.star,
-                        color: Colors.amber,
-                      ),
-                      onRatingUpdate: (rating) async {
-                        String? userId = FirebaseAuth.instance.currentUser?.uid;
+              ),
+            ),
+            const SizedBox(width: 12.0),
+            Expanded(
+              flex: 3,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    titulo,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18.0,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      RatingBar.builder(
+                        initialRating: mediaEstrellas,
+                        minRating: 1,
+                        direction: Axis.horizontal,
+                        allowHalfRating: true,
+                        itemCount: 5,
+                        itemPadding:
+                            const EdgeInsets.symmetric(horizontal: 4.0),
+                        itemSize: 20,
+                        itemBuilder: (context, _) => const Icon(
+                          Icons.star,
+                          color: Colors.amber,
+                        ),
+                        onRatingUpdate: (rating) async {
+                          String? userId =
+                              FirebaseAuth.instance.currentUser?.uid;
 
-                        if (userId != null) {
-                          // Verificar si el documento ya existe
-                          QuerySnapshot ratingSnapshot = await FirebaseFirestore
-                              .instance
-                              .collection('calificacion')
-                              .where('uid', isEqualTo: userId)
-                              .get();
+                          if (userId != null) {
+                            // Verificar si el documento ya existe
+                            QuerySnapshot ratingSnapshot =
+                                await FirebaseFirestore.instance
+                                    .collection('calificacion')
+                                    .where('uid', isEqualTo: userId)
+                                    .get();
 
-                          print('1');
-                          if (ratingSnapshot.docs.isNotEmpty) {
-                            print('2');
-                            DocumentSnapshot? ratingDoc;
-                            try {
-                              ratingDoc = ratingSnapshot.docs.firstWhere(
-                                (doc) =>
-                                    doc['id'] == idS && doc['uid'] == userId,
-                              );
-                            } catch (e) {
-                              ratingDoc = null;
-                            }
+                            print('1');
+                            if (ratingSnapshot.docs.isNotEmpty) {
+                              print('2');
+                              DocumentSnapshot? ratingDoc;
+                              try {
+                                ratingDoc = ratingSnapshot.docs.firstWhere(
+                                  (doc) =>
+                                      doc['id'] == idS && doc['uid'] == userId,
+                                );
+                              } catch (e) {
+                                ratingDoc = null;
+                              }
 
-                            // Actualizar el documento existente con la nueva calificación
-                            if (ratingDoc != null) {
-                              print('3');
-                              // El documento existe, actualizar solo las estrellas
-                              await FirebaseFirestore.instance
-                                  .collection('calificacion')
-                                  .doc(ratingDoc.id)
-                                  .update({
-                                'estrellas': rating,
-                              });
+                              // Actualizar el documento existente con la nueva calificación
+                              if (ratingDoc != null) {
+                                print('3');
+                                // El documento existe, actualizar solo las estrellas
+                                await FirebaseFirestore.instance
+                                    .collection('calificacion')
+                                    .doc(ratingDoc.id)
+                                    .update({
+                                  'estrellas': rating,
+                                });
+                              } else {
+                                print('4');
+                                // El id no coincide, crear un nuevo documento
+                                await FirebaseFirestore.instance
+                                    .collection('calificacion')
+                                    .doc() // Puedes mantener doc() si deseas un nuevo ID automático
+                                    .set({
+                                  'estrellas': rating,
+                                  'uid': userId,
+                                  'id': idS,
+                                });
+                              }
                             } else {
-                              print('4');
-                              // El id no coincide, crear un nuevo documento
+                              print('5');
+                              // Crear un nuevo documento si no existe
                               await FirebaseFirestore.instance
                                   .collection('calificacion')
                                   .doc() // Puedes mantener doc() si deseas un nuevo ID automático
@@ -388,97 +463,86 @@ class _HomePageServiceState extends State<HomePageService> {
                                 'id': idS,
                               });
                             }
-                          } else {
-                            print('5');
-                            // Crear un nuevo documento si no existe
-                            await FirebaseFirestore.instance
-                                .collection('calificacion')
-                                .doc() // Puedes mantener doc() si deseas un nuevo ID automático
-                                .set({
-                              'estrellas': rating,
-                              'uid': userId,
-                              'id': idS,
-                            });
-                          }
-                        }
-                      },
-                    ),
-                    const SizedBox(width: 10.0),
-                    Text('($nume)'),
-                  ],
-                ),
-                const SizedBox(height: 10.0),
-                Text(
-                  contenido.length > 20
-                      ? '${contenido.substring(0, 5)}...'
-                      : contenido,
-                ),
-                const SizedBox(height: 5.0),
-                Text(
-                  tipoOferta.length > 20
-                      ? '${tipoOferta.substring(0, 20)}...'
-                      : tipoOferta,
-                ),
-                const SizedBox(height: 5.0),
-                Text(
-                  direccion.length > 20
-                      ? '${direccion.substring(0, 20)}...'
-                      : direccion,
-                ),
-                const SizedBox(height: 5.0),
-                Text('$pago ₡'),
-                const SizedBox(height: 5.0),
-                Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () async {
-                        _toggleLike(
-                            idS); // Espera a que se complete la operación asincrónica
-                        // Actualiza el estado después de que se complete la operación
-                      },
-                      child: FutureBuilder<bool>(
-                        future: _isLiked(idS), // Llama a la función _isLiked
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            // Muestra un indicador de carga mientras se espera la respuesta
-                            return const CircularProgressIndicator();
-                          } else {
-                            if (snapshot.hasData && snapshot.data!) {
-                              // Si hay datos y el resultado es verdadero, muestra el icono en rojo
-                              return const Icon(
-                                Icons.favorite,
-                                color: Colors.red,
-                              );
-                            } else {
-                              // De lo contrario, muestra el icono en gris
-                              return const Icon(
-                                Icons.favorite_border,
-                                color: Colors.grey,
-                              );
-                            }
                           }
                         },
                       ),
-                    ),
-                    const SizedBox(width: 10.0),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => Profile(uid: uid, idS: idS),
-                          ),
-                        );
-                      },
-                      child: const Text('Presiona aquí'),
-                    ),
-                  ],
-                ),
-              ],
+                      const SizedBox(width: 10.0),
+                      Text('($nume)'),
+                    ],
+                  ),
+                  const SizedBox(height: 10.0),
+                  Text(
+                    contenido.length > 35
+                        ? '${contenido.substring(0, 30)}...'
+                        : contenido,
+                  ),
+                  const SizedBox(height: 5.0),
+                  Text(
+                    tipoOferta.length > 35
+                        ? '${tipoOferta.substring(0, 30)}...'
+                        : tipoOferta,
+                  ),
+                  const SizedBox(height: 5.0),
+                  Text(
+                    direccion.length > 25
+                        ? '${direccion.substring(0, 25)}...'
+                        : direccion,
+                  ),
+                  const SizedBox(height: 5.0),
+                  Text('$pago ₡'),
+                  const SizedBox(height: 5.0),
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () async {
+                          _toggleLike(
+                              idS); // Espera a que se complete la operación asincrónica
+                          // Actualiza el estado después de que se complete la operación
+                        },
+                        child: FutureBuilder<bool>(
+                          future: _isLiked(idS), // Llama a la función _isLiked
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              // Muestra un indicador de carga mientras se espera la respuesta
+                              return const CircularProgressIndicator();
+                            } else {
+                              if (snapshot.hasData && snapshot.data!) {
+                                // Si hay datos y el resultado es verdadero, muestra el icono en rojo
+                                return const Icon(
+                                  Icons.favorite,
+                                  color: Colors.red,
+                                );
+                              } else {
+                                // De lo contrario, muestra el icono en gris
+                                return const Icon(
+                                  Icons.favorite_border,
+                                  color: Colors.grey,
+                                );
+                              }
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 10.0),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Profile(uid: uid, idS: idS),
+                            ),
+                          );
+                        },
+                        child: const Text('Presiona aquí'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -496,7 +560,7 @@ class _HomePageServiceState extends State<HomePageService> {
         final double pagoDouble = cuadro['pago']?.toDouble() ?? 0.0;
         final String pago = pagoDouble.toStringAsFixed(2);
         return SizedBox(
-          height: 250, // Modificar la altura según sea necesario
+          height: 255, // Modificar la altura según sea necesario
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
             child: buildCuadro(context, titulo, contenido, idS, tipoOferta,
