@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:trabajorapid/components/menuSlider/configuration/configPage/page_config.dart';
 import 'package:trabajorapid/components/menuSlider/page_chat/page_home_chat.dart';
+import 'package:trabajorapid/components/menuSlider/payment/payment_page.dart';
 import 'package:trabajorapid/components/menuSlider/perfilDrawer/profile_drawer.dart';
 import 'package:trabajorapid/screens/welcome_screen.dart';
 import 'package:trabajorapid/services/export_photos/photos_users.dart';
@@ -150,7 +151,13 @@ class _NavBarState extends State<NavBar> {
                     fontWeight: FontWeight.bold,
                     color: Colors.black),
               ),
-              onTap: () => print('Pagos presionado'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const PaymentPage()));
+              },
             ),
             ListTile(
               leading: ShaderMask(
