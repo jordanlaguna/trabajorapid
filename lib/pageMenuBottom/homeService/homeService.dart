@@ -259,7 +259,7 @@ class _HomePageServiceState extends State<HomePageService> {
   Widget buildCarousel(BuildContext context, List<DocumentSnapshot> servicios) {
     return CarouselSlider(
       options: CarouselOptions(
-        height: 255,
+        height: 225,
         enableInfiniteScroll: true,
         autoPlay: true,
         viewportFraction: 0.8,
@@ -471,72 +471,76 @@ class _HomePageServiceState extends State<HomePageService> {
                     ],
                   ),
                   const SizedBox(height: 10.0),
-                  Text(
-                    contenido.length > 35
-                        ? '${contenido.substring(0, 30)}...'
-                        : contenido,
-                  ),
-                  const SizedBox(height: 5.0),
-                  Text(
-                    tipoOferta.length > 35
-                        ? '${tipoOferta.substring(0, 30)}...'
-                        : tipoOferta,
-                  ),
-                  const SizedBox(height: 5.0),
-                  Text(
-                    direccion.length > 25
-                        ? '${direccion.substring(0, 25)}...'
-                        : direccion,
-                  ),
-                  const SizedBox(height: 5.0),
-                  Text('$pago ₡'),
-                  const SizedBox(height: 5.0),
-                  Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () async {
-                          _toggleLike(
-                              idS); // Espera a que se complete la operación asincrónica
-                          // Actualiza el estado después de que se complete la operación
-                        },
-                        child: FutureBuilder<bool>(
-                          future: _isLiked(idS), // Llama a la función _isLiked
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              // Muestra un indicador de carga mientras se espera la respuesta
-                              return const CircularProgressIndicator();
-                            } else {
-                              if (snapshot.hasData && snapshot.data!) {
-                                // Si hay datos y el resultado es verdadero, muestra el icono en rojo
-                                return const Icon(
-                                  Icons.favorite,
-                                  color: Colors.red,
-                                );
-                              } else {
-                                // De lo contrario, muestra el icono en gris
-                                return const Icon(
-                                  Icons.favorite_border,
-                                  color: Colors.grey,
-                                );
-                              }
-                            }
-                          },
+                  SizedBox(
+                    width: double.infinity, // Ocupa todo el ancho disponible
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          contenido.length > 30
+                              ? '${contenido.substring(0, 25)}...'
+                              : contenido,
                         ),
-                      ),
-                      const SizedBox(width: 10.0),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => Profile(uid: uid, idS: idS),
+                        const SizedBox(height: 5.0),
+                        Text(
+                          '${tipoOferta.length > 35 ? '${tipoOferta.substring(0, 30)}...' : tipoOferta} - $pago ₡',
+                        ),
+                        const SizedBox(height: 5.0),
+                        Text(
+                          direccion.length > 25
+                              ? '${direccion.substring(0, 25)}...'
+                              : direccion,
+                        ),
+                        const SizedBox(height: 5.0),
+                        Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () async {
+                                _toggleLike(idS);
+                              },
+                              child: FutureBuilder<bool>(
+                                future: _isLiked(idS),
+                                // Llama a la función _isLiked
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    // Muestra un indicador de carga mientras se espera la respuesta
+                                    return const CircularProgressIndicator();
+                                  } else {
+                                    if (snapshot.hasData && snapshot.data!) {
+                                      // Si hay datos y el resultado es verdadero, muestra el icono en rojo
+                                      return const Icon(
+                                        Icons.favorite,
+                                        color: Colors.red,
+                                      );
+                                    } else {
+                                      // De lo contrario, muestra el icono en gris
+                                      return const Icon(
+                                        Icons.favorite_border,
+                                        color: Colors.grey,
+                                      );
+                                    }
+                                  }
+                                },
+                              ),
                             ),
-                          );
-                        },
-                        child: const Text('Presiona aquí'),
-                      ),
-                    ],
+                            const SizedBox(width: 10.0),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        Profile(uid: uid, idS: idS),
+                                  ),
+                                );
+                              },
+                              child: const Text('Presiona aquí'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -560,7 +564,7 @@ class _HomePageServiceState extends State<HomePageService> {
         final double pagoDouble = cuadro['pago']?.toDouble() ?? 0.0;
         final String pago = pagoDouble.toStringAsFixed(2);
         return SizedBox(
-          height: 255, // Modificar la altura según sea necesario
+          height: 220, // Modificar la altura según sea necesario
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
             child: buildCuadro(context, titulo, contenido, idS, tipoOferta,
