@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:trabajorapid/components/menuSlider/page_chat/page_chat.dart';
+import 'package:trabajorapid/screens/menuSlider/page_chat/page_chat.dart';
 
 class PageChat extends StatefulWidget {
   const PageChat({Key? key}) : super(key: key);

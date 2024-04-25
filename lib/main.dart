@@ -1,9 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:trabajorapid/components/menuSlider/perfilDrawer/profile_drawer.dart';
+import 'package:trabajorapid/screens/menuSlider/perfilDrawer/profile_drawer.dart';
 import 'package:trabajorapid/firebase_options.dart';
-import 'package:trabajorapid/screens/welcome_screen.dart';
+import 'package:trabajorapid/screens/login_screens/welcome_screen.dart';
 import 'package:trabajorapid/theme/theme.dart';
 
 void main() async {

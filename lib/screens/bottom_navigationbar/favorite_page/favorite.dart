@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:trabajorapid/pageMenuBottom/favorite_page/favorite_services.dart';
+import 'package:trabajorapid/screens/bottom_navigationbar/favorite_page/favorite_services.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 Future<void> main() async {

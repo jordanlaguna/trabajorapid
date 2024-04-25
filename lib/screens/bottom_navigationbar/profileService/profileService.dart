@@ -2,7 +2,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:trabajorapid/components/menuSlider/page_chat/page_home_chat.dart';
+import 'package:trabajorapid/screens/menuSlider/page_chat/page_home_chat.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 

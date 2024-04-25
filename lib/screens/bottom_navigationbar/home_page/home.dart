@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:trabajorapid/pageMenuBottom/homeService/homeService.dart';
+import 'package:trabajorapid/screens/bottom_navigationbar/homeService/homeService.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:firebase_core/firebase_core.dart';
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:trabajorapid/components/menuSlider/configuration/aboutOf/page_about.dart';
-import 'package:trabajorapid/components/menuSlider/perfilDrawer/profile_drawer.dart';
+import 'package:trabajorapid/screens/menuSlider/configuration/aboutOf/page_about.dart';
+import 'package:trabajorapid/screens/menuSlider/perfilDrawer/profile_drawer.dart';
 
 class ConfigPage extends StatelessWidget {
   const ConfigPage({Key? key}) : super(key: key);

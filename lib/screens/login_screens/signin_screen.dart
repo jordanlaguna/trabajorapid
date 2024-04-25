@@ -3,14 +3,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
-import 'package:trabajorapid/screens/signup_screen.dart';
+import 'package:trabajorapid/screens/login_screens/signup_screen.dart';
 import 'package:trabajorapid/widgets/custom_scaffold.dart';
 import 'package:quickalert/models/quickalert_type.dart';
 import 'package:quickalert/widgets/quickalert_dialog.dart';
 import 'package:trabajorapid/firebaseAuth/firabaseAuthImple.dart';
-import 'package:trabajorapid/mainHome/moduleMain.dart';
-import 'package:trabajorapid/components/socialAuth/social_auth.dart';
-import '../theme/theme.dart';
+import 'package:trabajorapid/screens/home/moduleMain.dart';
+import 'package:trabajorapid/services/socialAuth/social_auth.dart';
+import '../../theme/theme.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});

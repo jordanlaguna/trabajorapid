@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:trabajorapid/screens/signin_screen.dart';
-import 'package:trabajorapid/screens/signup_screen.dart';
+import 'package:trabajorapid/screens/login_screens/signin_screen.dart';
+import 'package:trabajorapid/screens/login_screens/signup_screen.dart';
 import 'package:trabajorapid/widgets/custom_scaffold.dart';
 import 'package:trabajorapid/widgets/welcome_button.dart';
 import 'package:trabajorapid/theme/theme.dart';

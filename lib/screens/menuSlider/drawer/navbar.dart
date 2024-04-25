@@ -2,11 +2,11 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:trabajorapid/components/menuSlider/configuration/configPage/page_config.dart';
-import 'package:trabajorapid/components/menuSlider/page_chat/page_home_chat.dart';
-import 'package:trabajorapid/components/menuSlider/payment/payment_page.dart';
-import 'package:trabajorapid/components/menuSlider/perfilDrawer/profile_drawer.dart';
-import 'package:trabajorapid/screens/welcome_screen.dart';
+import 'package:trabajorapid/screens/menuSlider/configuration/configPage/page_config.dart';
+import 'package:trabajorapid/screens/menuSlider/page_chat/page_home_chat.dart';
+import 'package:trabajorapid/screens/menuSlider/payment/payment_page.dart';
+import 'package:trabajorapid/screens/menuSlider/perfilDrawer/profile_drawer.dart';
+import 'package:trabajorapid/screens/login_screens/welcome_screen.dart';
 import 'package:trabajorapid/services/export_photos/photos_users.dart';
 
 class NavBar extends StatefulWidget {
