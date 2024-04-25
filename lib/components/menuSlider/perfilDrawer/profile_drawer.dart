@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:trabajorapid/firebaseAuth/firabaseAuthImple.dart';
 import 'package:quickalert/quickalert.dart';
+import 'package:icons_plus/icons_plus.dart';
 import 'package:trabajorapid/services/upload_image/select_image.dart';
 import 'package:trabajorapid/services/upload_image/upload_image.dart';
 
@@ -179,19 +180,19 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                         ),
                         TextFormField(
                           controller: _identificationController,
-                          decoration: const InputDecoration(
-                            suffixIcon: Icon(Icons.card_giftcard_rounded),
+                          decoration:  InputDecoration(
+                            suffixIcon: Icon(FontAwesome.id_card, color: Theme.of(context).colorScheme.secondary),
                             labelText: 'Ingrese su cédula',
                             hintText: '000000000',
                             labelStyle: TextStyle(
-                              color: Color.fromARGB(255, 130, 19, 42),
-                              fontSize: 18,
+                              color: Theme.of(context).colorScheme.secondary,
+                              fontSize: 17,
                               fontFamily: 'Montserrat',
                               fontWeight: FontWeight.bold,
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                color: Color.fromARGB(255, 130, 19, 42),
+                                color: Theme.of(context).colorScheme.secondary,
                               ),
                             ),
                           ),
@@ -202,23 +203,23 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                             return null;
                           },
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 18),
                         TextFormField(
                           controller: _fullNameController,
                           enabled: false,
-                          decoration: const InputDecoration(
-                            suffix: Icon(Icons.person),
+                          decoration:  InputDecoration(
+                            suffixIcon:  Icon(FontAwesome.circle_user_solid, color: Theme.of(context).colorScheme.secondary),
                             labelText: 'Ingrese su nombre completo',
                             hintText: 'Nombre completo',
                             labelStyle: TextStyle(
-                              color: Color.fromARGB(255, 130, 19, 42),
-                              fontSize: 18,
+                              color: Theme.of(context).colorScheme.secondary,
+                              fontSize: 17,
                               fontFamily: 'Montserrat',
                               fontWeight: FontWeight.bold,
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                color: Color.fromARGB(255, 130, 19, 42),
+                                color: Theme.of(context).colorScheme.secondary,
                               ),
                             ),
                           ),
@@ -229,12 +230,12 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                             return null;
                           },
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 18),
                         DropdownButtonFormField<String>(
                           value: selectedValue,
                           hint: const Text(
                             'Seleccione',
-                            style: TextStyle(fontSize: 12),
+                            style: TextStyle(fontSize: 15),
                           ),
                           onChanged: (String? newValue) {
                             setState(() {
@@ -247,18 +248,18 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                               child: Text(value),
                             );
                           }).toList(),
-                          decoration: const InputDecoration(
-                            suffix: Icon(Icons.person_rounded),
+                          decoration: InputDecoration(
+                            suffixIcon: Icon(FontAwesome.venus_mars_solid, color: Theme.of(context).colorScheme.secondary),
                             labelText: 'Género',
                             labelStyle: TextStyle(
-                              color: Color.fromARGB(255, 130, 19, 42),
-                              fontSize: 18,
+                              color: Theme.of(context).colorScheme.secondary,
+                              fontSize: 23,
                               fontFamily: 'Montserrat',
                               fontWeight: FontWeight.bold,
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                color: Color.fromARGB(255, 130, 19, 42),
+                                color: Theme.of(context).colorScheme.secondary,
                               ),
                             ),
                           ),
@@ -269,23 +270,23 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                             return null;
                           },
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 18),
                         TextFormField(
                           controller: _emailController,
                           enabled: false,
-                          decoration: const InputDecoration(
-                            suffix: Icon(Icons.email_rounded),
+                          decoration: InputDecoration(
+                            suffixIcon:  Icon(FontAwesome.envelope_solid, color: Theme.of(context).colorScheme.secondary),
                             labelText: 'Ingrese su correo',
-                            hintText: 'Ejemplo@correo.com',
+                            hintText: 'ejemplousuaro@gmail.com',
                             labelStyle: TextStyle(
-                              color: Color.fromARGB(255, 130, 19, 42),
-                              fontSize: 18,
+                              color: Theme.of(context).colorScheme.secondary,
+                              fontSize: 17,
                               fontFamily: 'Montserrat',
                               fontWeight: FontWeight.bold,
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                color: Color.fromARGB(255, 130, 19, 42),
+                                color: Theme.of(context).colorScheme.secondary,
                               ),
                             ),
                           ),
@@ -296,22 +297,22 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                             return null;
                           },
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 18),
                         TextFormField(
                           controller: _dateController,
-                          decoration: const InputDecoration(
-                            suffix: Icon(Icons.calendar_today_rounded),
+                          decoration: InputDecoration(
+                            suffixIcon:  Icon(FontAwesome.calendar_xmark_solid, color: Theme.of(context).colorScheme.secondary),
                             labelText: 'Ingrese su fecha de nacimiento',
                             hintText: 'dd/mm/aaaa',
                             labelStyle: TextStyle(
-                              color: Color.fromARGB(255, 130, 19, 42),
-                              fontSize: 18,
+                              color: Theme.of(context).colorScheme.secondary,
+                              fontSize: 17,
                               fontFamily: 'Montserrat',
                               fontWeight: FontWeight.bold,
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                color: Color.fromARGB(255, 130, 19, 42),
+                                color: Theme.of(context).colorScheme.secondary,
                               ),
                             ),
                           ),
@@ -322,22 +323,22 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                             return null;
                           },
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 18),
                         TextFormField(
                           controller: _addressController,
-                          decoration: const InputDecoration(
-                            suffix: Icon(Icons.location_on_rounded),
+                          decoration: InputDecoration(
+                            suffixIcon: Icon(FontAwesome.location_dot_solid, color: Theme.of(context).colorScheme.secondary),
                             labelText: 'Ingrese su dirección completa',
                             hintText: 'Provincia/Cantón/Distrito/',
                             labelStyle: TextStyle(
-                              color: Color.fromARGB(255, 130, 19, 42),
-                              fontSize: 18,
+                              color: Theme.of(context).colorScheme.secondary,
+                              fontSize: 17,
                               fontFamily: 'Montserrat',
                               fontWeight: FontWeight.bold,
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                color: Color.fromARGB(255, 130, 19, 42),
+                                color: Theme.of(context).colorScheme.secondary,
                               ),
                             ),
                           ),
@@ -348,22 +349,22 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                             return null;
                           },
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 18),
                         TextFormField(
                           controller: _telephoneController,
-                          decoration: const InputDecoration(
-                            suffix: Icon(Icons.phone_rounded),
+                          decoration: InputDecoration(
+                            suffixIcon: Icon(FontAwesome.phone_solid, color: Theme.of(context).colorScheme.secondary),
                             labelText: 'Ingrese su número de teléfono',
                             hintText: '00000000',
                             labelStyle: TextStyle(
-                              color: Color.fromARGB(255, 130, 19, 42),
-                              fontSize: 18,
+                              color: Theme.of(context).colorScheme.secondary,
+                              fontSize: 17,
                               fontFamily: 'Montserrat',
                               fontWeight: FontWeight.bold,
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                color: Color.fromARGB(255, 130, 19, 42),
+                                color: Theme.of(context).colorScheme.secondary,
                               ),
                             ),
                           ),

@@ -90,8 +90,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         decoration: InputDecoration(
                           label: const Text('Nombre Completo'),
                           hintText: 'Ingrese su nombre completo',
-                          suffixIcon:
-                              const Icon(FontAwesome.user_astronaut_solid),
+                          suffixIcon: Icon(FontAwesome.user_astronaut_solid,
+                              color: Theme.of(context).colorScheme.primary),
                           hintStyle: const TextStyle(
                             color: Colors.black26,
                           ),
@@ -124,8 +124,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         decoration: InputDecoration(
                           label: const Text('Correo Electrónico'),
                           hintText: 'Ingrese su correo electrónico',
-                          suffixIcon: const Icon(
-                              FontAwesome.envelope_circle_check_solid),
+                          suffixIcon: Icon(
+                              FontAwesome.envelope_circle_check_solid,
+                              color: Theme.of(context).colorScheme.primary),
                           hintStyle: const TextStyle(
                             color: Colors.black26,
                           ),
@@ -160,7 +161,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         decoration: InputDecoration(
                           label: const Text('Contraseña'),
                           hintText: 'Ingrese tu contraseña',
-                          suffixIcon: const Icon(FontAwesome.lock_solid),
+                          suffixIcon: Icon(FontAwesome.lock_solid,
+                              color: Theme.of(context).colorScheme.primary),
                           hintStyle: const TextStyle(
                             color: Colors.black26,
                           ),
@@ -200,7 +202,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             color: Colors.black26,
                           ),
                           suffixIcon:
-                              const Icon(FontAwesome.check_double_solid),
+                              Icon(FontAwesome.check_double_solid, color: Theme.of(context).colorScheme.primary),
                           border: OutlineInputBorder(
                             borderSide: const BorderSide(
                               color: Colors.black12, // Default border color

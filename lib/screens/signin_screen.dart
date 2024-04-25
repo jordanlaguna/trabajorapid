@@ -78,8 +78,9 @@ class _SignInScreenState extends State<SignInScreen> {
                           hintStyle: const TextStyle(
                             color: Colors.black26,
                           ),
-                          suffixIcon: const Icon(
-                              FontAwesome.envelope_circle_check_solid),
+                          suffixIcon: Icon(
+                              FontAwesome.envelope_circle_check_solid,
+                              color: Theme.of(context).colorScheme.primary),
                           border: OutlineInputBorder(
                             borderSide: const BorderSide(
                               color: Colors.black12, // Default border color
@@ -113,7 +114,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           hintStyle: const TextStyle(
                             color: Colors.black26,
                           ),
-                          suffixIcon: const Icon(FontAwesome.lock_solid),
+                          suffixIcon: Icon(FontAwesome.lock_solid, color: Theme.of(context).colorScheme.primary),
                           border: OutlineInputBorder(
                             borderSide: const BorderSide(
                               color: Colors.black12, // Default border color
@@ -177,14 +178,6 @@ class _SignInScreenState extends State<SignInScreen> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text('Procesando...'),
-                                ),
-                              );
-                            } else if (!rememberPassword) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Por favor acepte los terminos y condiciones',
-                                  ),
                                 ),
                               );
                             }
@@ -252,31 +245,6 @@ class _SignInScreenState extends State<SignInScreen> {
                               ),
                               child: Brand(
                                 (Brands.google),
-                                size: 30,
-                              ),
-                            ),
-                          ),
-                          // Botón de Facebook
-                          InkWell(
-                            onTap: () {
-                              SocialAuth.signInWithFacebook(context);
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.3),
-                                    spreadRadius: 2,
-                                    blurRadius: 5,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
-                              ),
-                              child: Brand(
-                                (Brands.facebook),
                                 size: 30,
                               ),
                             ),

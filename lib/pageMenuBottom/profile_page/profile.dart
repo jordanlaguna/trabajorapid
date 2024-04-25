@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:trabajorapid/services/export_photos/photos_users.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -108,12 +109,12 @@ class _ProfilePageState extends State<ProfilePage> {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: <Widget>[
-              const Text(
+              Text(
                 'Perfil',
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
-                  color: Color.fromARGB(255, 130, 19, 42),
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
               CircleAvatar(
@@ -129,17 +130,28 @@ class _ProfilePageState extends State<ProfilePage> {
                       width: 1,
                     ),
                   ),
-                  
                   child: ClipOval(
-                    child: FirebaseAuth.instance.currentUser!.photoURL != null
-                        ? Image.network(
-                            FirebaseAuth.instance.currentUser!.photoURL!,
+                    child: FutureBuilder<String?>(
+                      future: getUserPhotoURL(
+                          FirebaseAuth.instance.currentUser!.uid),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        } else if (snapshot.hasError || snapshot.data == null) {
+                          return const Icon(Icons.account_circle, size: 150);
+                        } else {
+                          return Image.network(
+                            snapshot.data!,
                             fit: BoxFit.cover,
-                          )
-                        : const Icon(Icons.account_circle, size: 150),
+                          );
+                        }
+                      },
+                    ),
                   ),
                 ),
               ),
+
               const SizedBox(
                 height: 15,
               ),
@@ -455,7 +467,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 textStyle: const TextStyle(fontSize: 10),
                 fixedSize: const Size(85, 35),
                 foregroundColor: const Color.fromARGB(255, 255, 255, 255),
-                backgroundColor: const Color.fromARGB(255, 130, 19, 42),
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(32.0),
                 ),
