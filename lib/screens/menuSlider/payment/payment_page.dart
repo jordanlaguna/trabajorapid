@@ -68,6 +68,7 @@ class _PaymentPageState extends State<PaymentPage> {
                 fit: BoxFit.fill,
               ),
             ),
+            decoration: const BoxDecoration(),
             child: SafeArea(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
