@@ -62,14 +62,7 @@ class _PaymentPageState extends State<PaymentPage> {
       body: Builder(
         builder: (BuildContext context) {
           return Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: ExactAssetImage(
-                  isLightTheme ? '' : '',
-                ),
-                fit: BoxFit.fill,
-              ),
-            ),
+            decoration: BoxDecoration(),
             child: SafeArea(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -113,7 +106,7 @@ class _PaymentPageState extends State<PaymentPage> {
                       CustomCardTypeIcon(
                         cardType: CardType.mastercard,
                         cardImage: Image.asset(
-                          'assets/tarjeta.png',
+                          'assets/images/mastercard.png',
                           height: 48,
                           width: 48,
                         ),
