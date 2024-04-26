@@ -62,11 +62,9 @@ class _PaymentPageState extends State<PaymentPage> {
       body: Builder(
         builder: (BuildContext context) {
           return Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               image: DecorationImage(
-                image: ExactAssetImage(
-                  isLightTheme ? '' : '',
-                ),
+                image: ExactAssetImage(""),
                 fit: BoxFit.fill,
               ),
             ),
@@ -113,7 +111,7 @@ class _PaymentPageState extends State<PaymentPage> {
                       CustomCardTypeIcon(
                         cardType: CardType.mastercard,
                         cardImage: Image.asset(
-                          'assets/tarjeta.png',
+                          'assets/images/mastercard.png',
                           height: 48,
                           width: 48,
                         ),
