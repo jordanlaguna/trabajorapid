@@ -43,7 +43,7 @@ class PageAbout extends StatelessWidget {
             ),
             SizedBox(height: 10),
             Text(
-              'Rapid Jobs versión 1.0.0',
+              'RapidJobs versión 1.0.0',
               style: TextStyle(
                 fontSize: 24,
                 fontFamily: 'Montserrat',

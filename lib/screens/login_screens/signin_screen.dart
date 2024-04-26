@@ -53,12 +53,12 @@ class _SignInScreenState extends State<SignInScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
+                      const Text(
                         'Iniciar Sesión\nen Rapid Jobs',
                         style: TextStyle(
                           fontSize: 30.0,
                           fontWeight: FontWeight.w900,
-                          color: lightColorScheme.primary,
+                          color: Color.fromARGB(255, 65, 111, 223),
                         ),
                       ),
                       const SizedBox(
@@ -78,9 +78,9 @@ class _SignInScreenState extends State<SignInScreen> {
                           hintStyle: const TextStyle(
                             color: Colors.black26,
                           ),
-                          suffixIcon: Icon(
+                          suffixIcon: const Icon(
                               FontAwesome.envelope_circle_check_solid,
-                              color: Theme.of(context).colorScheme.primary),
+                              color: Color.fromARGB(255, 65, 111, 223)),
                           border: OutlineInputBorder(
                             borderSide: const BorderSide(
                               color: Colors.black12, // Default border color
@@ -114,7 +114,8 @@ class _SignInScreenState extends State<SignInScreen> {
                           hintStyle: const TextStyle(
                             color: Colors.black26,
                           ),
-                          suffixIcon: Icon(FontAwesome.lock_solid, color: Theme.of(context).colorScheme.primary),
+                          suffixIcon: const Icon(FontAwesome.lock_solid,
+                              color: Color.fromARGB(255, 65, 111, 223)),
                           border: OutlineInputBorder(
                             borderSide: const BorderSide(
                               color: Colors.black12, // Default border color

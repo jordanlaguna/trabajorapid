@@ -74,7 +74,7 @@ class _ModuleMainState extends State<ModuleMain> {
         ),
         body: screen.elementAt(index),
         bottomNavigationBar: CurvedNavigationBar(
-          color: Theme.of(context).colorScheme.primary,
+          color: const Color.fromARGB(255, 65, 111, 223),
           backgroundColor: Colors.transparent,
           items: items,
           height: 65,
