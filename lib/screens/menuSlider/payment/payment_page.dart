@@ -62,7 +62,12 @@ class _PaymentPageState extends State<PaymentPage> {
       body: Builder(
         builder: (BuildContext context) {
           return Container(
-            decoration: BoxDecoration(),
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: ExactAssetImage(""),
+                fit: BoxFit.fill,
+              ),
+            ),
             child: SafeArea(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
