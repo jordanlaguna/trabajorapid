@@ -102,34 +102,41 @@ class HomePage extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 30,
-                    height: 30,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    child: Center(
-                      child: Icon(
-                        iconData, // Utiliza el icono correspondiente
-                        color: Colors.white,
-                        size: 25.0,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16.0),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          titulo,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18.0,
-                          ),
+                        Row(
+                          children: [
+                            // Ajusta el espacio entre el texto y el contenedor del icono
+                            Container(
+                              width: 30,
+                              height: 30,
+                              decoration: BoxDecoration(
+                                color: const Color.fromARGB(255, 2, 139, 252),
+                                borderRadius: BorderRadius.circular(25),
+                              ),
+                              child: Center(
+                                child: Icon(
+                                  iconData,
+                                  color: Colors.white,
+                                  size: 25.0,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8.0),
+                            Text(
+                              titulo,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18.0,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 8.0),
+                        const SizedBox(
+                            height:
+                                8.0), // Espacio entre el texto e información adicional si la hay
                         Text(
                           contenido,
                           style: const TextStyle(

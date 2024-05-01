@@ -12,8 +12,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  FirebaseApi firebaseApi = FirebaseApi();
-  await firebaseApi.initNotifications();
+  await FirebaseApi().initNotifications();
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
   ));
