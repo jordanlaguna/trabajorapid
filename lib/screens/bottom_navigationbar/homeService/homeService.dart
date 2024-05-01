@@ -1,4 +1,5 @@
 // ignore_for_file: unused_element, avoid_print, file_names, unused_local_variable, non_constant_identifier_names, duplicate_ignore
+import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -259,7 +260,7 @@ class _HomePageServiceState extends State<HomePageService> {
   Widget buildCarousel(BuildContext context, List<DocumentSnapshot> servicios) {
     return CarouselSlider(
       options: CarouselOptions(
-        height: 225,
+        height: 235,
         enableInfiniteScroll: true,
         autoPlay: true,
         viewportFraction: 0.8,
@@ -305,6 +306,8 @@ class _HomePageServiceState extends State<HomePageService> {
     }
   }
 
+  bool _isPressed = false;
+
   Widget buildCuadro(
       BuildContext context,
       String titulo,
@@ -335,139 +338,154 @@ class _HomePageServiceState extends State<HomePageService> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(
-              width: 50, // Establece el ancho deseado
-              height: 50, // Establece la altura deseada
-              child: CircleAvatar(
-                backgroundColor: Colors.transparent,
-                child: Container(
-                  width: 50, // Ancho del contenedor interno
-                  height: 50, // Altura del contenedor interno
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.grey,
-                      width: 1,
-                    ),
-                  ),
-                  child: ClipOval(
-                    child: FutureBuilder<String?>(
-                      future: getUserPhotoUrl(uid),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
-                        } else if (snapshot.hasError) {
-                          return const Icon(Icons.error_outline,
-                              size: 30, color: Colors.red); // Tamaño modificado
-                        } else if (snapshot.hasData) {
-                          return Image.network(
-                            snapshot.data!,
-                            fit: BoxFit.cover,
-                          );
-                        } else {
-                          return const Icon(Icons.account_circle,
-                              size: 30); // Tamaño modificado
-                        }
-                      },
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12.0),
             Expanded(
               flex: 3,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    titulo,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18.0,
-                    ),
-                  ),
                   Row(
                     children: [
-                      RatingBar.builder(
-                        initialRating: mediaEstrellas,
-                        minRating: 1,
-                        direction: Axis.horizontal,
-                        allowHalfRating: true,
-                        itemCount: 5,
-                        itemPadding:
-                            const EdgeInsets.symmetric(horizontal: 4.0),
-                        itemSize: 20,
-                        itemBuilder: (context, _) => const Icon(
-                          Icons.star,
-                          color: Colors.amber,
+                      SizedBox(
+                        width: 50, // Establece el ancho deseado
+                        height: 50, // Establece la altura deseada
+                        child: CircleAvatar(
+                          backgroundColor: Colors.transparent,
+                          child: Container(
+                            width: 50, // Ancho del contenedor interno
+                            height: 50, // Altura del contenedor interno
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.grey,
+                                width: 1,
+                              ),
+                            ),
+                            child: ClipOval(
+                              child: FutureBuilder<String?>(
+                                future: getUserPhotoUrl(uid),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return const CircularProgressIndicator();
+                                  } else if (snapshot.hasError) {
+                                    return const Icon(Icons.error_outline,
+                                        size: 30,
+                                        color: Colors.red); // Tamaño modificado
+                                  } else if (snapshot.hasData) {
+                                    return Image.network(
+                                      snapshot.data!,
+                                      fit: BoxFit.cover,
+                                    );
+                                  } else {
+                                    return const Icon(Icons.account_circle,
+                                        size: 30); // Tamaño modificado
+                                  }
+                                },
+                              ),
+                            ),
+                          ),
                         ),
-                        onRatingUpdate: (rating) async {
-                          String? userId =
-                              FirebaseAuth.instance.currentUser?.uid;
-
-                          if (userId != null) {
-                            // Verificar si el documento ya existe
-                            QuerySnapshot ratingSnapshot =
-                                await FirebaseFirestore.instance
-                                    .collection('calificacion')
-                                    .where('uid', isEqualTo: userId)
-                                    .get();
-
-                            print('1');
-                            if (ratingSnapshot.docs.isNotEmpty) {
-                              print('2');
-                              DocumentSnapshot? ratingDoc;
-                              try {
-                                ratingDoc = ratingSnapshot.docs.firstWhere(
-                                  (doc) =>
-                                      doc['id'] == idS && doc['uid'] == userId,
-                                );
-                              } catch (e) {
-                                ratingDoc = null;
-                              }
-
-                              // Actualizar el documento existente con la nueva calificación
-                              if (ratingDoc != null) {
-                                print('3');
-                                // El documento existe, actualizar solo las estrellas
-                                await FirebaseFirestore.instance
-                                    .collection('calificacion')
-                                    .doc(ratingDoc.id)
-                                    .update({
-                                  'estrellas': rating,
-                                });
-                              } else {
-                                print('4');
-                                // El id no coincide, crear un nuevo documento
-                                await FirebaseFirestore.instance
-                                    .collection('calificacion')
-                                    .doc() // Puedes mantener doc() si deseas un nuevo ID automático
-                                    .set({
-                                  'estrellas': rating,
-                                  'uid': userId,
-                                  'id': idS,
-                                });
-                              }
-                            } else {
-                              print('5');
-                              // Crear un nuevo documento si no existe
-                              await FirebaseFirestore.instance
-                                  .collection('calificacion')
-                                  .doc() // Puedes mantener doc() si deseas un nuevo ID automático
-                                  .set({
-                                'estrellas': rating,
-                                'uid': userId,
-                                'id': idS,
-                              });
-                            }
-                          }
-                        },
                       ),
-                      const SizedBox(width: 10.0),
-                      Text('($nume)'),
+                      const SizedBox(width: 8.0),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            titulo.length > 20
+                                ? '${titulo.substring(0, 19)}...'
+                                : titulo,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18.0,
+                            ),
+                          ),
+                          const SizedBox(height: 8.0),
+                          Row(
+                            children: [
+                              RatingBar.builder(
+                                initialRating: mediaEstrellas,
+                                minRating: 1,
+                                direction: Axis.horizontal,
+                                allowHalfRating: true,
+                                itemCount: 5,
+                                itemPadding:
+                                    const EdgeInsets.symmetric(horizontal: 4.0),
+                                itemSize: 20,
+                                itemBuilder: (context, _) => const Icon(
+                                  Icons.star,
+                                  color: Colors.amber,
+                                ),
+                                onRatingUpdate: (rating) async {
+                                  String? userId =
+                                      FirebaseAuth.instance.currentUser?.uid;
+
+                                  if (userId != null) {
+                                    // Verificar si el documento ya existe
+                                    QuerySnapshot ratingSnapshot =
+                                        await FirebaseFirestore.instance
+                                            .collection('calificacion')
+                                            .where('uid', isEqualTo: userId)
+                                            .get();
+
+                                    print('1');
+                                    if (ratingSnapshot.docs.isNotEmpty) {
+                                      print('2');
+                                      DocumentSnapshot? ratingDoc;
+                                      try {
+                                        ratingDoc =
+                                            ratingSnapshot.docs.firstWhere(
+                                          (doc) =>
+                                              doc['id'] == idS &&
+                                              doc['uid'] == userId,
+                                        );
+                                      } catch (e) {
+                                        ratingDoc = null;
+                                      }
+
+                                      // Actualizar el documento existente con la nueva calificación
+                                      if (ratingDoc != null) {
+                                        print('3');
+                                        // El documento existe, actualizar solo las estrellas
+                                        await FirebaseFirestore.instance
+                                            .collection('calificacion')
+                                            .doc(ratingDoc.id)
+                                            .update({
+                                          'estrellas': rating,
+                                        });
+                                      } else {
+                                        print('4');
+                                        // El id no coincide, crear un nuevo documento
+                                        await FirebaseFirestore.instance
+                                            .collection('calificacion')
+                                            .doc() // Puedes mantener doc() si deseas un nuevo ID automático
+                                            .set({
+                                          'estrellas': rating,
+                                          'uid': userId,
+                                          'id': idS,
+                                        });
+                                      }
+                                    } else {
+                                      print('5');
+                                      // Crear un nuevo documento si no existe
+                                      await FirebaseFirestore.instance
+                                          .collection('calificacion')
+                                          .doc() // Puedes mantener doc() si deseas un nuevo ID automático
+                                          .set({
+                                        'estrellas': rating,
+                                        'uid': userId,
+                                        'id': idS,
+                                      });
+                                    }
+                                  }
+                                },
+                              ),
+                              const SizedBox(width: 10.0),
+                              Text('($nume)'),
+                            ],
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                   const SizedBox(height: 10.0),
@@ -477,8 +495,8 @@ class _HomePageServiceState extends State<HomePageService> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          contenido.length > 30
-                              ? '${contenido.substring(0, 25)}...'
+                          contenido.length > 38
+                              ? '${contenido.substring(0, 35)}...'
                               : contenido,
                         ),
                         const SizedBox(height: 5.0),
@@ -487,8 +505,8 @@ class _HomePageServiceState extends State<HomePageService> {
                         ),
                         const SizedBox(height: 5.0),
                         Text(
-                          direccion.length > 25
-                              ? '${direccion.substring(0, 25)}...'
+                          direccion.length > 38
+                              ? '${direccion.substring(0, 35)}...'
                               : direccion,
                         ),
                         const SizedBox(height: 5.0),
@@ -525,7 +543,7 @@ class _HomePageServiceState extends State<HomePageService> {
                               ),
                             ),
                             const SizedBox(width: 10.0),
-                            GestureDetector(
+                            InkWell(
                               onTap: () {
                                 Navigator.push(
                                   context,
@@ -535,7 +553,65 @@ class _HomePageServiceState extends State<HomePageService> {
                                   ),
                                 );
                               },
-                              child: const Text('Presiona aquí'),
+                              child: Transform.scale(
+                                scale: _isPressed
+                                    ? 0.9
+                                    : 1.0, // Reduce el tamaño cuando está presionado
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 6, horizontal: 20),
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Color.fromARGB(255, 0, 92, 252),
+                                        Color.fromARGB(255, 86, 173, 255)
+                                      ], // Colores del gradiente
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.2),
+                                        spreadRadius: 1,
+                                        blurRadius: 2,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'Información',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(width: 10),
+                                      Icon(
+                                        Icons.touch_app,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              onTapDown: (_) => setState(() {
+                                _isPressed =
+                                    true; // Para la animación de escala
+                              }),
+                              onTapUp: (_) => setState(() {
+                                _isPressed =
+                                    false; // Para revertir la animación
+                              }),
+                              onTapCancel: () => setState(() {
+                                _isPressed =
+                                    false; // Asegura que el estado se resetee si la acción es cancelada
+                              }),
                             ),
                           ],
                         ),
@@ -564,7 +640,7 @@ class _HomePageServiceState extends State<HomePageService> {
         final double pagoDouble = cuadro['pago']?.toDouble() ?? 0.0;
         final String pago = pagoDouble.toStringAsFixed(2);
         return SizedBox(
-          height: 220, // Modificar la altura según sea necesario
+          height: 230, // Modificar la altura según sea necesario
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
             child: buildCuadro(context, titulo, contenido, idS, tipoOferta,
