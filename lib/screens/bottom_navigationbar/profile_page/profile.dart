@@ -365,71 +365,123 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Este método construye el historial de trabajos
+  // Método que construye el historial de trabajos
   Widget _buildWorkHistory() {
-    return Column(
-      children: <Widget>[
-        const Text(
-          'Historial de servicios',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(
-          height: 10,
-        ),
-        _buildWorkHistoryItem('Carpintería', 'Cama de madera', 'Hace 2 días'),
-        _buildWorkHistoryItem('Carpintería', 'Mesa de madera', 'Hace 3 días'),
-        _buildWorkHistoryItem('Carpintería', 'Silla de madera', 'Hace 4 días'),
-        _buildWorkHistoryItem('Carpintería', 'Mesa de madera', 'Hace 5 días'),
-        _buildWorkHistoryItem('Carpintería', 'Cama de madera', 'Hace 6 días'),
-        _buildWorkHistoryItem('Carpintería', 'Cama de madera', 'Hace 7 días'),
-      ],
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('servicios')
+          .where('uid', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+          .orderBy('fecha', descending: true)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        }
+        if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        }
+        if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+          return Column(
+            children: [
+              Text(
+                'Historial de servicios',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 10),
+              Column(
+                children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                  var servicio = document.data();
+                  return _buildWorkHistoryItem(
+                    (servicio as Map<String, dynamic>)['tipoServicio'] ?? '',
+                    (servicio as Map<String, dynamic>)['contenido'] ?? '',
+                    (servicio as Map<String, dynamic>)['fecha'].toDate(),
+                    (servicio as Map<String, dynamic>)['tipoOferta'] ?? '',
+                  );
+                }).toList(),
+              ),
+            ],
+          );
+        } else {
+          return const Text('No hay servicios publicados');
+        }
+      },
     );
   }
 
-  Widget _buildWorkHistoryItem(String s, String t, String u) {
+  Widget _buildWorkHistoryItem(
+      String tipoServicio, String contenido, DateTime fecha, String otroDato) {
+    Duration difference = DateTime.now().difference(fecha);
+    String tiempoTranscurrido = '';
+
+    if (difference.inDays > 0) {
+      tiempoTranscurrido = 'Hace ${difference.inDays} día(s)';
+    } else if (difference.inHours > 0) {
+      tiempoTranscurrido = 'Hace ${difference.inHours} hora(s)';
+    } else if (difference.inMinutes > 0) {
+      tiempoTranscurrido = 'Hace ${difference.inMinutes} minuto(s)';
+    } else {
+      tiempoTranscurrido = 'Hace unos momentos';
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 6),
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.black),
-        borderRadius: BorderRadius.circular(10),
-      ),
+          border: Border.all(color: const Color.fromARGB(255, 252, 250, 250)),
+          borderRadius: BorderRadius.circular(10),
+          color: const Color.fromARGB(255, 252, 250, 250)),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Expanded(
             child: Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.only(
+                  left: 10, top: 10, right: 10, bottom: 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
+                  SizedBox(height: 10),
                   Text(
-                    s,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    t,
+                    tipoServicio,
                     style: const TextStyle(
                       fontSize: 16,
                       color: Color.fromARGB(248, 0, 0, 0),
+                      fontWeight: FontWeight.bold,
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.all(10),
-            child: Text(
-              u,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Color.fromARGB(248, 0, 0, 0),
+
+          /*Text(
+            tipoServicio,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),*/
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.only(
+                  left: 10, top: 10, right: 10, bottom: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  SizedBox(height: 10),
+                  Text(
+                    tiempoTranscurrido,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color.fromARGB(248, 0, 0, 0),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             ),
           ),
@@ -441,22 +493,155 @@ class _ProfilePageState extends State<ProfilePage> {
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      title: const Text('Detalles del servicio'),
-                      content: const SingleChildScrollView(
+                      title: Text(
+                        'Detalles del servicio',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      content: SingleChildScrollView(
                         child: ListBody(
                           children: <Widget>[
-                            Text('Aquí van los detalles del trabajo...'),
-                            //  agregar más Widgets aquí mas adelante
+                            RichText(
+                              text: TextSpan(
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black,
+                                ),
+                                children: [
+                                  TextSpan(
+                                    text: 'Tipo de servicio: ',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: tipoServicio,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            RichText(
+                              text: TextSpan(
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black,
+                                ),
+                                children: [
+                                  TextSpan(
+                                    text: 'Detalle: ',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: contenido,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            RichText(
+                              text: TextSpan(
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black,
+                                ),
+                                children: [
+                                  const TextSpan(
+                                    text: 'Tiempo transcurrido: ',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: tiempoTranscurrido,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            RichText(
+                              text: TextSpan(
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black,
+                                ),
+                                children: [
+                                  const TextSpan(
+                                    text: 'Tipo de publicación: ',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: otroDato,
+                                  ),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ),
                       actions: <Widget>[
-                        TextButton(
-                          onPressed: () {
-                            // Cerrar el diálogo cuando se presione el botón
+                        // Botón para cerrar la oferta
+
+                        ElevatedButton(
+                          onPressed: () async {
+                            /*// Obtén la referencia a Firestore
+                            final firestoreInstance =
+                                FirebaseFirestore.instance;
+
+                            // Lee los documentos de la colección 'servicios'
+                            final querySnapshot = await firestoreInstance
+                                .collection('servicios')
+                                .get();
+
+                              // Itera sobre los documentos
+                            for (var doc in querySnapshot.docs) {
+                              // Aquí puedes obtener el documentId
+                              final documentId = doc.id;
+
+                              // Y aquí puedes obtener los datos del documento
+                              final data = doc.data();
+
+                              // Ahora puedes usar el documentId y los datos del documento para moverlo a la otra colección
+                              await firestoreInstance
+                                  .collection('servicios')
+                                  .doc(documentId)
+                                  .set(data);
+
+                              // Y luego eliminarlo de la colección 'servicios'
+                              await firestoreInstance
+                                  .collection('tratoscerrados')
+                                  .doc(documentId)
+                                  .delete();
+                            }*/
+
+                            // Cierra el diálogo
                             Navigator.of(context).pop();
                           },
-                          child: const Text('Cerrar'),
+                          child: const Text(
+                            'Cerrar oferta',
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 65, 111, 223),
+                            ),
+                          ),
+                        ),
+                        
+                        // Botón para cerrar el diálogo
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text(
+                            'Cerrar',
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 65, 111, 223),
+                            ),
+                          ),
                         ),
                       ],
                     );
@@ -464,10 +649,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 );
               },
               style: ElevatedButton.styleFrom(
-                textStyle: const TextStyle(fontSize: 10),
-                fixedSize: const Size(85, 35),
+                textStyle: const TextStyle(fontSize: 11),
+                fixedSize: const Size(105, 35),
                 foregroundColor: const Color.fromARGB(255, 255, 255, 255),
-                backgroundColor: Theme.of(context).colorScheme.primary,
+                backgroundColor: Color.fromARGB(
+                    255, 65, 111, 223), // Color de fondo del botón
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(32.0),
                 ),
