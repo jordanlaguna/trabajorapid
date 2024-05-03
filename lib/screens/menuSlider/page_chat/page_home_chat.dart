@@ -121,7 +121,18 @@ class _PageChatState extends State<PageChat> {
                               ),
                               const SizedBox(width: 10),
                               Expanded(
-                                child: Text(doc['name']),
+                                child: Row(
+                                  children: [
+                                    Text(doc['name']),
+                                    const SizedBox(width: 5),
+                                    CircleAvatar(
+                                      backgroundColor: doc['isActive'] == true
+                                          ? Colors.green
+                                          : Colors.red,
+                                      radius: 5,
+                                    ),
+                                  ],
+                                ),
                               ),
                               if (unreadMessageCount > 0)
                                 CircleAvatar(
