@@ -259,21 +259,31 @@ class _HomePageServiceState extends State<HomePageService> {
     super.dispose();
   }
 
-  void _fetchNewestServices() async {
-    DateTime oneWeekAgo = DateTime.now().subtract(const Duration(days: 2));
+  void _fetchRecentServices() async {
+    DateTime oneDayAgoUtc =
+        DateTime.now().toUtc().subtract(const Duration(days: 1));
+
     try {
       QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('servicios')
           .where('tipoServicio', isEqualTo: widget.servicio)
           .where('fecha',
-              isGreaterThanOrEqualTo: Timestamp.fromDate(
-                  oneWeekAgo)) // Asegúrate de que 'fecha' es el campo correcto
+              isGreaterThanOrEqualTo: Timestamp.fromDate(oneDayAgoUtc))
+          .orderBy('fecha',
+              descending:
+                  true) // Asegúrate de que este orden coincida con el índice.
           .get();
-      setState(() {
-        _serviciosFiltrados = snapshot.docs;
-      });
+
+      if (snapshot.docs.isNotEmpty) {
+        setState(() {
+          _serviciosFiltrados = snapshot.docs;
+        });
+        print("Servicios recientes cargados correctamente.");
+      } else {
+        print("No se encontraron servicios recientes.");
+      }
     } catch (e) {
-      print('Error fetching new services: $e');
+      print('Error al recuperar los servicios recientes: $e');
     }
   }
 
@@ -680,6 +690,60 @@ class _HomePageServiceState extends State<HomePageService> {
     );
   }
 
+  void showOffersMenu(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Ofertas'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                ExpansionTile(
+                  title: const Text('Ofertas'),
+                  children: <Widget>[
+                    ListTile(
+                      title: const Text('Oferta de empleo'),
+                      onTap: () {
+                        Navigator.of(context).pop();
+
+                        handleOfferSelection('Oferta de empleo');
+                      },
+                    ),
+                    ListTile(
+                      title: const Text('Oferta de servicio'),
+                      onTap: () {
+                        Navigator.of(context).pop();
+
+                        handleOfferSelection('Oferta de servicio');
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void handleOfferSelection(String offerType) {
+    print("Inicio del filtrado por: $offerType");
+
+    List<DocumentSnapshot> filteredServices = _servicios.where((service) {
+      Map<String, dynamic> data = service.data() as Map<String, dynamic>;
+      return data['tipoOferta'] == offerType;
+    }).toList();
+
+    print("Servicios filtrados: ${filteredServices.length}");
+
+    setState(() {
+      _servicios = filteredServices;
+      tituloText = offerType;
+    });
+  }
+
   String tituloText = 'Todos';
 
   @override
@@ -719,10 +783,13 @@ class _HomePageServiceState extends State<HomePageService> {
               borderRadius: BorderRadius.circular(10.0),
               side: const BorderSide(color: Colors.white),
             ),
-            color: const Color.fromARGB(255, 227, 242, 253),
+            color:
+                const Color.fromARGB(255, 110, 174, 231), // Un color más vivo
+            elevation: 20.0,
             onSelected: (value) async {
               switch (value) {
                 case 'Mejor calificados':
+                  await _fetchDataFromFirebase();
 
                   // Obtener los servicios y ordenarlos por media de estrellas de mayor a menor
                   List<DocumentSnapshot> servicios = await FirebaseFirestore
@@ -753,6 +820,7 @@ class _HomePageServiceState extends State<HomePageService> {
                   });
                   break;
                 case 'Más cerca':
+                  await _fetchDataFromFirebase();
                   Position currentPosition =
                       await Geolocator.getCurrentPosition(
                           desiredAccuracy: LocationAccuracy.high);
@@ -782,25 +850,30 @@ class _HomePageServiceState extends State<HomePageService> {
                   });
                   break;
                 case 'Más nuevo':
-                  _fetchNewestServices();
+                  await _fetchDataFromFirebase();
+                  _fetchRecentServices();
                   setState(() {
                     tituloText = 'Más nuevo';
-                    _servicios;
                   });
                   // Código para manejar la opción "Más nuevo"
+                  break;
+                case 'Ofertas':
+                  await _fetchDataFromFirebase();
+                  // ignore: use_build_context_synchronously
+                  showOffersMenu(context);
+                  // Código para manejar la opción "Todos"
                   break;
                 case 'Todos':
                   await _fetchDataFromFirebase();
                   setState(() {
                     tituloText = 'Todos';
-                    _servicios;
                   });
                   // Código para manejar la opción "Todos"
                   break;
                 default:
-                  tituloText = 'Todos';
+                  await _fetchDataFromFirebase();
                   setState(() {
-                    _servicios;
+                    tituloText = 'Todos';
                   });
                   // Código para manejar otras opciones si es necesario
                   break;
@@ -808,7 +881,7 @@ class _HomePageServiceState extends State<HomePageService> {
             },
             itemBuilder: (BuildContext context) {
               return [
-                'Más contratados',
+                'Ofertas',
                 'Mejor calificados',
                 'Más cerca',
                 'Más nuevo',
@@ -827,6 +900,9 @@ class _HomePageServiceState extends State<HomePageService> {
                   case 'Más cerca':
                     icon = Icons.location_on;
                     break;
+                  case 'Ofertas':
+                    icon = Icons.expand_more;
+                    break;
                   case 'Más nuevo':
                     icon = Icons.new_releases;
                     break;
@@ -840,12 +916,14 @@ class _HomePageServiceState extends State<HomePageService> {
                 return PopupMenuItem<String>(
                   value: choice,
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      // Texto de la opción del menú
+                      Icon(icon,
+                          color: const Color.fromARGB(255, 255, 255,
+                              255)), // Color más llamativo para los iconos
+                      const SizedBox(
+                          width: 10), // Más espacio entre icono y texto
                       Text(choice),
-                      const SizedBox(width: 8),
-                      // Icono asociado a la opción del menú
-                      if (icon != null) Icon(icon, color: Colors.black),
                     ],
                   ),
                 );
@@ -859,7 +937,7 @@ class _HomePageServiceState extends State<HomePageService> {
           children: [
             // Título
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(5.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -871,6 +949,8 @@ class _HomePageServiceState extends State<HomePageService> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  const SizedBox(width: 5.0),
+
                   // Espaciador para centrar el contenido
                   const Center(),
                   // Icono asociado al texto del título
@@ -887,6 +967,10 @@ class _HomePageServiceState extends State<HomePageService> {
                 ],
               ),
             ),
+            const Divider(
+              color: Colors.white,
+              thickness: 3.0,
+            ),
             buildCarousel(context, serviciosFiltrados),
             // Carrusel de cuadros con información y fotos
             if (serviciosFiltrados.isEmpty)
@@ -899,6 +983,10 @@ class _HomePageServiceState extends State<HomePageService> {
               ),
             // Si no está vacía, mostrar los cuadros con información
             const SizedBox(height: 3.0),
+            const Divider(
+              color: Colors.white,
+              thickness: 3.0,
+            ),
             if (serviciosFiltrados.isNotEmpty)
               buildCuadrosFromDatabase(context, serviciosFiltrados),
             // Indicador de página actual
