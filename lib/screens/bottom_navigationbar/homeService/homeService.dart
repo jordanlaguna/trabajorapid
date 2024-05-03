@@ -170,6 +170,8 @@ class _HomePageServiceState extends State<HomePageService> {
 
       setState(() {
         _servicios = snapshot.docs;
+        _todosLosServicios = snapshot.docs;
+        _serviciosFiltrados = _todosLosServicios;
       });
     } catch (e) {
       print('Error fetching data: $e');
@@ -257,10 +259,28 @@ class _HomePageServiceState extends State<HomePageService> {
     super.dispose();
   }
 
+  void _fetchNewestServices() async {
+    DateTime oneWeekAgo = DateTime.now().subtract(const Duration(days: 2));
+    try {
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('servicios')
+          .where('tipoServicio', isEqualTo: widget.servicio)
+          .where('fecha',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(
+                  oneWeekAgo)) // Asegúrate de que 'fecha' es el campo correcto
+          .get();
+      setState(() {
+        _serviciosFiltrados = snapshot.docs;
+      });
+    } catch (e) {
+      print('Error fetching new services: $e');
+    }
+  }
+
   Widget buildCarousel(BuildContext context, List<DocumentSnapshot> servicios) {
     return CarouselSlider(
       options: CarouselOptions(
-        height: 235,
+        height: 240,
         enableInfiniteScroll: true,
         autoPlay: true,
         viewportFraction: 0.8,
@@ -307,6 +327,7 @@ class _HomePageServiceState extends State<HomePageService> {
   }
 
   bool _isPressed = false;
+  String titulo = "Ejemplo";
 
   Widget buildCuadro(
       BuildContext context,
@@ -336,13 +357,13 @@ class _HomePageServiceState extends State<HomePageService> {
       ),
       child: SingleChildScrollView(
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
               flex: 3,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Row(
                     children: [
@@ -389,15 +410,22 @@ class _HomePageServiceState extends State<HomePageService> {
                       ),
                       const SizedBox(width: 8.0),
                       Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Text(
-                            titulo.length > 20
-                                ? '${titulo.substring(0, 19)}...'
-                                : titulo,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18.0,
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: <Widget>[
+                                Text(
+                                  titulo,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight
+                                        .bold, // Hace el texto en negrita
+                                    fontSize:
+                                        15.0, // Ajusta el tamaño de la fuente a 20 puntos
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           const SizedBox(height: 8.0),
@@ -480,8 +508,39 @@ class _HomePageServiceState extends State<HomePageService> {
                                   }
                                 },
                               ),
-                              const SizedBox(width: 10.0),
+                              const SizedBox(width: 1.0),
                               Text('($nume)'),
+                              const SizedBox(width: 5.0),
+                              GestureDetector(
+                                onTap: () async {
+                                  _toggleLike(idS);
+                                },
+                                child: FutureBuilder<bool>(
+                                  future: _isLiked(idS),
+                                  // Llama a la función _isLiked
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      // Muestra un indicador de carga mientras se espera la respuesta
+                                      return const CircularProgressIndicator();
+                                    } else {
+                                      if (snapshot.hasData && snapshot.data!) {
+                                        // Si hay datos y el resultado es verdadero, muestra el icono en rojo
+                                        return const Icon(
+                                          Icons.favorite,
+                                          color: Colors.red,
+                                        );
+                                      } else {
+                                        // De lo contrario, muestra el icono en gris
+                                        return const Icon(
+                                          Icons.favorite_border,
+                                          color: Colors.grey,
+                                        );
+                                      }
+                                    }
+                                  },
+                                ),
+                              ),
                             ],
                           ),
                         ],
@@ -492,7 +551,7 @@ class _HomePageServiceState extends State<HomePageService> {
                   SizedBox(
                     width: double.infinity, // Ocupa todo el ancho disponible
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
                           contenido.length > 38
@@ -509,40 +568,10 @@ class _HomePageServiceState extends State<HomePageService> {
                               ? '${direccion.substring(0, 35)}...'
                               : direccion,
                         ),
-                        const SizedBox(height: 5.0),
-                        Row(
+                        const SizedBox(height: 8.0),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            GestureDetector(
-                              onTap: () async {
-                                _toggleLike(idS);
-                              },
-                              child: FutureBuilder<bool>(
-                                future: _isLiked(idS),
-                                // Llama a la función _isLiked
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    // Muestra un indicador de carga mientras se espera la respuesta
-                                    return const CircularProgressIndicator();
-                                  } else {
-                                    if (snapshot.hasData && snapshot.data!) {
-                                      // Si hay datos y el resultado es verdadero, muestra el icono en rojo
-                                      return const Icon(
-                                        Icons.favorite,
-                                        color: Colors.red,
-                                      );
-                                    } else {
-                                      // De lo contrario, muestra el icono en gris
-                                      return const Icon(
-                                        Icons.favorite_border,
-                                        color: Colors.grey,
-                                      );
-                                    }
-                                  }
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 10.0),
                             InkWell(
                               onTap: () {
                                 Navigator.push(
@@ -640,9 +669,9 @@ class _HomePageServiceState extends State<HomePageService> {
         final double pagoDouble = cuadro['pago']?.toDouble() ?? 0.0;
         final String pago = pagoDouble.toStringAsFixed(2);
         return SizedBox(
-          height: 230, // Modificar la altura según sea necesario
+          height: 240, // Modificar la altura según sea necesario
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            padding: const EdgeInsets.symmetric(horizontal: 25.0),
             child: buildCuadro(context, titulo, contenido, idS, tipoOferta,
                 direccion, pago, uid),
           ),
@@ -659,7 +688,7 @@ class _HomePageServiceState extends State<HomePageService> {
         _filtrarServiciosPorTipo(widget.servicio);
 
     return Scaffold(
-      backgroundColor: Colors.blue[50],
+      backgroundColor: const Color.fromARGB(255, 227, 242, 253),
       appBar: AppBar(
         title: Text(
           widget.servicio,
@@ -686,10 +715,15 @@ class _HomePageServiceState extends State<HomePageService> {
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: Colors.white),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              side: const BorderSide(color: Colors.white),
+            ),
+            color: const Color.fromARGB(255, 227, 242, 253),
             onSelected: (value) async {
               switch (value) {
                 case 'Mejor calificados':
-                  tituloText = 'Mejor calificado ⭐';
+
                   // Obtener los servicios y ordenarlos por media de estrellas de mayor a menor
                   List<DocumentSnapshot> servicios = await FirebaseFirestore
                       .instance
@@ -714,11 +748,11 @@ class _HomePageServiceState extends State<HomePageService> {
 
                   // Actualizar la UI con los servicios filtrados
                   setState(() {
+                    tituloText = 'Mejor calificado ⭐';
                     _servicios = serviciosFiltrados;
                   });
                   break;
                 case 'Más cerca':
-                  tituloText = 'Más cerca';
                   Position currentPosition =
                       await Geolocator.getCurrentPosition(
                           desiredAccuracy: LocationAccuracy.high);
@@ -743,19 +777,22 @@ class _HomePageServiceState extends State<HomePageService> {
 
                   // Actualizar la interfaz de usuario con los servicios cercanos
                   setState(() {
+                    tituloText = 'Más cerca';
                     _servicios = serviciosCercanos;
                   });
                   break;
                 case 'Más nuevo':
-                  tituloText = 'Más nuevo';
+                  _fetchNewestServices();
                   setState(() {
+                    tituloText = 'Más nuevo';
                     _servicios;
                   });
                   // Código para manejar la opción "Más nuevo"
                   break;
                 case 'Todos':
-                  tituloText = 'Todos';
+                  await _fetchDataFromFirebase();
                   setState(() {
+                    tituloText = 'Todos';
                     _servicios;
                   });
                   // Código para manejar la opción "Todos"
@@ -873,6 +910,9 @@ class _HomePageServiceState extends State<HomePageService> {
     );
   }
 }
+
+List<DocumentSnapshot> _todosLosServicios = [];
+List<DocumentSnapshot> _serviciosFiltrados = [];
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
