@@ -170,6 +170,8 @@ class _HomePageServiceState extends State<HomePageService> {
 
       setState(() {
         _servicios = snapshot.docs;
+        _todosLosServicios = snapshot.docs;
+        _serviciosFiltrados = _todosLosServicios;
       });
     } catch (e) {
       print('Error fetching data: $e');
@@ -257,10 +259,38 @@ class _HomePageServiceState extends State<HomePageService> {
     super.dispose();
   }
 
+  void _fetchRecentServices() async {
+    DateTime oneDayAgoUtc =
+        DateTime.now().toUtc().subtract(const Duration(days: 1));
+
+    try {
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('servicios')
+          .where('tipoServicio', isEqualTo: widget.servicio)
+          .where('fecha',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(oneDayAgoUtc))
+          .orderBy('fecha',
+              descending:
+                  true) // Asegúrate de que este orden coincida con el índice.
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        setState(() {
+          _serviciosFiltrados = snapshot.docs;
+        });
+        print("Servicios recientes cargados correctamente.");
+      } else {
+        print("No se encontraron servicios recientes.");
+      }
+    } catch (e) {
+      print('Error al recuperar los servicios recientes: $e');
+    }
+  }
+
   Widget buildCarousel(BuildContext context, List<DocumentSnapshot> servicios) {
     return CarouselSlider(
       options: CarouselOptions(
-        height: 235,
+        height: 240,
         enableInfiniteScroll: true,
         autoPlay: true,
         viewportFraction: 0.8,
@@ -307,6 +337,7 @@ class _HomePageServiceState extends State<HomePageService> {
   }
 
   bool _isPressed = false;
+  String titulo = "Ejemplo";
 
   Widget buildCuadro(
       BuildContext context,
@@ -336,13 +367,13 @@ class _HomePageServiceState extends State<HomePageService> {
       ),
       child: SingleChildScrollView(
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
               flex: 3,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Row(
                     children: [
@@ -389,15 +420,22 @@ class _HomePageServiceState extends State<HomePageService> {
                       ),
                       const SizedBox(width: 8.0),
                       Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Text(
-                            titulo.length > 20
-                                ? '${titulo.substring(0, 19)}...'
-                                : titulo,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18.0,
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: <Widget>[
+                                Text(
+                                  titulo,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight
+                                        .bold, // Hace el texto en negrita
+                                    fontSize:
+                                        15.0, // Ajusta el tamaño de la fuente a 20 puntos
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           const SizedBox(height: 8.0),
@@ -480,8 +518,39 @@ class _HomePageServiceState extends State<HomePageService> {
                                   }
                                 },
                               ),
-                              const SizedBox(width: 10.0),
+                              const SizedBox(width: 1.0),
                               Text('($nume)'),
+                              const SizedBox(width: 5.0),
+                              GestureDetector(
+                                onTap: () async {
+                                  _toggleLike(idS);
+                                },
+                                child: FutureBuilder<bool>(
+                                  future: _isLiked(idS),
+                                  // Llama a la función _isLiked
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      // Muestra un indicador de carga mientras se espera la respuesta
+                                      return const CircularProgressIndicator();
+                                    } else {
+                                      if (snapshot.hasData && snapshot.data!) {
+                                        // Si hay datos y el resultado es verdadero, muestra el icono en rojo
+                                        return const Icon(
+                                          Icons.favorite,
+                                          color: Colors.red,
+                                        );
+                                      } else {
+                                        // De lo contrario, muestra el icono en gris
+                                        return const Icon(
+                                          Icons.favorite_border,
+                                          color: Colors.grey,
+                                        );
+                                      }
+                                    }
+                                  },
+                                ),
+                              ),
                             ],
                           ),
                         ],
@@ -492,7 +561,7 @@ class _HomePageServiceState extends State<HomePageService> {
                   SizedBox(
                     width: double.infinity, // Ocupa todo el ancho disponible
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
                           contenido.length > 38
@@ -509,40 +578,10 @@ class _HomePageServiceState extends State<HomePageService> {
                               ? '${direccion.substring(0, 35)}...'
                               : direccion,
                         ),
-                        const SizedBox(height: 5.0),
-                        Row(
+                        const SizedBox(height: 8.0),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            GestureDetector(
-                              onTap: () async {
-                                _toggleLike(idS);
-                              },
-                              child: FutureBuilder<bool>(
-                                future: _isLiked(idS),
-                                // Llama a la función _isLiked
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    // Muestra un indicador de carga mientras se espera la respuesta
-                                    return const CircularProgressIndicator();
-                                  } else {
-                                    if (snapshot.hasData && snapshot.data!) {
-                                      // Si hay datos y el resultado es verdadero, muestra el icono en rojo
-                                      return const Icon(
-                                        Icons.favorite,
-                                        color: Colors.red,
-                                      );
-                                    } else {
-                                      // De lo contrario, muestra el icono en gris
-                                      return const Icon(
-                                        Icons.favorite_border,
-                                        color: Colors.grey,
-                                      );
-                                    }
-                                  }
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 10.0),
                             InkWell(
                               onTap: () {
                                 Navigator.push(
@@ -640,15 +679,69 @@ class _HomePageServiceState extends State<HomePageService> {
         final double pagoDouble = cuadro['pago']?.toDouble() ?? 0.0;
         final String pago = pagoDouble.toStringAsFixed(2);
         return SizedBox(
-          height: 230, // Modificar la altura según sea necesario
+          height: 240, // Modificar la altura según sea necesario
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            padding: const EdgeInsets.symmetric(horizontal: 25.0),
             child: buildCuadro(context, titulo, contenido, idS, tipoOferta,
                 direccion, pago, uid),
           ),
         );
       }).toList(),
     );
+  }
+
+  void showOffersMenu(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Ofertas'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                ExpansionTile(
+                  title: const Text('Ofertas'),
+                  children: <Widget>[
+                    ListTile(
+                      title: const Text('Oferta de empleo'),
+                      onTap: () {
+                        Navigator.of(context).pop();
+
+                        handleOfferSelection('Oferta de empleo');
+                      },
+                    ),
+                    ListTile(
+                      title: const Text('Oferta de servicio'),
+                      onTap: () {
+                        Navigator.of(context).pop();
+
+                        handleOfferSelection('Oferta de servicio');
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void handleOfferSelection(String offerType) {
+    print("Inicio del filtrado por: $offerType");
+
+    List<DocumentSnapshot> filteredServices = _servicios.where((service) {
+      Map<String, dynamic> data = service.data() as Map<String, dynamic>;
+      return data['tipoOferta'] == offerType;
+    }).toList();
+
+    print("Servicios filtrados: ${filteredServices.length}");
+
+    setState(() {
+      _servicios = filteredServices;
+      tituloText = offerType;
+    });
   }
 
   String tituloText = 'Todos';
@@ -659,7 +752,7 @@ class _HomePageServiceState extends State<HomePageService> {
         _filtrarServiciosPorTipo(widget.servicio);
 
     return Scaffold(
-      backgroundColor: Colors.blue[50],
+      backgroundColor: const Color.fromARGB(255, 227, 242, 253),
       appBar: AppBar(
         title: Text(
           widget.servicio,
@@ -686,10 +779,18 @@ class _HomePageServiceState extends State<HomePageService> {
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: Colors.white),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              side: const BorderSide(color: Colors.white),
+            ),
+            color:
+                const Color.fromARGB(255, 110, 174, 231), // Un color más vivo
+            elevation: 20.0,
             onSelected: (value) async {
               switch (value) {
                 case 'Mejor calificados':
-                  tituloText = 'Mejor calificado ⭐';
+                  await _fetchDataFromFirebase();
+
                   // Obtener los servicios y ordenarlos por media de estrellas de mayor a menor
                   List<DocumentSnapshot> servicios = await FirebaseFirestore
                       .instance
@@ -714,11 +815,12 @@ class _HomePageServiceState extends State<HomePageService> {
 
                   // Actualizar la UI con los servicios filtrados
                   setState(() {
+                    tituloText = 'Mejor calificado ⭐';
                     _servicios = serviciosFiltrados;
                   });
                   break;
                 case 'Más cerca':
-                  tituloText = 'Más cerca';
+                  await _fetchDataFromFirebase();
                   Position currentPosition =
                       await Geolocator.getCurrentPosition(
                           desiredAccuracy: LocationAccuracy.high);
@@ -743,27 +845,35 @@ class _HomePageServiceState extends State<HomePageService> {
 
                   // Actualizar la interfaz de usuario con los servicios cercanos
                   setState(() {
+                    tituloText = 'Más cerca';
                     _servicios = serviciosCercanos;
                   });
                   break;
                 case 'Más nuevo':
-                  tituloText = 'Más nuevo';
+                  await _fetchDataFromFirebase();
+                  _fetchRecentServices();
                   setState(() {
-                    _servicios;
+                    tituloText = 'Más nuevo';
                   });
                   // Código para manejar la opción "Más nuevo"
                   break;
+                case 'Ofertas':
+                  await _fetchDataFromFirebase();
+                  // ignore: use_build_context_synchronously
+                  showOffersMenu(context);
+                  // Código para manejar la opción "Todos"
+                  break;
                 case 'Todos':
-                  tituloText = 'Todos';
+                  await _fetchDataFromFirebase();
                   setState(() {
-                    _servicios;
+                    tituloText = 'Todos';
                   });
                   // Código para manejar la opción "Todos"
                   break;
                 default:
-                  tituloText = 'Todos';
+                  await _fetchDataFromFirebase();
                   setState(() {
-                    _servicios;
+                    tituloText = 'Todos';
                   });
                   // Código para manejar otras opciones si es necesario
                   break;
@@ -771,7 +881,7 @@ class _HomePageServiceState extends State<HomePageService> {
             },
             itemBuilder: (BuildContext context) {
               return [
-                'Más contratados',
+                'Ofertas',
                 'Mejor calificados',
                 'Más cerca',
                 'Más nuevo',
@@ -790,6 +900,9 @@ class _HomePageServiceState extends State<HomePageService> {
                   case 'Más cerca':
                     icon = Icons.location_on;
                     break;
+                  case 'Ofertas':
+                    icon = Icons.expand_more;
+                    break;
                   case 'Más nuevo':
                     icon = Icons.new_releases;
                     break;
@@ -803,12 +916,14 @@ class _HomePageServiceState extends State<HomePageService> {
                 return PopupMenuItem<String>(
                   value: choice,
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      // Texto de la opción del menú
+                      Icon(icon,
+                          color: const Color.fromARGB(255, 255, 255,
+                              255)), // Color más llamativo para los iconos
+                      const SizedBox(
+                          width: 10), // Más espacio entre icono y texto
                       Text(choice),
-                      const SizedBox(width: 8),
-                      // Icono asociado a la opción del menú
-                      if (icon != null) Icon(icon, color: Colors.black),
                     ],
                   ),
                 );
@@ -822,7 +937,7 @@ class _HomePageServiceState extends State<HomePageService> {
           children: [
             // Título
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(5.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -834,6 +949,8 @@ class _HomePageServiceState extends State<HomePageService> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  const SizedBox(width: 5.0),
+
                   // Espaciador para centrar el contenido
                   const Center(),
                   // Icono asociado al texto del título
@@ -850,6 +967,10 @@ class _HomePageServiceState extends State<HomePageService> {
                 ],
               ),
             ),
+            const Divider(
+              color: Colors.white,
+              thickness: 3.0,
+            ),
             buildCarousel(context, serviciosFiltrados),
             // Carrusel de cuadros con información y fotos
             if (serviciosFiltrados.isEmpty)
@@ -862,6 +983,10 @@ class _HomePageServiceState extends State<HomePageService> {
               ),
             // Si no está vacía, mostrar los cuadros con información
             const SizedBox(height: 3.0),
+            const Divider(
+              color: Colors.white,
+              thickness: 3.0,
+            ),
             if (serviciosFiltrados.isNotEmpty)
               buildCuadrosFromDatabase(context, serviciosFiltrados),
             // Indicador de página actual
@@ -873,6 +998,9 @@ class _HomePageServiceState extends State<HomePageService> {
     );
   }
 }
+
+List<DocumentSnapshot> _todosLosServicios = [];
+List<DocumentSnapshot> _serviciosFiltrados = [];
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

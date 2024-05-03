@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:trabajorapid/services/export_photos/photos_users.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -99,6 +98,31 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
+  Future<String?> getUserPhotoUrl(String uid) async {
+    try {
+      DocumentSnapshot userDoc =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+      // Asegúrate de convertir los datos a Map<String, dynamic> antes de acceder a ellos
+      if (userDoc.exists && userDoc.data() != null) {
+        Map<String, dynamic> userData =
+            userDoc.data()! as Map<String, dynamic>; // Conversión aquí
+        if (userData['photoURL'] != null) {
+          return userData['photoURL']; // Acceso seguro a 'photoURL'
+        }
+      }
+
+      // Revisa si hay una URL de foto disponible a través de Google Auth
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null && user.photoURL != null) {
+        return user.photoURL;
+      }
+    } catch (e) {
+      print('Error al obtener la foto del usuario: $e');
+    }
+    return null; // Devuelve null si no se encuentra una URL válida
+  }
+
   @override
   Widget build(BuildContext context) {
     int fullStars = rating.floor(); // Estrellas completas
@@ -132,15 +156,17 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   child: ClipOval(
                     child: FutureBuilder<String?>(
-                      future: getUserPhotoURL(
+                      future: getUserPhotoUrl(
                           FirebaseAuth.instance.currentUser!.uid),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         } else if (snapshot.hasError || snapshot.data == null) {
+                          // Si hay un error o los datos son nulos, muestra un ícono por defecto
                           return const Icon(Icons.account_circle, size: 150);
                         } else {
+                          // Si la URL está disponible, muestra la imagen
                           return Image.network(
                             snapshot.data!,
                             fit: BoxFit.cover,
@@ -155,12 +181,36 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(
                 height: 15,
               ),
-              const Text(
-                'Nombre',
-                style: TextStyle(
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
-                ),
+
+              FutureBuilder<DocumentSnapshot>(
+                future: FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(FirebaseAuth.instance.currentUser!
+                        .uid) // Asegura que el usuario está autenticado
+                    .get(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<DocumentSnapshot> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return const Text("Error al cargar los datos");
+                  }
+                  if (snapshot.hasData && snapshot.data!.exists) {
+                    Map<String, dynamic> userData =
+                        snapshot.data!.data() as Map<String, dynamic>;
+                    return Text(
+                      userData['name'] ??
+                          'Nombre no disponible', // Asume que el campo se llama 'name'
+                      style: const TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    );
+                  } else {
+                    return const Text("Usuario no encontrado");
+                  }
+                },
               ),
               const SizedBox(
                 height: 10,
@@ -630,7 +680,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                           ),
                         ),
-                        
+
                         // Botón para cerrar el diálogo
                         ElevatedButton(
                           onPressed: () {
