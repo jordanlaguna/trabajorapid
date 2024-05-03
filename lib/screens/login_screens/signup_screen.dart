@@ -201,8 +201,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           hintStyle: const TextStyle(
                             color: Colors.black26,
                           ),
-                          suffixIcon:
-                              Icon(FontAwesome.check_double_solid, color: Theme.of(context).colorScheme.primary),
+                          suffixIcon: Icon(FontAwesome.check_double_solid,
+                              color: Theme.of(context).colorScheme.primary),
                           border: OutlineInputBorder(
                             borderSide: const BorderSide(
                               color: Colors.black12, // Default border color

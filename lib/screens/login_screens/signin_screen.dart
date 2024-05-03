@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously, duplicate_ignore, avoid_print
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -21,6 +22,7 @@ class SignInScreen extends StatefulWidget {
 
 class _SignInScreenState extends State<SignInScreen> {
   final _formSignInKey = GlobalKey<FormState>();
+  final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
   final FirebaseAuthImplements auth = FirebaseAuthImplements();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -299,11 +301,25 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
+  // fuction for isActive or not the user in the app
+  Future<void> updateUserActive(String uid, bool isActive) async {
+    try {
+      await _firebaseFirestore.collection('users').doc(uid).update({
+        'isActive': isActive,
+      });
+      print('Usuario actualizado con éxito');
+    } catch (error) {
+      print('Error al actualizar el usuario: $error');
+    }
+  }
+
   void _signIn() async {
     String email = emailController.text;
     String password = passwordController.text;
     User? user = await auth.singInWithEmailAndPassword(email, password);
+
     if (user != null) {
+      await updateUserActive(user.uid, true);
       QuickAlert.show(
         // ignore: use_build_context_synchronously
         context: context,
@@ -314,7 +330,6 @@ class _SignInScreenState extends State<SignInScreen> {
       );
       await Future.delayed(const Duration(seconds: 2));
       Navigator.pushReplacement(
-        // ignore: use_build_context_synchronously
         context,
         MaterialPageRoute(builder: (context) => const ModuleMain()),
       );
