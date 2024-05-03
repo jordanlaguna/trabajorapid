@@ -26,9 +26,8 @@ class Favorite extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue[50],
       appBar: AppBar(
-        backgroundColor: Colors.blue[50],
+        backgroundColor: Colors.white,
         title: ShaderMask(
           shaderCallback: (Rect bounds) {
             return LinearGradient(
@@ -38,64 +37,89 @@ class Favorite extends StatelessWidget {
               ],
             ).createShader(bounds);
           },
-          child: const Text(
+          child: Text(
             'Servicios Favoritos',
             style: TextStyle(
               fontSize: 24.0,
               fontWeight: FontWeight.bold,
               fontFamily: 'Monserrat',
-              color: Colors.white, // Color del texto después del gradiente
+              color: Colors.blue[50],
             ),
           ),
         ),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: StreamBuilder<User?>(
-          stream: FirebaseAuth.instance.authStateChanges(),
-          builder: (context, userSnapshot) {
-            if (userSnapshot.connectionState == ConnectionState.waiting) {
-              return const CircularProgressIndicator();
-            } else if (userSnapshot.hasError) {
-              return Text('Error: ${userSnapshot.error}');
-            } else {
-              final User? user = userSnapshot.data;
-              if (user == null) {
-                // El usuario no ha iniciado sesión
-                return const Text('Usuario no autenticado');
-              } else {
-                return StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('likes')
-                      .doc(user.uid)
-                      .collection('servicios')
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Divider(color: Colors.blue[50], thickness: 3.0),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(30.0),
+                  topRight: Radius.circular(30.0),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blue[50]!,
+                    spreadRadius: 1,
+                    blurRadius: 5,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: StreamBuilder<User?>(
+                  stream: FirebaseAuth.instance.authStateChanges(),
+                  builder: (context, userSnapshot) {
+                    if (userSnapshot.connectionState ==
+                        ConnectionState.waiting) {
                       return const CircularProgressIndicator();
-                    } else if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
+                    } else if (userSnapshot.hasError) {
+                      return Text('Error: ${userSnapshot.error}');
                     } else {
-                      List<DocumentSnapshot> likedServicios =
-                          snapshot.data!.docs;
-                      // Lista para almacenar los cuadros de información
-                      List<Cuadro> cuadros = [];
-                      return buildCuadrosDesdeFirestore(
-                          context, likedServicios, cuadros);
+                      final User? user = userSnapshot.data;
+                      if (user == null) {
+                        // El usuario no ha iniciado sesión
+                        return const Text('Usuario no autenticado');
+                      } else {
+                        return StreamBuilder<QuerySnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection('likes')
+                              .doc(user.uid)
+                              .collection('servicios')
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const CircularProgressIndicator();
+                            } else if (snapshot.hasError) {
+                              return Text('Error: ${snapshot.error}');
+                            } else {
+                              List<DocumentSnapshot> likedServicios =
+                                  snapshot.data!.docs;
+                              // Lista para almacenar los cuadros de información
+                              List<Cuadro> cuadros = [];
+                              return buildCuadrosDesdeFirestore(
+                                  context, likedServicios, cuadros);
+                            }
+                          },
+                        );
+                      }
                     }
                   },
-                );
-              }
-            }
-          },
-        ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
-
-// El resto del código se mantiene igual...
 
 int num = 0;
 
@@ -184,16 +208,14 @@ Widget buildCuadrosDesdeFirestore(
                         for (int i = 0; i < cuadros.length; i++) {
                           // Obtener el título del cuadro
                           String tituloCuadro = cuadros[i].titulo;
-                          // Comparar el título del cuadro con el título más buscado
+
                           if (tituloCuadro == mostSearchedTitle) {
-                            // Actualizar el valor de num en el cuadro
                             cuadros[i].num = maxSearches.toString();
                           }
                         }
                         return const SizedBox();
                       }
                     } else {
-                      // Si no hay servicios disponibles para este tipo de servicio, devolver SizedBox
                       return const SizedBox();
                     }
                   }
@@ -203,7 +225,7 @@ Widget buildCuadrosDesdeFirestore(
           },
         );
       } else {
-        return const SizedBox(); // Si el servicio no está marcado como favorito,
+        return const SizedBox();
         // no se muestra nada
       }
     }).toList(),
@@ -216,11 +238,13 @@ Widget buildCuadros(
     children: servicios.map((servicio) {
       String titulo = servicio['titulo'];
       String contenido = servicio['contenido'];
+      String icon = servicio['icon']; // Obtener el icono del servicio
       return Column(
         children: [
           const SizedBox(height: 0.0),
-          buildCuadro(context, titulo, contenido, num),
-          const Divider(color: Colors.white, thickness: 2.0),
+          buildCuadro(context, titulo, contenido,
+              icon), // Pasar el icono a la función buildCuadro
+          const Divider(color: Colors.white, thickness: 3.0),
         ],
       );
     }).toList(),
@@ -228,8 +252,22 @@ Widget buildCuadros(
 }
 
 Widget buildCuadro(
-    BuildContext context, String titulo, String contenido, String num) {
+    BuildContext context, String titulo, String contenido, String icon) {
+  Map<String, IconData> iconos = {
+    'spa': Icons.spa,
+    'build': Icons.build,
+    'kitchen': Icons.kitchen,
+    'directions_car': Icons.directions_car,
+    'format_paint': Icons.format_paint,
+    'landscape': Icons.landscape,
+    'apartment': Icons.apartment,
+    'child_care': Icons.child_care
+  };
+
+  IconData iconData = iconos[icon] ?? Icons.error;
+
   return Container(
+    margin: const EdgeInsets.only(bottom: 10.0),
     decoration: BoxDecoration(
       color: Colors.white,
       border: Border.all(color: const Color.fromARGB(255, 130, 19, 42)),
@@ -240,21 +278,19 @@ Widget buildCuadro(
         Expanded(
           flex: 1,
           child: SizedBox(
-            width: 90.0,
-            height: 90.0,
-            child: ShaderMask(
-              shaderCallback: (Rect bounds) {
-                return LinearGradient(
-                  colors: [
-                    Theme.of(context).colorScheme.primary,
-                    Theme.of(context).colorScheme.primary,
-                  ],
-                ).createShader(bounds);
-              },
-              child: const Icon(
-                Icons.work_history_rounded,
-                size: 50.0,
-                color: Colors.white,
+            width: 45.0,
+            height: 45.0,
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Color.fromARGB(255, 2, 139, 252),
+                shape: BoxShape.circle, // Hacer el contenedor circular
+              ),
+              child: Center(
+                child: Icon(
+                  iconData, // Usar el icono correspondiente
+                  color: Colors.white,
+                  size: 30.0, // Ajustar el tamaño del icono según sea necesario
+                ),
               ),
             ),
           ),
