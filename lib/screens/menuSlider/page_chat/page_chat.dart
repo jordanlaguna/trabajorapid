@@ -75,6 +75,7 @@ class _ChatHomeState extends State<ChatHome> {
                 fontFamily: 'Montserrat',
                 fontWeight: FontWeight.w400,
               ),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(width: 10),
             StreamBuilder<DocumentSnapshot>(
@@ -84,11 +85,25 @@ class _ChatHomeState extends State<ChatHome> {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
-                  bool isActive = snapshot.data!['isActive'] ?? true;
-                  return CircleAvatar(
-                    radius: 6,
-                    backgroundColor: isActive ? Colors.green : Colors.red,
-                  );
+                  Map<String, dynamic>? userData =
+                      snapshot.data!.data() as Map<String, dynamic>?;
+
+                  if (userData != null && userData.containsKey('isActive')) {
+                    bool isActive = userData['isActive'];
+
+                    return Container(
+                      width: 16,
+                      margin: const EdgeInsets.only(left: 5),
+                      child: CircleAvatar(
+                        radius: 12,
+                        backgroundColor: isActive
+                            ? const Color.fromARGB(255, 64, 174, 67)
+                            : Colors.red,
+                      ),
+                    );
+                  } else {
+                    return const SizedBox.shrink();
+                  }
                 }
                 return const SizedBox.shrink();
               },
