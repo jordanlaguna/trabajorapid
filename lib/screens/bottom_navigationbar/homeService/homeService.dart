@@ -778,13 +778,13 @@ class _HomePageServiceState extends State<HomePageService> {
         centerTitle: true,
         actions: [
           PopupMenuButton<String>(
+            
             icon: const Icon(Icons.more_vert, color: Colors.white),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10.0),
               side: const BorderSide(color: Colors.white),
             ),
-            color:
-                const Color.fromARGB(255, 110, 174, 231), // Un color más vivo
+            color: Colors.blue[50], // Un color más vivo
             elevation: 20.0,
             onSelected: (value) async {
               switch (value) {
@@ -919,8 +919,8 @@ class _HomePageServiceState extends State<HomePageService> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Icon(icon,
-                          color: const Color.fromARGB(255, 255, 255,
-                              255)), // Color más llamativo para los iconos
+                          color: Colors
+                              .blue), // Color más llamativo para los iconos
                       const SizedBox(
                           width: 10), // Más espacio entre icono y texto
                       Text(choice),
