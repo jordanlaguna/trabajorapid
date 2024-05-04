@@ -107,12 +107,18 @@ class _PageChatState extends State<PageChat> {
                                         if (snapshot.hasError) {
                                           return const Icon(Icons.error);
                                         } else {
-                                          return Image.network(
-                                            snapshot.data ?? '',
-                                            width: 100,
-                                            height: 100,
-                                            fit: BoxFit.cover,
-                                          );
+                                          if (snapshot.data != null) {
+                                            return Image.network(
+                                              snapshot.data!,
+                                              width: 100,
+                                              height: 100,
+                                              fit: BoxFit.cover,
+                                            );
+                                          } else {
+                                            return const Icon(
+                                                Icons.account_circle,
+                                                size: 25);
+                                          }
                                         }
                                       }
                                     },
@@ -125,12 +131,15 @@ class _PageChatState extends State<PageChat> {
                                   children: [
                                     Text(doc['name']),
                                     const SizedBox(width: 5),
-                                    CircleAvatar(
-                                      backgroundColor: doc['isActive'] == true
-                                          ? Colors.green
-                                          : Colors.red,
-                                      radius: 5,
-                                    ),
+                                    if (doc.data() is Map &&
+                                        (doc.data() as Map)
+                                            .containsKey('isActive'))
+                                      CircleAvatar(
+                                        backgroundColor: doc['isActive'] == true
+                                            ? Colors.green
+                                            : Colors.red,
+                                        radius: 5,
+                                      ),
                                   ],
                                 ),
                               ),
