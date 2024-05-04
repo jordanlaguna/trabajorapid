@@ -9,8 +9,6 @@ import 'package:trabajorapid/screens/menuSlider/payment/payment_page.dart';
 import 'package:trabajorapid/screens/menuSlider/perfilDrawer/profile_drawer.dart';
 import 'package:trabajorapid/screens/login_screens/welcome_screen.dart';
 
-import 'package:trabajorapid/services/export_dates/photos_users.dart';
-
 class NavBar extends StatefulWidget {
   const NavBar({Key? key}) : super(key: key);
 
@@ -39,6 +37,19 @@ Future<String?> getUserPhotoUrl(String uid) async {
 
 class _NavBarState extends State<NavBar> {
   final _firebaseFirestore = FirebaseFirestore.instance;
+  String? get userUid => FirebaseAuth.instance.currentUser?.uid;
+
+  Future<Map<String, dynamic>?> getUserData(String? uid) async {
+    if (uid == null) return null;
+    try {
+      DocumentSnapshot<Map<String, dynamic>> userData =
+          await _firebaseFirestore.collection('users').doc(uid).get();
+      return userData.data();
+    } catch (e) {
+      print('Error obteniendo datos del usuario: $e');
+      return null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,71 +59,85 @@ class _NavBarState extends State<NavBar> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            UserAccountsDrawerHeader(
-              accountName: FutureBuilder<String>(
-                future: getUserName(FirebaseAuth.instance.currentUser!.uid),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Text(
-                      'Cargando...',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontFamily: 'Montserrat',
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+            FutureBuilder<Map<String, dynamic>?>(
+              future: getUserData(userUid),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const DrawerHeader(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Color.fromARGB(255, 65, 111, 223),
+                          Color.fromARGB(255, 110, 174, 231),
+                        ],
                       ),
-                    );
-                  } else {
-                    return Text(
-                      snapshot.data ?? 'Nombre de usuario',
+                    ),
+                    child: CircularProgressIndicator(color: Colors.white),
+                  );
+                } else if (snapshot.hasData) {
+                  return UserAccountsDrawerHeader(
+                    accountName: Text(
+                      snapshot.data?['name'] ?? 'Nombre de usuario',
                       style: const TextStyle(
-                        fontSize: 20,
-                        fontFamily: 'Montserrat',
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                          fontSize: 20,
+                          fontFamily: 'Montserrat',
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white),
+                    ),
+                    accountEmail: Text(
+                      snapshot.data?['email'] ?? 'Correo electrónico',
+                      style: const TextStyle(
+                          fontSize: 14,
+                          fontFamily: 'Montserrat',
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white),
+                    ),
+                    currentAccountPicture: CircleAvatar(
+                      child: ClipOval(
+                        child: FutureBuilder<String?>(
+                          future: getUserPhotoUrl(userUid!),
+                          builder: (context, photoSnapshot) {
+                            if (photoSnapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const CircularProgressIndicator();
+                            } else if (photoSnapshot.hasError) {
+                              return const Icon(Icons.error_outline,
+                                  size: 30, color: Colors.red);
+                            } else if (photoSnapshot.hasData) {
+                              return Image.network(
+                                photoSnapshot.data!,
+                                fit: BoxFit.cover,
+                              );
+                            } else {
+                              return const Icon(Icons.account_circle, size: 30);
+                            }
+                          },
+                        ),
                       ),
-                    );
-                  }
-                },
-              ),
-              accountEmail: Text(
-                FirebaseAuth.instance.currentUser?.email ??
-                    'Correo electrónico',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontFamily: 'Montserrat',
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              currentAccountPicture: CircleAvatar(
-                child: ClipOval(
-                  child: FutureBuilder<String?>(
-                    future:
-                        getUserPhotoURL(FirebaseAuth.instance.currentUser!.uid),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const CircularProgressIndicator();
-                      } else {
-                        return Image.network(
-                          snapshot.data ?? '',
-                          width: 100,
-                          height: 100,
-                          fit: BoxFit.cover,
-                        );
-                      }
-                    },
-                  ),
-                ),
-              ),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Color.fromARGB(255, 65, 111, 223),
-                    Color.fromARGB(255, 110, 174, 231),
-                  ],
-                ),
-              ),
+                    ),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Color.fromARGB(255, 65, 111, 223),
+                          Color.fromARGB(255, 110, 174, 231),
+                        ],
+                      ),
+                    ),
+                  );
+                } else {
+                  return const DrawerHeader(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Color.fromARGB(255, 65, 111, 223),
+                          Color.fromARGB(255, 110, 174, 231),
+                        ],
+                      ),
+                    ),
+                    child: Text("No se pudo cargar la información del usuario"),
+                  );
+                }
+              },
             ),
             ListTile(
               leading: ShaderMask(
@@ -358,18 +383,5 @@ class _NavBarState extends State<NavBar> {
     } catch (error) {
       print('Error al cerrar sesión: $error');
     }
-  }
-
-  // extract the user name from the firestore
-  Future<String> getUserName(String uid) async {
-    String name = '';
-    try {
-      await _firebaseFirestore.collection('users').doc(uid).get().then((value) {
-        name = value['name'];
-      });
-    } catch (error) {
-      print('Error al obtener el nombre del usuario: $error');
-    }
-    return name;
   }
 }
