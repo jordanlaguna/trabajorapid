@@ -138,7 +138,7 @@ class _PageChatState extends State<PageChat> {
                                         backgroundColor: doc['isActive'] == true
                                             ? Colors.green
                                             : Colors.red,
-                                        radius: 5,
+                                        radius: 6,
                                       ),
                                   ],
                                 ),
