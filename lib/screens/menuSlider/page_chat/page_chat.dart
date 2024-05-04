@@ -1,4 +1,3 @@
-// ignore_for_file: avoid_print
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -66,13 +65,36 @@ class _ChatHomeState extends State<ChatHome> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.receiverUserEmail,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontFamily: 'Montserrat',
-              fontWeight: FontWeight.w400,
-            )),
+        title: Row(
+          children: [
+            Text(
+              widget.receiverUserEmail,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontFamily: 'Montserrat',
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            const SizedBox(width: 10),
+            StreamBuilder<DocumentSnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(widget.receiverUserID)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  bool isActive = snapshot.data!['isActive'] ?? true;
+                  return CircleAvatar(
+                    radius: 6,
+                    backgroundColor: isActive ? Colors.green : Colors.red,
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ],
+        ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         flexibleSpace: Container(

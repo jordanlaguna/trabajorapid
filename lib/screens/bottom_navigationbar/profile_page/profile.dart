@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:trabajorapid/services/export_photos/photos_users.dart';
+import 'package:trabajorapid/services/export_dates/photos_users.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -630,7 +630,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                           ),
                         ),
-                        
+
                         // Botón para cerrar el diálogo
                         ElevatedButton(
                           onPressed: () {

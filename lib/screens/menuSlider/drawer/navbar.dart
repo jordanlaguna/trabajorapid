@@ -8,7 +8,7 @@ import 'package:trabajorapid/screens/menuSlider/page_chat/page_home_chat.dart';
 import 'package:trabajorapid/screens/menuSlider/payment/payment_page.dart';
 import 'package:trabajorapid/screens/menuSlider/perfilDrawer/profile_drawer.dart';
 import 'package:trabajorapid/screens/login_screens/welcome_screen.dart';
-import 'package:trabajorapid/services/export_photos/photos_users.dart';
+import 'package:trabajorapid/services/export_dates/photos_users.dart';
 
 class NavBar extends StatefulWidget {
   const NavBar({Key? key}) : super(key: key);
@@ -19,6 +19,7 @@ class NavBar extends StatefulWidget {
 
 class _NavBarState extends State<NavBar> {
   final _firebaseFirestore = FirebaseFirestore.instance;
+
   @override
   Widget build(BuildContext context) {
     return Theme(
@@ -28,23 +29,41 @@ class _NavBarState extends State<NavBar> {
           padding: EdgeInsets.zero,
           children: [
             UserAccountsDrawerHeader(
-              accountName: Text(
-                FirebaseAuth.instance.currentUser?.displayName ??
-                    'Nombre de usuario',
-                style: const TextStyle(
-                    fontSize: 20,
-                    fontFamily: 'Montserrat',
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white),
+              accountName: FutureBuilder<String>(
+                future: getUserName(FirebaseAuth.instance.currentUser!.uid),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Text(
+                      'Cargando...',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontFamily: 'Montserrat',
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    );
+                  } else {
+                    return Text(
+                      snapshot.data ?? 'Nombre de usuario',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontFamily: 'Montserrat',
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    );
+                  }
+                },
               ),
               accountEmail: Text(
                 FirebaseAuth.instance.currentUser?.email ??
                     'Correo electrónico',
                 style: const TextStyle(
-                    fontSize: 14,
-                    fontFamily: 'Montserrat',
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white),
+                  fontSize: 14,
+                  fontFamily: 'Montserrat',
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
               currentAccountPicture: CircleAvatar(
                 child: ClipOval(
@@ -100,7 +119,6 @@ class _NavBarState extends State<NavBar> {
                     color: Colors.black),
               ),
               onTap: () {
-                Navigator.pop(context);
                 Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -129,7 +147,6 @@ class _NavBarState extends State<NavBar> {
                     color: Colors.black),
               ),
               onTap: () {
-                Navigator.pop(context);
                 Navigator.push(context,
                     MaterialPageRoute(builder: (context) => const PageChat()));
               },
@@ -156,7 +173,6 @@ class _NavBarState extends State<NavBar> {
                     color: Colors.black),
               ),
               onTap: () {
-                Navigator.pop(context);
                 Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -258,7 +274,6 @@ class _NavBarState extends State<NavBar> {
                     color: Colors.black),
               ),
               onTap: () {
-                Navigator.pop(context);
                 Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -288,11 +303,11 @@ class _NavBarState extends State<NavBar> {
               ),
               onTap: () {
                 signOut();
-                Navigator.pop(context);
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const WelcomeScreen()));
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const WelcomeScreen()),
+                );
               },
             ),
           ],
@@ -323,5 +338,18 @@ class _NavBarState extends State<NavBar> {
     } catch (error) {
       print('Error al cerrar sesión: $error');
     }
+  }
+
+  // extract the user name from the firestore
+  Future<String> getUserName(String uid) async {
+    String name = '';
+    try {
+      await _firebaseFirestore.collection('users').doc(uid).get().then((value) {
+        name = value['name'];
+      });
+    } catch (error) {
+      print('Error al obtener el nombre del usuario: $error');
+    }
+    return name;
   }
 }

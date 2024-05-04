@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:trabajorapid/screens/menuSlider/configuration/aboutOf/page_about.dart';
+import 'package:trabajorapid/screens/menuSlider/configuration/aboutOfPage/page_about.dart';
+import 'package:trabajorapid/screens/menuSlider/configuration/PolicyPage/page_policy.dart';
+import 'package:trabajorapid/screens/menuSlider/configuration/legalPage/page_legal.dart';
 import 'package:trabajorapid/screens/menuSlider/perfilDrawer/profile_drawer.dart';
 
 class ConfigPage extends StatelessWidget {
@@ -54,11 +56,9 @@ class ConfigPage extends StatelessWidget {
               ),
               trailing: const Icon(Icons.arrow_forward_ios),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const ProfileDrawer()),
-                );
+                Navigator.push(context, MaterialPageRoute(builder: (context) {
+                  return const ProfileDrawer();
+                }));
               },
             ),
           ),
@@ -84,13 +84,7 @@ class ConfigPage extends StatelessWidget {
                 ),
               ),
               trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const ProfileDrawer()),
-                );
-              },
+              onTap: () {},
             ),
           ),
           const Divider(
@@ -115,47 +109,10 @@ class ConfigPage extends StatelessWidget {
                 ),
               ),
               trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const ProfileDrawer()),
-                );
-              },
+              onTap: () {},
             ),
           ),
           const SizedBox(height: 30),
-          Container(
-            height: 70,
-            width: double.infinity,
-            margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: ListTile(
-              title: const Text(
-                'Legal',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontFamily: 'Montserrat',
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const ProfileDrawer()),
-                );
-              },
-            ),
-          ),
-          const Divider(
-            color: Colors.white,
-            thickness: 2.0,
-          ),
           Container(
             height: 70,
             width: double.infinity,
@@ -177,8 +134,37 @@ class ConfigPage extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => const ProfileDrawer()),
+                  MaterialPageRoute(builder: (context) => const PagePolicy()),
+                );
+              },
+            ),
+          ),
+          const Divider(
+            color: Colors.white,
+            thickness: 2.0,
+          ),
+          Container(
+            height: 70,
+            width: double.infinity,
+            margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: ListTile(
+              title: const Text(
+                'Legal',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontFamily: 'Montserrat',
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const PageLegal()),
                 );
               },
             ),
@@ -232,13 +218,7 @@ class ConfigPage extends StatelessWidget {
                 ),
               ),
               trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const ProfileDrawer()),
-                );
-              },
+              onTap: () {},
             ),
           ),
         ],
