@@ -28,6 +28,7 @@ class Profile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.lightBlue[50],
       appBar: AppBar(
         title: const Text(
           'Perfil',
@@ -98,7 +99,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    getComments().then((value) {
+    getComments(widget.idS).then((value) {
       setState(() {
         comments = value;
       });
@@ -258,15 +259,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<String?> getUserPhotoUrl(String uid) async {
     try {
-      // Intenta obtener la URL de la foto del usuario desde la base de datos
       DocumentSnapshot<Map<String, dynamic>> userData =
           await FirebaseFirestore.instance.collection('users').doc(uid).get();
 
-      // Si la URL de la foto está disponible en la base de datos, úsala
       if (userData.exists && userData['photoURL'] != null) {
         return userData['photoURL'];
       } else {
-        // Si la URL de la foto no está disponible en la base de datos, utiliza la foto de perfil de la autenticación
         return FirebaseAuth.instance.currentUser?.photoURL;
       }
     } catch (e) {
@@ -299,24 +297,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               child: ClipOval(
                 child: FutureBuilder<String?>(
-                  future: getUserPhotoUrl(
-                      widget.uid), // Aquí pasas el uid del usuario actual
+                  future: getUserPhotoUrl(widget.uid),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      // Muestra un indicador de carga mientras se carga la URL de la foto
                       return const CircularProgressIndicator();
                     } else if (snapshot.hasError) {
-                      // Maneja cualquier error que pueda ocurrir al obtener la URL de la foto
                       return const Icon(Icons.error_outline,
                           size: 150, color: Colors.red);
                     } else if (snapshot.hasData) {
-                      // Si se obtiene la URL de la foto, muestra la imagen
                       return Image.network(
                         snapshot.data!,
                         fit: BoxFit.cover,
                       );
                     } else {
-                      // Si no se pudo obtener la URL de la foto, muestra un icono por defecto
                       return const Icon(Icons.account_circle, size: 150);
                     }
                   },
@@ -402,7 +395,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               FirebaseAuth.instance.currentUser?.uid;
 
                           if (userId != null) {
-                            // Verificar si el documento ya existe
                             QuerySnapshot ratingSnapshot =
                                 await FirebaseFirestore.instance
                                     .collection('calificacionPerfil')
@@ -422,10 +414,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ratingDoc = null;
                               }
 
-                              // Actualizar el documento existente con la nueva calificación
                               if (ratingDoc != null) {
                                 print('3');
-                                // El documento existe, actualizar solo las estrellas
                                 await FirebaseFirestore.instance
                                     .collection('calificacionPerfil')
                                     .doc(ratingDoc.id)
@@ -434,10 +424,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 });
                               } else {
                                 print('4');
-                                // El id no coincide, crear un nuevo documento
                                 await FirebaseFirestore.instance
                                     .collection('calificacionPerfil')
-                                    .doc() // Puedes mantener doc() si deseas un nuevo ID automático
+                                    .doc()
                                     .set({
                                   'estrellas': rating,
                                   'uid': userId,
@@ -446,10 +435,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               }
                             } else {
                               print('5');
-                              // Crear un nuevo documento si no existe
                               await FirebaseFirestore.instance
                                   .collection('calificacionPerfil')
-                                  .doc() // Puedes mantener doc() si deseas un nuevo ID automático
+                                  .doc()
                                   .set({
                                 'estrellas': rating,
                                 'uid': userId,
@@ -472,23 +460,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
             SingleChildScrollView(
               child: Column(
                 children: [
-                  // show news comments list
                   SizedBox(
-                    height: MediaQuery.of(context).size.height *
-                        0.3, // Altura máxima para la lista de comentarios
+                    height: MediaQuery.of(context).size.height * 0.3,
                     child: ListView.builder(
                       shrinkWrap: true,
                       itemCount: comments.length,
                       itemBuilder: (context, index) {
-                        return ListTile(
-                          title: Text(comments[index].userName),
-                          subtitle: Text(comments[index].comment),
+                        final comment = comments[index];
+                        final isCurrentUser =
+                            FirebaseAuth.instance.currentUser?.uid ==
+                                comment.uid;
+                        return ChatBubble(
+                          userName: comment.userName,
+                          comment: comment.comment,
+                          isCurrentUser: isCurrentUser,
                         );
                       },
                     ),
                   ),
                   const SizedBox(
-                    height: 10, // Espacio para la barra de comentarios
+                    height: 10,
                   ),
                   const Divider(),
                   Container(
@@ -533,67 +524,154 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // add a new comment to Firestore
   Future<void> addComment(String comment) async {
-    if (comment.isNotEmpty) {
-      User? user = FirebaseAuth.instance.currentUser;
-
-      if (user != null) {
-        String userName = user.displayName ?? '';
-        String uid = user.uid;
-
-        CollectionReference commentsCollection =
-            FirebaseFirestore.instance.collection('comments');
-        await commentsCollection.add({
-          'uid': uid,
-          'userName': userName,
-          'comment': comment,
-          'timestamp': DateTime.now(),
-        }).then((value) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Comentario agregado')),
-          );
-          updateCommentsList();
-        }).catchError((error) {
-          print("Error al guardar el comentario: $error");
-        });
-      } else {
-        // the user is not logged in
-      }
-    } else {
+    if (comment.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor, escribe un comentario')),
       );
+      return;
     }
+
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, inicia sesión para comentar')),
+      );
+      return;
+    }
+
+    String userName = user.displayName ?? '';
+    String uid = user.uid;
+    String serviceId = widget.idS;
+
+    DocumentReference serviceDoc =
+        FirebaseFirestore.instance.collection('serviceComments').doc(serviceId);
+
+    DocumentSnapshot serviceSnapshot = await serviceDoc.get();
+    if (!serviceSnapshot.exists) {
+      await serviceDoc.set({
+        'uid': serviceId,
+      });
+    }
+
+    CollectionReference commentsCollection = serviceDoc.collection('comments');
+
+    await commentsCollection.add({
+      'uid': uid,
+      'userName': userName,
+      'comment': comment,
+      'timestamp': DateTime.now(),
+    }).then((value) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Comentario agregado')),
+      );
+      updateCommentsList();
+    }).catchError((error) {
+      print("Error al guardar el comentario: $error");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al agregar comentario: $error')),
+      );
+    });
   }
 
-// update the comments list after adding a new comment
   Future<void> updateCommentsList() async {
-    List<Comment> updatedComments = await getComments();
+    List<Comment> updatedComments = await getComments(widget.idS);
     setState(() {
       comments = updatedComments;
     });
   }
 }
 
-// get comments from Firestore and return as a list of Comment objects
-Future<List<Comment>> getComments() async {
-  List<Comment> comments = [];
-  CollectionReference commentsCollection =
-      FirebaseFirestore.instance.collection('comments');
-  QuerySnapshot querySnapshot = await commentsCollection.get();
-  querySnapshot.docs.forEach((doc) {
-    comments.add(Comment(
-      userName: doc['userName'],
-      comment: doc['comment'],
-    ));
-  });
+int _limit = 10;
+// ignore: unused_element
+DocumentSnapshot? _lastDocument;
+
+Future<List<Comment>> getComments(String serviceId) async {
+  Query query = FirebaseFirestore.instance
+      .collection('serviceComments')
+      .doc(serviceId)
+      .collection('comments')
+      .orderBy('timestamp', descending: true)
+      .limit(_limit);
+
+  QuerySnapshot commentSnapshot = await query.get();
+  _lastDocument =
+      commentSnapshot.docs.isNotEmpty ? commentSnapshot.docs.last : null;
+
+  List<Comment> comments = commentSnapshot.docs
+      .map((doc) => Comment(
+            userName: doc['userName'],
+            comment: doc['comment'],
+            uid: doc['uid'],
+          ))
+      .toList();
+
   return comments;
 }
 
 class Comment {
   final String userName;
   final String comment;
+  final String uid;
 
-  Comment({required this.userName, required this.comment});
+  Comment({required this.userName, required this.comment, required this.uid});
+}
+
+class ChatBubble extends StatelessWidget {
+  final String userName;
+  final String comment;
+  final bool isCurrentUser;
+
+  const ChatBubble({
+    Key? key,
+    required this.userName,
+    required this.comment,
+    this.isCurrentUser = false,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final borderRadius = BorderRadius.only(
+      topLeft: const Radius.circular(16),
+      topRight: const Radius.circular(16),
+      bottomLeft:
+          isCurrentUser ? const Radius.circular(16) : const Radius.circular(0),
+      bottomRight:
+          isCurrentUser ? const Radius.circular(0) : const Radius.circular(16),
+    );
+
+    return Align(
+      alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        decoration: BoxDecoration(
+          color: isCurrentUser ? Colors.blue[300] : Colors.grey[200],
+          borderRadius: borderRadius,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              userName,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: isCurrentUser ? Colors.white : Colors.black,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              comment,
+              style: TextStyle(
+                fontSize: 14,
+                color: isCurrentUser ? Colors.white : Colors.black,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

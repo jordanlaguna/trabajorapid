@@ -337,7 +337,7 @@ class _HomePageServiceState extends State<HomePageService> {
   }
 
   bool _isPressed = false;
-  String titulo = "Ejemplo";
+  String titulo = "Nombre";
 
   Widget buildCuadro(
       BuildContext context,
@@ -778,7 +778,6 @@ class _HomePageServiceState extends State<HomePageService> {
         centerTitle: true,
         actions: [
           PopupMenuButton<String>(
-            
             icon: const Icon(Icons.more_vert, color: Colors.white),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10.0),
