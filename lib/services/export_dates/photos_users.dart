@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+final firebaseFirestore = FirebaseFirestore.instance;
 Future<String?> getUserPhotoURL(String userID) async {
   if (userID.isEmpty) {
     return null;
@@ -41,5 +42,18 @@ Future<String?> getUserPhotoURL(String userID) async {
   } catch (e) {
     print(e);
     return null;
+  }
+}
+
+Future<String> getUserName(String uid) async {
+  User? user = FirebaseAuth.instance.currentUser;
+
+  // Verificar si el usuario ha iniciado sesión con Google
+  if (user?.providerData[0].providerId == 'google.com') {
+    return user?.displayName ?? 'Nombre de usuario';
+  } else {
+    // Obtener el nombre del usuario desde Firestore
+    String name = await getUserName(user!.uid);
+    return name.isNotEmpty ? name : 'Nombre de usuario';
   }
 }
