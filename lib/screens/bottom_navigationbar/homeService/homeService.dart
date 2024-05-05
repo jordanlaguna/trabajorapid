@@ -426,13 +426,20 @@ class _HomePageServiceState extends State<HomePageService> {
                             scrollDirection: Axis.horizontal,
                             child: Row(
                               children: <Widget>[
-                                Text(
-                                  titulo,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight
-                                        .bold, // Hace el texto en negrita
-                                    fontSize:
-                                        15.0, // Ajusta el tamaño de la fuente a 20 puntos
+                                SizedBox(
+                                  width: 190,
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.topLeft,
+                                    child: Text(
+                                      titulo,
+                                      style: const TextStyle(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20.0,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -557,28 +564,73 @@ class _HomePageServiceState extends State<HomePageService> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10.0),
+                   
                   SizedBox(
-                    width: double.infinity, // Ocupa todo el ancho disponible
+                    width: double.infinity,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(
-                          contenido.length > 38
-                              ? '${contenido.substring(0, 35)}...'
-                              : contenido,
+                        GestureDetector(
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text('Información'),
+                                  content: Text(contenido),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Text('Cerrar'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                          child: Text(
+                            contenido.length > 38
+                                ? '${contenido.substring(0, 35)}...'
+                                : contenido,
+                          ),
+                        ),
+                        const SizedBox(height: 1.0),
+                        SizedBox(
+                          width: 250,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.center,
+                            child: Text(
+                              '${tipoOferta.length > 35 ? '${tipoOferta.substring(0, 30)}...' : tipoOferta} - $pago ₡',
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 15.0,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 1.0),
+                        SizedBox(
+                          width: 200,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.center,
+                            child: Text(
+                              direccion.length > 38
+                                  ? '${direccion.substring(0, 35)}...'
+                                  : direccion,
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 15.0,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 5.0),
-                        Text(
-                          '${tipoOferta.length > 35 ? '${tipoOferta.substring(0, 30)}...' : tipoOferta} - $pago ₡',
-                        ),
-                        const SizedBox(height: 5.0),
-                        Text(
-                          direccion.length > 38
-                              ? '${direccion.substring(0, 35)}...'
-                              : direccion,
-                        ),
-                        const SizedBox(height: 8.0),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
@@ -593,9 +645,7 @@ class _HomePageServiceState extends State<HomePageService> {
                                 );
                               },
                               child: Transform.scale(
-                                scale: _isPressed
-                                    ? 0.9
-                                    : 1.0, // Reduce el tamaño cuando está presionado
+                                scale: _isPressed ? 0.9 : 1.0,
                                 child: AnimatedContainer(
                                   duration: const Duration(milliseconds: 200),
                                   padding: const EdgeInsets.symmetric(
@@ -607,7 +657,7 @@ class _HomePageServiceState extends State<HomePageService> {
                                       colors: [
                                         Color.fromARGB(255, 0, 92, 252),
                                         Color.fromARGB(255, 86, 173, 255)
-                                      ], // Colores del gradiente
+                                      ],
                                     ),
                                     boxShadow: [
                                       BoxShadow(
