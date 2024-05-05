@@ -1,3 +1,6 @@
+// ignore_for_file: avoid_print
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -20,6 +23,7 @@ class AuthRepository extends GetxController {
   // Variables
   final deviceStorage = GetStorage();
   final _auth = FirebaseAuth.instance;
+  final _firebaseFirestore = FirebaseFirestore.instance;
 
   // Lamar al main.dart en app
   @override
@@ -50,11 +54,31 @@ class AuthRepository extends GetxController {
     }
   }
 
-   // ******* Firebase Functions *******
-  // Login de usuarios - EmailAuth
-  Future<UserCredential> loginWithEmailAndPassword(String email, String password) async {
+  // ******* Firebase Functions *******
+  // fuction for the update isActive to user in firebase
+  Future<void> updateUserActive(String uid, bool isActive) async {
     try {
-      return await _auth.signInWithEmailAndPassword(email: email, password: password);
+      await _firebaseFirestore.collection('users').doc(uid).update({
+        'isActive': isActive,
+      });
+      print('Usuario actualizado con éxito');
+    } catch (error) {
+      print('Error al actualizar el usuario: $error');
+    }
+  }
+
+  // Login de usuarios - EmailAuth
+  Future<UserCredential> loginWithEmailAndPassword(
+      String email, String password) async {
+    try {
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      String uid = userCredential.user!.uid;
+      await updateUserActive(uid, true);
+      print('Usuario activo!');
+      return userCredential;
     } on FirebaseException catch (e) {
       throw TFirebaseAuthException(e.code).message;
       // ignore: dead_code_on_catch_subtype
@@ -70,9 +94,11 @@ class AuthRepository extends GetxController {
   }
 
   // Registro de usuarios - EmailAuth
-  Future<UserCredential> registerWithEmailAndPassword(String email, String password) async {
+  Future<UserCredential> registerWithEmailAndPassword(
+      String email, String password) async {
     try {
-      return await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      return await _auth.createUserWithEmailAndPassword(
+          email: email, password: password);
     } on FirebaseException catch (e) {
       throw TFirebaseAuthException(e.code).message;
       // ignore: dead_code_on_catch_subtype
@@ -106,12 +132,13 @@ class AuthRepository extends GetxController {
   }
 
   // GoogleAuth - Iniciar sesion con Google
-    Future<UserCredential?> signInWithGoogle() async {
+  Future<UserCredential?> signInWithGoogle() async {
     try {
       // Trigger the authentication flow
       final GoogleSignInAccount? userAccount = await GoogleSignIn().signIn();
       // Obtener credenciales de Google
-      final GoogleSignInAuthentication? googleAuth = await userAccount?.authentication;
+      final GoogleSignInAuthentication? googleAuth =
+          await userAccount?.authentication;
       // Crear credenciales de Google
       final credentials = GoogleAuthProvider.credential(
         accessToken: googleAuth?.accessToken,
@@ -129,11 +156,10 @@ class AuthRepository extends GetxController {
     } on PlatformException catch (e) {
       throw TPlatformException(e.code).message;
     } catch (e) {
-      if(kDebugMode) print('Ocurrio un error inesperado: $e');
+      if (kDebugMode) print('Ocurrio un error inesperado: $e');
       return null;
     }
   }
-
 
   // Olvidar contraseña - ForgotPassword
   Future<void> sendPasswordResetEmail(String email) async {
@@ -156,18 +182,30 @@ class AuthRepository extends GetxController {
   // Cerrar sesion = LogoutUser
   Future<void> logoutUser() async {
     try {
+      // Cerrar sesión en Google (si está conectado)
       await GoogleSignIn().signOut();
+
+      String? uid = FirebaseAuth.instance.currentUser?.uid;
+      // Cerrar sesión en Firebase
       await FirebaseAuth.instance.signOut();
-      Get.offAll(()=>const LoginScreen());
-    } on FirebaseException catch (e) {
-      throw TFirebaseAuthException(e.code).message;
-      // ignore: dead_code_on_catch_subtype
+      if (uid != null) {
+        // Actualizar el estado del usuario a false
+        await updateUserActive(uid, false);
+        print('Usuario inactivo!');
+      } else {
+        print('No se pudo obtener el UID del usuario antes de cerrar sesión');
+      }
+
+      // Navegar a la pantalla de inicio de sesión
+      Get.offAll(() => const LoginScreen());
     } on FirebaseAuthException catch (e) {
       throw TFirebaseException(e.code).message;
     } on FormatException {
       throw const TFormatException();
     } on PlatformException catch (e) {
       throw TPlatformException(e.code).message;
+    } on FirebaseException catch (e) {
+      throw TFirebaseAuthException(e.code).message;
     } catch (e) {
       throw 'Se ha producido un error inesperado';
     }

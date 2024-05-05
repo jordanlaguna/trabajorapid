@@ -354,28 +354,4 @@ class _NavBarState extends State<NavBar> {
       ),
     );
   }
-
-  Future<void> updateUserActive(String uid, bool isActive) async {
-    try {
-      await _firebaseFirestore.collection('users').doc(uid).update({
-        'isActive': isActive,
-      });
-      print('Usuario actualizado con éxito');
-    } catch (error) {
-      print('Error al actualizar el usuario: $error');
-    }
-  }
-
-  void signOut() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    try {
-      if (user != null) {
-        await updateUserActive(FirebaseAuth.instance.currentUser!.uid, false);
-        await FirebaseAuth.instance.signOut();
-        print('Usuario cerró sesión con éxito');
-      }
-    } catch (error) {
-      print('Error al cerrar sesión: $error');
-    }
-  }
 }
