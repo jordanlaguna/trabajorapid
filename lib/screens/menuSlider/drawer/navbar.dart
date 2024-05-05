@@ -1,13 +1,12 @@
 // ignore_for_file: avoid_print, unused_element
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:trabajorapid/data/repositiories/auth_repository.dart';
 import 'package:trabajorapid/screens/menuSlider/configuration/configPage/page_config.dart';
 import 'package:trabajorapid/screens/menuSlider/page_chat/page_home_chat.dart';
 import 'package:trabajorapid/screens/menuSlider/payment/payment_page.dart';
 import 'package:trabajorapid/screens/menuSlider/perfilDrawer/profile_drawer.dart';
-import 'package:trabajorapid/screens/login_screens/welcome_screen.dart';
 
 class NavBar extends StatefulWidget {
   const NavBar({Key? key}) : super(key: key);
@@ -347,12 +346,7 @@ class _NavBarState extends State<NavBar> {
                     color: Colors.black),
               ),
               onTap: () {
-                signOut();
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const WelcomeScreen()),
-                );
+                AuthRepository.instance.logoutUser();
               },
             ),
           ],
