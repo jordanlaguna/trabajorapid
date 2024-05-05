@@ -6,7 +6,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:quickalert/models/quickalert_type.dart';
 import 'package:quickalert/widgets/quickalert_dialog.dart';
 import 'package:trabajorapid/screens/home/moduleMain.dart';
-import 'package:flutter_login_facebook/flutter_login_facebook.dart';
 
 class SocialAuth {
   static final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
@@ -52,54 +51,4 @@ class SocialAuth {
     }
   }
 
-  static Future<void> signInWithFacebook(BuildContext context) async {
-    try {
-      final FacebookLogin fb = FacebookLogin();
-      final FacebookLoginResult result = await fb.logIn(permissions: [
-        FacebookPermission.publicProfile,
-        FacebookPermission.email,
-      ]);
-
-      switch (result.status) {
-        case FacebookLoginStatus.success:
-          final FacebookAccessToken accessToken = result.accessToken!;
-          print('Access token: ${accessToken.token}');
-
-          final AuthCredential credential = FacebookAuthProvider.credential(
-            accessToken.token,
-          );
-
-          final UserCredential userCredential =
-              await FirebaseAuth.instance.signInWithCredential(credential);
-          QuickAlert.show(
-            // ignore: use_build_context_synchronously
-            context: context,
-            type: QuickAlertType.success,
-            text: 'Inicio de sesión exitoso!',
-            autoCloseDuration: const Duration(seconds: 2),
-            showConfirmBtn: false,
-          );
-          await Future.delayed(const Duration(seconds: 2));
-          // Verifica si la autenticación con Firebase fue exitosa
-          if (userCredential.user != null) {
-            // Navega a ModuleMain() después del inicio de sesión exitoso
-            Navigator.pushReplacement(
-              // ignore: use_build_context_synchronously
-              context,
-              MaterialPageRoute(builder: (context) => const ModuleMain()),
-            );
-          }
-          break;
-        case FacebookLoginStatus.cancel:
-          print(
-              'El inicio de sesión con Facebook fue cancelado por el usuario');
-          break;
-        case FacebookLoginStatus.error:
-          print('Error al iniciar sesión con Facebook: ${result.error}');
-          break;
-      }
-    } catch (e) {
-      print('Error al iniciar sesión con Facebook: $e');
-    }
-  }
 }
