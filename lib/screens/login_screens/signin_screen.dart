@@ -268,9 +268,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             ),
                           ),
                           GestureDetector(
-                            onTap: () {
-                             
-                            },
+                            onTap: () {},
                             child: Text(
                               'Regístrate',
                               style: TextStyle(
@@ -295,13 +293,18 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
-  // fuction for isActive or not the user in the app
+// fuction for isActive or not the user in the app
   Future<void> updateUserActive(String uid, bool isActive) async {
+    User? user = FirebaseAuth.instance.currentUser;
     try {
-      await _firebaseFirestore.collection('users').doc(uid).update({
-        'isActive': isActive,
-      });
-      print('Usuario actualizado con éxito');
+      if (user != null && user.uid == uid) {
+        await _firebaseFirestore.collection('users').doc(uid).update({
+          'isActive': isActive,
+        });
+        print('Usuario actualizado con éxito');
+      } else {
+        print('El usuario actual no coincide con el UID proporcionado');
+      }
     } catch (error) {
       print('Error al actualizar el usuario: $error');
     }
@@ -310,33 +313,51 @@ class _SignInScreenState extends State<SignInScreen> {
   void _signIn() async {
     String email = emailController.text;
     String password = passwordController.text;
-    User? user = await auth.singInWithEmailAndPassword(email, password);
 
-    if (user != null) {
-      await updateUserActive(user.uid, true);
-      QuickAlert.show(
-        // ignore: use_build_context_synchronously
-        context: context,
-        type: QuickAlertType.success,
-        text: 'Inicio de sesión exitoso!',
-        autoCloseDuration: const Duration(seconds: 2),
-        showConfirmBtn: false,
+    try {
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
       );
-      await Future.delayed(const Duration(seconds: 2));
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const ModuleMain()),
-      );
-    } else {
+
+      User? user = userCredential.user;
+
+      if (user != null) {
+        await updateUserActive(user.uid, true);
+        print('Usuario activo!');
+
+        QuickAlert.show(
+          context: context,
+          type: QuickAlertType.success,
+          text: 'Inicio de sesión exitoso!',
+          autoCloseDuration: const Duration(seconds: 2),
+          showConfirmBtn: false,
+        );
+
+        // Espera la actualización del usuario antes de navegar
+        await Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const ModuleMain()),
+        );
+      } else {
+        QuickAlert.show(
+          context: context,
+          type: QuickAlertType.error,
+          text: 'Error, no se pudo iniciar sesión!',
+          autoCloseDuration: const Duration(seconds: 2),
+          showConfirmBtn: false,
+        );
+      }
+    } catch (error) {
+      print('Error al iniciar sesión: $error');
       QuickAlert.show(
-        // ignore: use_build_context_synchronously
         context: context,
         type: QuickAlertType.error,
-        text: 'Error, no se pudo iniciar sesión!',
+        text: 'Error al iniciar sesión: $error',
         autoCloseDuration: const Duration(seconds: 2),
         showConfirmBtn: false,
       );
-      await Future.delayed(const Duration(seconds: 2));
     }
   }
 }

@@ -65,7 +65,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
           _addressController.text = userInfo['address'];
         }
         if (_telephoneController.text.isEmpty) {
-          _telephoneController.text = userInfo['telephone'];
+          _telephoneController.text = userInfo['phone'];
         }
         if (selectedValue == null) {
           String gender = userInfo['gender'];
@@ -450,7 +450,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
     final String identification = _identificationController.text;
     final String date = _dateController.text;
     final String address = _addressController.text;
-    final String telephone = _telephoneController.text;
+    final String phone = _telephoneController.text;
     final String gender = selectedValue!;
 
     try {
@@ -463,40 +463,13 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
         if (identification.isNotEmpty &&
             date.isNotEmpty &&
             address.isNotEmpty &&
-            telephone.isNotEmpty &&
             gender.isNotEmpty) {
           try {
-            DocumentSnapshot userDoc = await _firebaseFirestore
-                .collection('users')
-                .doc(currentUserId)
-                .get();
-            if (userDoc.exists) {
-              Map<String, dynamic> userData =
-                  userDoc.data() as Map<String, dynamic>;
-              // We check if the data is already registered
-              if (userData['identification'] == identification &&
-                  userData['date'] == date &&
-                  userData['address'] == address &&
-                  userData['telephone'] == telephone &&
-                  userData['gender'] == gender) {
-                QuickAlert.show(
-                  context: context,
-                  type: QuickAlertType.warning,
-                  text: '¡Todos los datos ya están registrados!',
-                  autoCloseDuration: const Duration(seconds: 2),
-                  showConfirmBtn: false,
-                );
-                return;
-              }
-            }
             Map<String, dynamic> newData = {
-              if (fullName.isNotEmpty) 'name': fullName,
-              if (email.isNotEmpty) 'email': email,
               'identification': identification,
               'gender': gender,
               'date': date,
               'address': address,
-              'telephone': telephone
             };
             await _firebaseFirestore
                 .collection('users')
@@ -526,7 +499,6 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
         if (userData['identification'] == identification &&
             userData['date'] == date &&
             userData['address'] == address &&
-            userData['telephone'] == telephone &&
             userData['gender'] == gender) {
           // All data is already registered
           QuickAlert.show(
@@ -539,13 +511,10 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
         } else {
           // Update user data
           Map<String, dynamic> newData = {
-            if (fullName.isNotEmpty) 'name': fullName,
-            if (email.isNotEmpty) 'email': email,
             'identification': identification,
             'gender': gender,
             'date': date,
             'address': address,
-            'telephone': telephone
           };
           await _firebaseFirestore
               .collection('users')
@@ -560,6 +529,10 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
           );
         }
       }
+
+      // Después de actualizar los datos del usuario, cargar la información actualizada del usuario
+      _loadUserInfo(
+          currentUserId); // Asegúrate de pasar el ID del usuario correcto
     } catch (e) {
       print(e);
       QuickAlert.show(
@@ -571,8 +544,6 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
       );
     }
   }
-
-  //Selected image from gallery or camera
 
   //Method for upload photo of profile in firebase storage and get url of photo
   Future<void> uploadProfilePhoto(File? imageFile) async {
