@@ -56,14 +56,14 @@ class AuthRepository extends GetxController {
     try {
       return await _auth.signInWithEmailAndPassword(email: email, password: password);
     } on FirebaseException catch (e) {
-      throw TFirebaseAuthException(e.code);
+      throw TFirebaseAuthException(e.code).message;
       // ignore: dead_code_on_catch_subtype
     } on FirebaseAuthException catch (e) {
-      throw TFirebaseException(e.code);
+      throw TFirebaseException(e.code).message;
     } on FormatException {
       throw const TFormatException();
     } on PlatformException catch (e) {
-      throw TPlatformException(e.code);
+      throw TPlatformException(e.code).message;
     } catch (e) {
       throw 'Se ha producido un error inesperado';
     }
@@ -74,14 +74,14 @@ class AuthRepository extends GetxController {
     try {
       return await _auth.createUserWithEmailAndPassword(email: email, password: password);
     } on FirebaseException catch (e) {
-      throw TFirebaseAuthException(e.code);
+      throw TFirebaseAuthException(e.code).message;
       // ignore: dead_code_on_catch_subtype
     } on FirebaseAuthException catch (e) {
-      throw TFirebaseException(e.code);
+      throw TFirebaseException(e.code).message;
     } on FormatException {
       throw const TFormatException();
     } on PlatformException catch (e) {
-      throw TPlatformException(e.code);
+      throw TPlatformException(e.code).message;
     } catch (e) {
       throw 'Se ha producido un error inesperado';
     }
@@ -92,14 +92,14 @@ class AuthRepository extends GetxController {
     try {
       await _auth.currentUser?.sendEmailVerification();
     } on FirebaseException catch (e) {
-      throw TFirebaseAuthException(e.code);
+      throw TFirebaseAuthException(e.code).message;
       // ignore: dead_code_on_catch_subtype
     } on FirebaseAuthException catch (e) {
-      throw TFirebaseException(e.code);
+      throw TFirebaseException(e.code).message;
     } on FormatException {
       throw const TFormatException();
     } on PlatformException catch (e) {
-      throw TPlatformException(e.code);
+      throw TPlatformException(e.code).message;
     } catch (e) {
       throw 'Se ha producido un error inesperado';
     }
@@ -120,17 +120,36 @@ class AuthRepository extends GetxController {
       // Inicio de sesion una vez que se obtienen las credenciales y retornar las credenciales
       return await _auth.signInWithCredential(credentials);
     } on FirebaseException catch (e) {
-      throw TFirebaseAuthException(e.code);
+      throw TFirebaseAuthException(e.code).message;
       // ignore: dead_code_on_catch_subtype
     } on FirebaseAuthException catch (e) {
-      throw TFirebaseException(e.code);
+      throw TFirebaseException(e.code).message;
     } on FormatException {
       throw const TFormatException();
     } on PlatformException catch (e) {
-      throw TPlatformException(e.code);
+      throw TPlatformException(e.code).message;
     } catch (e) {
       if(kDebugMode) print('Ocurrio un error inesperado: $e');
       return null;
+    }
+  }
+
+
+  // Olvidar contraseña - ForgotPassword
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } on FirebaseException catch (e) {
+      throw TFirebaseAuthException(e.code).message;
+      // ignore: dead_code_on_catch_subtype
+    } on FirebaseAuthException catch (e) {
+      throw TFirebaseException(e.code).message;
+    } on FormatException {
+      throw const TFormatException();
+    } on PlatformException catch (e) {
+      throw TPlatformException(e.code).message;
+    } catch (e) {
+      throw 'Se ha producido un error inesperado';
     }
   }
 
@@ -141,17 +160,16 @@ class AuthRepository extends GetxController {
       await FirebaseAuth.instance.signOut();
       Get.offAll(()=>const LoginScreen());
     } on FirebaseException catch (e) {
-      throw TFirebaseAuthException(e.code);
+      throw TFirebaseAuthException(e.code).message;
       // ignore: dead_code_on_catch_subtype
     } on FirebaseAuthException catch (e) {
-      throw TFirebaseException(e.code);
+      throw TFirebaseException(e.code).message;
     } on FormatException {
       throw const TFormatException();
     } on PlatformException catch (e) {
-      throw TPlatformException(e.code);
+      throw TPlatformException(e.code).message;
     } catch (e) {
       throw 'Se ha producido un error inesperado';
     }
   }
-
 }

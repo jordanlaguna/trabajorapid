@@ -20,21 +20,16 @@ class TSignupForm extends StatelessWidget {
       key: controller.signupformKey,
       child: Column(
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: TextFormField(
-                  validator: (value) => TValidator.validateEmptyText('Nombre Completo', value),
-                  controller: controller.fullname,
-                  expands: false,
-                  decoration: const InputDecoration(
-                      labelText: TText.fullName,
-                      prefixIcon: Icon(Iconsax.user)),
-                ),
-              ),
-              const SizedBox(width: TSizes.spaceBtwInputFields),
-            ],
+          TextFormField(
+            validator: (value) => TValidator.validateEmptyText('Nombre Completo', value),
+            controller: controller.fullname,
+            //expands: false,
+            decoration: const InputDecoration(
+                labelText: TText.fullName, prefixIcon: Icon(Iconsax.user)),
           ),
+
+          const SizedBox(width: TSizes.spaceBtwInputFields),
+
           const SizedBox(height: TSizes.spaceBtwInputFields),
 
           // Email
@@ -57,17 +52,20 @@ class TSignupForm extends StatelessWidget {
 
           // Password
           Obx(
-              () => TextFormField(
+            () => TextFormField(
               validator: (value) => TValidator.validatePassword(value),
               controller: controller.password,
               obscureText: controller.hidePassword.value,
               decoration: InputDecoration(
-                  labelText: TText.password,
-                  prefixIcon: const Icon(Iconsax.password_check),
-                  suffixIcon: IconButton(
-                    onPressed: ()=> controller.hidePassword.value = !controller.hidePassword.value,
-                    icon: Icon(controller.hidePassword.value ? Iconsax.eye_slash : Iconsax.eye),
-                  ),
+                labelText: TText.password,
+                prefixIcon: const Icon(Iconsax.password_check),
+                suffixIcon: IconButton(
+                  onPressed: () => controller.hidePassword.value =
+                      !controller.hidePassword.value,
+                  icon: Icon(controller.hidePassword.value
+                      ? Iconsax.eye_slash
+                      : Iconsax.eye),
+                ),
               ),
             ),
           ),
@@ -87,13 +85,12 @@ class TSignupForm extends StatelessWidget {
           ),
 
           const SizedBox(height: TSizes.spaceBtwItems),
-           // Create Account
-            SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                    onPressed: () => Get.to(() => const LoginScreen()),
-                    child: const Text(TText.alreadyHaveAccount))
-            ),
+          // Create Account
+          SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                  onPressed: () => Get.to(() => const LoginScreen()),
+                  child: const Text(TText.alreadyHaveAccount))),
         ],
       ),
     );
