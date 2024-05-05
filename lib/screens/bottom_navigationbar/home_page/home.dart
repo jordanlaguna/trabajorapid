@@ -125,11 +125,18 @@ class HomePage extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 8.0),
-                            Text(
-                              titulo,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18.0,
+                            RichText(
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              text: TextSpan(
+                                text: titulo.length > 23
+                                    ? '${titulo.substring(0, 21)}...'
+                                    : titulo,
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20.0,
+                                ),
                               ),
                             ),
                           ],
@@ -137,10 +144,18 @@ class HomePage extends StatelessWidget {
                         const SizedBox(
                             height:
                                 8.0), // Espacio entre el texto e información adicional si la hay
-                        Text(
-                          contenido,
-                          style: const TextStyle(
-                            fontSize: 16.0,
+                        RichText(
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          text: TextSpan(
+                            text: contenido.length > 30
+                                ? '${contenido.substring(0, 28)}...'
+                                : contenido,
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 18.0,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 8.0),
