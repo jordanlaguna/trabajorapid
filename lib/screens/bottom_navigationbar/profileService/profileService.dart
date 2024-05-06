@@ -298,26 +298,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: ClipOval(
                 child: FutureBuilder<String?>(
                   future: getUserPhotoUrl(widget.uid),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
+                  builder: (context, photoSnapshot) {
+                    if (photoSnapshot.connectionState ==
+                        ConnectionState.waiting) {
                       return const CircularProgressIndicator();
-                    } else if (snapshot.hasError) {
+                    } else if (photoSnapshot.hasError) {
                       return const Icon(Icons.error_outline,
-                          size: 150, color: Colors.red);
-                    } else if (snapshot.hasData) {
-                      return Image.network(
-                        snapshot.data!,
-                        fit: BoxFit.cover,
-                      );
+                          size: 30, color: Colors.red);
                     } else {
-                      return const Icon(Icons.account_circle, size: 150);
+                      if (photoSnapshot.hasData &&
+                          photoSnapshot.data!.isNotEmpty) {
+                        return Image.network(
+                          photoSnapshot.data!,
+                          fit: BoxFit.cover,
+                          width: 100,
+                          height: 100,
+                        );
+                      } else {
+                        return const Icon(Icons.account_circle, size: 30);
+                      }
                     }
                   },
                 ),
               ),
             ),
           ),
-
           const SizedBox(height: 16),
           const Icon(
             Icons.circle,
@@ -340,7 +345,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 16),
           const Divider(),
-
           ToggleButtons(
             isSelected: [showRatingSection, !showRatingSection],
             onPressed: (int index) {
@@ -360,7 +364,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          // Sección de calificación o comentarios según la elección
           if (showRatingSection)
             Container(
               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -471,7 +474,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             FirebaseAuth.instance.currentUser?.uid ==
                                 comment.uid;
                         return ChatBubble(
-                          userName: comment.userName,
+                          name: comment.name,
                           comment: comment.comment,
                           isCurrentUser: isCurrentUser,
                         );
@@ -506,10 +509,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
-
           const Divider(),
           const SizedBox(height: 16),
-
           ElevatedButton(
             onPressed: () {
               Navigator.push(
@@ -540,7 +541,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return;
     }
 
-    String userName = user.displayName ?? '';
+    String name = user.displayName ?? '';
     String uid = user.uid;
     String serviceId = widget.idS;
 
@@ -558,7 +559,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     await commentsCollection.add({
       'uid': uid,
-      'userName': userName,
+      'name': name,
       'comment': comment,
       'timestamp': DateTime.now(),
     }).then((value) {
@@ -600,7 +601,7 @@ Future<List<Comment>> getComments(String serviceId) async {
 
   List<Comment> comments = commentSnapshot.docs
       .map((doc) => Comment(
-            userName: doc['userName'],
+            name: doc['name'],
             comment: doc['comment'],
             uid: doc['uid'],
           ))
@@ -610,21 +611,21 @@ Future<List<Comment>> getComments(String serviceId) async {
 }
 
 class Comment {
-  final String userName;
+  final String name;
   final String comment;
   final String uid;
 
-  Comment({required this.userName, required this.comment, required this.uid});
+  Comment({required this.name, required this.comment, required this.uid});
 }
 
 class ChatBubble extends StatelessWidget {
-  final String userName;
+  final String name;
   final String comment;
   final bool isCurrentUser;
 
   const ChatBubble({
     Key? key,
-    required this.userName,
+    required this.name,
     required this.comment,
     this.isCurrentUser = false,
   }) : super(key: key);
@@ -654,7 +655,7 @@ class ChatBubble extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              userName,
+              name,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,

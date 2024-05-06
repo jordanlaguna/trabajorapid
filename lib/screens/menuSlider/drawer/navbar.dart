@@ -7,6 +7,7 @@ import 'package:trabajorapid/screens/menuSlider/configuration/configPage/page_co
 import 'package:trabajorapid/screens/menuSlider/page_chat/page_home_chat.dart';
 import 'package:trabajorapid/screens/menuSlider/payment/payment_page.dart';
 import 'package:trabajorapid/screens/menuSlider/perfilDrawer/profile_drawer.dart';
+import 'package:trabajorapid/services/export_dates/photos_users.dart';
 
 class NavBar extends StatefulWidget {
   const NavBar({Key? key}) : super(key: key);
@@ -15,7 +16,7 @@ class NavBar extends StatefulWidget {
   State<NavBar> createState() => _NavBarState();
 }
 
-Future<String?> getUserPhotoUrl(String uid) async {
+Future getUserPhotoUrl(String uid) async {
   try {
     // Intenta obtener la URL de la foto del usuario desde la base de datos
     DocumentSnapshot<Map<String, dynamic>> userData =
@@ -24,8 +25,10 @@ Future<String?> getUserPhotoUrl(String uid) async {
     // Si la URL de la foto está disponible en la base de datos, úsala
     if (userData.exists && userData['photoURL'] != null) {
       return userData['photoURL'];
+    }
+    if (userData['photoURL'] == "") {
+      return const Icon(Icons.account_circle, size: 30);
     } else {
-      // Si la URL de la foto no está disponible en la base de datos, utiliza la foto de perfil de la autenticación
       return FirebaseAuth.instance.currentUser?.photoURL;
     }
   } catch (e) {
@@ -94,7 +97,7 @@ class _NavBarState extends State<NavBar> {
                     currentAccountPicture: CircleAvatar(
                       child: ClipOval(
                         child: FutureBuilder<String?>(
-                          future: getUserPhotoUrl(userUid!),
+                          future: getUserPhotoURL(userUid!),
                           builder: (context, photoSnapshot) {
                             if (photoSnapshot.connectionState ==
                                 ConnectionState.waiting) {
@@ -102,13 +105,24 @@ class _NavBarState extends State<NavBar> {
                             } else if (photoSnapshot.hasError) {
                               return const Icon(Icons.error_outline,
                                   size: 30, color: Colors.red);
-                            } else if (photoSnapshot.hasData) {
-                              return Image.network(
-                                photoSnapshot.data!,
-                                fit: BoxFit.cover,
-                              );
                             } else {
-                              return const Icon(Icons.account_circle, size: 30);
+                              // Verifica si la photoURL es vacía ("")
+                              if (photoSnapshot.hasData &&
+                                  photoSnapshot.data!.isNotEmpty) {
+                                // Si hay una URL de foto, muestra la imagen con un tamaño específico
+                                return Image.network(
+                                  photoSnapshot.data!,
+                                  fit: BoxFit.cover,
+                                  width:
+                                      100, // Ajusta el ancho de la imagen según tu necesidad
+                                  height:
+                                      100, // Ajusta el alto de la imagen según tu necesidad
+                                );
+                              } else {
+                                // Si la URL de foto está vacía, muestra un icono
+                                return const Icon(Icons.account_circle,
+                                    size: 30);
+                              }
                             }
                           },
                         ),
