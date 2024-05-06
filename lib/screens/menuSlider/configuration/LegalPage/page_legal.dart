@@ -96,7 +96,7 @@ class PageLegal extends StatelessWidget {
                     fontWeight: FontWeight.w400),
               ),
               subtitle: Text(
-                '©2024 RapidJobs. Todos los derechos reservados.\nRapidJobs es una marca registrada de RapidJobs S.A.\nEl uso de esta aplicación está sujeto a los términos y condiciones de uso de RapidJobs S.A.',
+                '©2024 RapidJobs. Todos los derechos reservados.\nRapidJobs es una marca registrada de RapidJobs.\nEl uso de esta aplicación está sujeto a los términos y condiciones de uso de RapidJobs.',
                 style: TextStyle(
                     fontSize: 14,
                     fontFamily: 'Montserrat',

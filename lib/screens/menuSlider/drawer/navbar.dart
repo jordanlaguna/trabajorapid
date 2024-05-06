@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:trabajorapid/data/repositiories/auth_repository.dart';
 import 'package:trabajorapid/screens/menuSlider/configuration/configPage/page_config.dart';
+import 'package:trabajorapid/screens/menuSlider/help/help_page.dart';
 import 'package:trabajorapid/screens/menuSlider/page_chat/page_home_chat.dart';
 import 'package:trabajorapid/screens/menuSlider/payment/payment_page.dart';
 import 'package:trabajorapid/screens/menuSlider/perfilDrawer/profile_drawer.dart';
@@ -294,7 +295,10 @@ class _NavBarState extends State<NavBar> {
                     fontWeight: FontWeight.bold,
                     color: Colors.black),
               ),
-              onTap: () => print('Ayuda presionado'),
+              onTap: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => const PageHelp()));
+              },
             ),
             ListTile(
               leading: ShaderMask(

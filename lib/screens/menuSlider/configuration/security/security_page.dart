@@ -53,7 +53,7 @@ class PageSecurity extends StatelessWidget {
                   const Center(
                     child: Icon(
                       Icons.security,
-                      size: 90,
+                      size: 120,
                       color: Colors.blue,
                     ),
                   ),
