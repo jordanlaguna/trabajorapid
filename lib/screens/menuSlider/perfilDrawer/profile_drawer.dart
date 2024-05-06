@@ -65,7 +65,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
           _addressController.text = userInfo['address'];
         }
         if (_telephoneController.text.isEmpty) {
-          _telephoneController.text = userInfo['telephone'];
+          _telephoneController.text = userInfo['phone'];
         }
         if (selectedValue == null) {
           String gender = userInfo['gender'];
@@ -477,7 +477,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
               if (userData['identification'] == identification &&
                   userData['date'] == date &&
                   userData['address'] == address &&
-                  userData['telephone'] == telephone &&
+                  userData['phone'] == telephone &&
                   userData['gender'] == gender) {
                 QuickAlert.show(
                   context: context,
@@ -496,7 +496,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
               'gender': gender,
               'date': date,
               'address': address,
-              'telephone': telephone
+              'phone': telephone
             };
             await _firebaseFirestore
                 .collection('users')
@@ -526,7 +526,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
         if (userData['identification'] == identification &&
             userData['date'] == date &&
             userData['address'] == address &&
-            userData['telephone'] == telephone &&
+            userData['phone'] == telephone &&
             userData['gender'] == gender) {
           // All data is already registered
           QuickAlert.show(
@@ -545,7 +545,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
             'gender': gender,
             'date': date,
             'address': address,
-            'telephone': telephone
+            'phone': telephone
           };
           await _firebaseFirestore
               .collection('users')
