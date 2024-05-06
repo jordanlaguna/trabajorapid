@@ -31,12 +31,12 @@ class PageAbout extends StatelessWidget {
         iconTheme: const IconThemeData(color: Colors.white, size: 30),
       ),
       body: Container(
-        padding: const EdgeInsets.only(top: 35, left: 75, right: 0),
+        padding: const EdgeInsets.only(top: 5, left: 55, right: 0),
         child: const Column(
           children: [
             SizedBox(height: 170.0),
             Image(
-              image: AssetImage('assets/images/appLogo.png'),
+              image: AssetImage('assets/logos/appLogo.png'),
               height: 250,
               width: 250,
               alignment: Alignment.center,

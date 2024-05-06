@@ -36,7 +36,7 @@ class PageLegal extends StatelessWidget {
           children: const <Widget>[
             ListTile(
               title: Text(
-                '¿Quiénes somos?',
+                '¿Quiénes Somos?',
                 style: TextStyle(
                   fontSize: 20,
                   fontFamily: 'Montserrat',
@@ -87,7 +87,23 @@ class PageLegal extends StatelessWidget {
               ),
             ),
             Divider(),
-            // Puedes agregar más elementos de lista según sea necesario
+            ListTile(
+              title: Text(
+                'Copyright',
+                style: TextStyle(
+                    fontSize: 20,
+                    fontFamily: 'Montserrat',
+                    fontWeight: FontWeight.w400),
+              ),
+              subtitle: Text(
+                '©2024 RapidJobs. Todos los derechos reservados.\nRapidJobs es una marca registrada de RapidJobs S.A.\nEl uso de esta aplicación está sujeto a los términos y condiciones de uso de RapidJobs S.A.',
+                style: TextStyle(
+                    fontSize: 14,
+                    fontFamily: 'Montserrat',
+                    fontWeight: FontWeight.w400),
+              ),
+            ),
+            Divider(),
           ],
         ),
       ),
