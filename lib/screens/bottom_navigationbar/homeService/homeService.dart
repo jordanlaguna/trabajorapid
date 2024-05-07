@@ -395,22 +395,26 @@ class _HomePageServiceState extends State<HomePageService> {
                             child: ClipOval(
                               child: FutureBuilder<String?>(
                                 future: getUserPhotoUrl(uid),
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState ==
+                                builder: (context, photoSnapshot) {
+                                  if (photoSnapshot.connectionState ==
                                       ConnectionState.waiting) {
                                     return const CircularProgressIndicator();
-                                  } else if (snapshot.hasError) {
+                                  } else if (photoSnapshot.hasError) {
                                     return const Icon(Icons.error_outline,
-                                        size: 30,
-                                        color: Colors.red); // Tamaño modificado
-                                  } else if (snapshot.hasData) {
-                                    return Image.network(
-                                      snapshot.data!,
-                                      fit: BoxFit.cover,
-                                    );
+                                        size: 30, color: Colors.red);
                                   } else {
-                                    return const Icon(Icons.account_circle,
-                                        size: 30); // Tamaño modificado
+                                    if (photoSnapshot.hasData &&
+                                        photoSnapshot.data!.isNotEmpty) {
+                                      return Image.network(
+                                        photoSnapshot.data!,
+                                        fit: BoxFit.cover,
+                                        width: 100,
+                                        height: 100,
+                                      );
+                                    } else {
+                                      return const Icon(Icons.account_circle,
+                                          size: 30);
+                                    }
                                   }
                                 },
                               ),
@@ -564,7 +568,6 @@ class _HomePageServiceState extends State<HomePageService> {
                       ),
                     ],
                   ),
-                   
                   SizedBox(
                     width: double.infinity,
                     child: Column(

@@ -158,19 +158,25 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: FutureBuilder<String?>(
                       future: getUserPhotoUrl(
                           FirebaseAuth.instance.currentUser!.uid),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
+                      builder: (context, photoSnapshot) {
+                        if (photoSnapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const CircularProgressIndicator();
-                        } else if (snapshot.hasError || snapshot.data == null) {
-                          // Si hay un error o los datos son nulos, muestra un ícono por defecto
-                          return const Icon(Icons.account_circle, size: 150);
+                        } else if (photoSnapshot.hasError) {
+                          return const Icon(Icons.error_outline,
+                              size: 30, color: Colors.red);
                         } else {
-                          // Si la URL está disponible, muestra la imagen
-                          return Image.network(
-                            snapshot.data!,
-                            fit: BoxFit.cover,
-                          );
+                          if (photoSnapshot.hasData &&
+                              photoSnapshot.data!.isNotEmpty) {
+                            return Image.network(
+                              photoSnapshot.data!,
+                              fit: BoxFit.cover,
+                              width: 100,
+                              height: 100,
+                            );
+                          } else {
+                            return const Icon(Icons.account_circle, size: 30);
+                          }
                         }
                       },
                     ),
@@ -425,7 +431,7 @@ class _ProfilePageState extends State<ProfilePage> {
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
+          return const CircularProgressIndicator();
         }
         if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
@@ -433,14 +439,14 @@ class _ProfilePageState extends State<ProfilePage> {
         if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
           return Column(
             children: [
-              Text(
+              const Text(
                 'Historial de servicios',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Column(
                 children: snapshot.data!.docs.map((DocumentSnapshot document) {
                   var servicio = document.data();
@@ -493,7 +499,7 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Text(
                     tipoServicio,
                     style: const TextStyle(
@@ -522,7 +528,7 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Text(
                     tiempoTranscurrido,
                     style: const TextStyle(
@@ -543,7 +549,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      title: Text(
+                      title: const Text(
                         'Detalles del servicio',
                         style: TextStyle(
                           fontSize: 20,
@@ -555,12 +561,12 @@ class _ProfilePageState extends State<ProfilePage> {
                           children: <Widget>[
                             RichText(
                               text: TextSpan(
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 16,
                                   color: Colors.black,
                                 ),
                                 children: [
-                                  TextSpan(
+                                  const TextSpan(
                                     text: 'Tipo de servicio: ',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
@@ -572,15 +578,15 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ],
                               ),
                             ),
-                            SizedBox(height: 10),
+                            const SizedBox(height: 10),
                             RichText(
                               text: TextSpan(
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 16,
                                   color: Colors.black,
                                 ),
                                 children: [
-                                  TextSpan(
+                                  const TextSpan(
                                     text: 'Detalle: ',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
@@ -592,10 +598,10 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ],
                               ),
                             ),
-                            SizedBox(height: 10),
+                            const SizedBox(height: 10),
                             RichText(
                               text: TextSpan(
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 16,
                                   color: Colors.black,
                                 ),
@@ -612,7 +618,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ],
                               ),
                             ),
-                            SizedBox(height: 10),
+                            const SizedBox(height: 10),
                             RichText(
                               text: TextSpan(
                                 style: const TextStyle(
@@ -702,7 +708,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 textStyle: const TextStyle(fontSize: 11),
                 fixedSize: const Size(105, 35),
                 foregroundColor: const Color.fromARGB(255, 255, 255, 255),
-                backgroundColor: Color.fromARGB(
+                backgroundColor: const Color.fromARGB(
                     255, 65, 111, 223), // Color de fondo del botón
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(32.0),
