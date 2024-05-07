@@ -1,80 +1,209 @@
-import React, { useState, useEffect } from 'react';
-import { Navbar, Nav, Container } from 'react-bootstrap';
-import '../styles/NavigationBar.css';
+// ignore_for_file: avoid_print, unused_element
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:trabajorapid/data/repositiories/auth_repository.dart';
+import 'package:trabajorapid/screens/menuSlider/configuration/configPage/page_config.dart';
+import 'package:trabajorapid/screens/menuSlider/page_chat/page_home_chat.dart';
+import 'package:trabajorapid/screens/menuSlider/payment/payment_page.dart';
+import 'package:trabajorapid/screens/menuSlider/perfilDrawer/profile_drawer.dart';
+import 'package:trabajorapid/services/export_dates/photos_users.dart';
 
-function NavigationBar() {
-    const [scroll, setScroll] = useState(false);
-    const [underlineWidth, setUnderlineWidth] = useState('0%');
+class NavBar extends StatefulWidget {
+  const NavBar({Key? key}) : super(key: key);
 
-    useEffect(() => {
-        const handleScroll = () => {
-            setScroll(window.scrollY > 50);
-        }; 
-
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
-
-    const navbarStyle = {
-        backgroundColor: scroll ? '#000' : '#343a40',
-        borderBottom: '3px solid #ff4500',
-        transition: 'background-color 0.3s ease'
-    };
-
-    const linkStyle = {
-        color: 'white',
-        fontWeight: 'bold',
-        marginRight: '20px',
-        textShadow: '1px 1px 3px rgba(0, 0, 0, 0.6)',
-        position: 'relative',
-    };
-
-    const underlineStyle = {
-        position: 'absolute',
-        left: 0,
-        bottom: 3,
-        width: underlineWidth,
-        height: 2,
-        backgroundColor: '#E8FBFC',
-        transition: 'width 0.3s ease',
-    };
-
-    const handleMouseOver = () => {
-        setUnderlineWidth('100%');
-    };
-
-    const handleMouseOut = () => {
-        setUnderlineWidth('0%');
-    };
-
-    return (
-        <Navbar style={navbarStyle} expand="lg" fixed="top">
-            <Container>
-                <Navbar.Brand href="#home" className={`brand-colored ${scroll ? 'brand-scrolled' : ''}`}>RapidJobs</Navbar.Brand>
-                <Navbar.Toggle aria-controls="basic-navbar-nav" style={{ backgroundColor: 'white' }} />
-                <Navbar.Collapse id="basic-navbar-nav" >
-                    <Nav className="ms-auto">
-                        <Nav.Link href="#home" style={linkStyle} onMouseOver={handleMouseOver} onMouseOut={handleMouseOut}>
-                            Inicio
-                            <div className="underline" style={underlineStyle}></div>
-                        </Nav.Link>
-                        <Nav.Link href="#home1" style={linkStyle} onMouseOver={handleMouseOver} onMouseOut={handleMouseOut}>
-                            Ayuda
-                            <div className="underline" style={underlineStyle}></div>
-                        </Nav.Link>
-                        <Nav.Link href="#home2" style={linkStyle} onMouseOver={handleMouseOver} onMouseOut={handleMouseOut}>
-                            Términos y condiciones
-                            <div className="underline" style={underlineStyle}></div>
-                        </Nav.Link>
-                        <Nav.Link href="#home3" style={linkStyle} onMouseOver={handleMouseOver} onMouseOut={handleMouseOut}>
-                            Guía
-                            <div className="underline" style={underlineStyle}></div>
-                        </Nav.Link>
-                    </Nav>
-                </Navbar.Collapse>
-            </Container>
-        </Navbar>
-    );
+  @override
+  State<NavBar> createState() => _NavBarState();
 }
 
-export default NavigationBar;
+Future<String?> getUserPhotoUrl(String uid) async {
+  try {
+    DocumentSnapshot<Map<String, dynamic>> userData =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+    if (userData.exists) {
+      return userData.data()?['photoURL'] as String?;
+    }
+    return null;  // Return null if user data doesn't exist or photoURL is null.
+  } catch (e) {
+    print('Error obteniendo la URL de la foto del usuario: $e');
+    return null;
+  }
+}
+
+class _NavBarState extends State<NavBar> {
+  final _firebaseFirestore = FirebaseFirestore.instance;
+  String? get userUid => FirebaseAuth.instance.currentUser?.uid;
+
+  Future<Map<String, dynamic>?> getUserData(String? uid) async {
+    if (uid == null) return null;
+    try {
+      DocumentSnapshot<Map<String, dynamic>> userData =
+          await _firebaseFirestore.collection('users').doc(uid).get();
+      return userData.data();
+    } catch (e) {
+      print('Error obteniendo datos del usuario: $e');
+      return null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Theme(
+      data: Theme.of(context),
+      child: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            FutureBuilder<Map<String, dynamic>?>(
+              future: getUserData(userUid),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const DrawerHeader(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Color.fromARGB(255, 65, 111, 223),
+                          Color.fromARGB(255, 110, 174, 231),
+                        ],
+                      ),
+                    ),
+                    child: CircularProgressIndicator(color: Colors.white),
+                  );
+                } else if (snapshot.hasData) {
+                  return UserAccountsDrawerHeader(
+                    accountName: Text(
+                      snapshot.data?['name'] ?? 'Nombre de usuario',
+                      style: const TextStyle(
+                          fontSize: 20,
+                          fontFamily: 'Montserrat',
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white),
+                    ),
+                    accountEmail: Text(
+                      snapshot.data?['email'] ?? 'Correo electrónico',
+                      style: const TextStyle(
+                          fontSize: 14,
+                          fontFamily: 'Montserrat',
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white),
+                    ),
+                    currentAccountPicture: CircleAvatar(
+                      child: ClipOval(
+                        child: FutureBuilder<String?>(
+                          future: getUserPhotoUrl(userUid!),
+                          builder: (context, photoSnapshot) {
+                            if (photoSnapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const CircularProgressIndicator();
+                            } else if (photoSnapshot.hasError) {
+                              return const Icon(Icons.error_outline,
+                                  size: 30, color: Colors.red);
+                            } else {
+                              // Verifica si la photoURL es vacía ("")
+                              if (photoSnapshot.hasData &&
+                                  photoSnapshot.data!.isNotEmpty) {
+                                return Image.network(
+                                  photoSnapshot.data!,
+                                  fit: BoxFit.cover,
+                                  width: 100,
+                                  height: 100,
+                                );
+                              } else {
+                                return const Icon(Icons.account_circle, size: 30);
+                              }
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Color.fromARGB(255, 65, 111, 223),
+                          Color.fromARGB(255, 110, 174, 231),
+                        ],
+                      ),
+                    ),
+                  );
+                } else {
+                  return const DrawerHeader(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Color.fromARGB(255, 65, 111, 223),
+                          Color.fromARGB(255, 110, 174, 231),
+                        ],
+                      ),
+                    ),
+                    child: Text("No se pudo cargar la información del usuario"),
+                  );
+                }
+              },
+            ),
+            buildListTile(Icons.account_circle, 'Perfil', const ProfileDrawer()),
+            buildListTile(Icons.message_rounded, 'Mensajes', const PageChat()),
+            buildListTile(Icons.attach_money_rounded, 'Pagos', const PaymentPage()),
+            ListTile(
+              leading: getIconWithShader(Icons.work_history),
+              title: buildTextStyle('Trabajos'),
+              onTap: () => print('Trabajos presionado'),
+            ),
+            ListTile(
+              leading: getIconWithShader(Icons.notifications),
+              title: buildTextStyle('Notificaciones'),
+              onTap: () => print('Notificaciones presionado'),
+            ),
+            const Divider(
+              height: 30,
+              color: Color(0xffB81736),
+            ),
+            buildListTile(Icons.help_rounded, 'Ayuda', null),
+            buildListTile(Icons.settings_rounded, 'Configuración', const ConfigPage()),
+            buildListTile(Icons.logout_rounded, 'Salir', null, onTap: () {
+              AuthRepository.instance.logoutUser();
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  ListTile buildListTile(IconData icon, String title, Widget? page, {Function()? onTap}) {
+    return ListTile(
+      leading: getIconWithShader(icon),
+      title: buildTextStyle(title),
+      onTap: onTap ?? () {
+        if (page != null) {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => page));
+        }
+      },
+    );
+  }
+
+  Text buildTextStyle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 18,
+        fontFamily: 'Montserrat',
+        fontWeight: FontWeight.bold,
+        color: Colors.black),
+    );
+  }
+
+  ShaderMask getIconWithShader(IconData icon) {
+    return ShaderMask(
+      shaderCallback: (Rect bounds) {
+        return const LinearGradient(
+          colors: [
+            Color.fromARGB(255, 65, 111, 223),
+            Color.fromARGB(255, 110, 174, 231),
+          ],
+        ).createShader(bounds);
+      },
+      child: Icon(icon, size: 30, color: Colors.white),
+    );
+  }
+}
+
