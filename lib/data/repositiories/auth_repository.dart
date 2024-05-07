@@ -131,10 +131,10 @@ class AuthRepository extends GetxController {
     }
   }
 
-  // GoogleAuth - Iniciar sesion con Google
+// GoogleAuth - Iniciar sesión con Google
   Future<UserCredential?> signInWithGoogle() async {
     try {
-      // Trigger the authentication flow
+      // Iniciar el flujo de autenticación
       final GoogleSignInAccount? userAccount = await GoogleSignIn().signIn();
       // Obtener credenciales de Google
       final GoogleSignInAuthentication? googleAuth =
@@ -144,8 +144,18 @@ class AuthRepository extends GetxController {
         accessToken: googleAuth?.accessToken,
         idToken: googleAuth?.idToken,
       );
-      // Inicio de sesion una vez que se obtienen las credenciales y retornar las credenciales
-      return await _auth.signInWithCredential(credentials);
+      // Iniciar sesión una vez que se obtienen las credenciales y retornar las credenciales
+      final userCredential = await _auth.signInWithCredential(credentials);
+
+      // Verificar si el inicio de sesión fue exitoso
+      if (userCredential.user != null) {
+        String uid = userCredential.user!.uid;
+        await updateUserActive(uid, true);
+        print('Usuario activo');
+        print('Usuario activo!');
+      }
+
+      return userCredential;
     } on FirebaseException catch (e) {
       throw TFirebaseAuthException(e.code).message;
       // ignore: dead_code_on_catch_subtype
@@ -156,7 +166,7 @@ class AuthRepository extends GetxController {
     } on PlatformException catch (e) {
       throw TPlatformException(e.code).message;
     } catch (e) {
-      if (kDebugMode) print('Ocurrio un error inesperado: $e');
+      if (kDebugMode) print('Ocurrió un error inesperado: $e');
       return null;
     }
   }

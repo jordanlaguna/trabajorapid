@@ -572,7 +572,44 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
     }
   }
 
-  //Selected image from gallery or camera
+  void updateUserDataFromGoogle(User user) async {
+    final String identification = _identificationController.text;
+    final String date = _dateController.text;
+    final String address = _addressController.text;
+    final String telephone = _telephoneController.text;
+    final String gender = selectedValue!;
+    String? email = user.email;
+    String? name = user.displayName;
+    String uid = user.uid;
+
+    if (email != null && name != null) {
+      try {
+        DocumentSnapshot userDoc =
+            await _firebaseFirestore.collection('users').doc(uid).get();
+
+        if (!userDoc.exists) {
+          Map<String, dynamic> userData = {
+            'email': email,
+            'name': name,
+            'uid': uid,
+            'identification': identification,
+            'gender': gender,
+            'address': address,
+            'phone': telephone,
+            'photoUrl': user.photoURL,
+            'date': date,
+          };
+          await _firebaseFirestore.collection('users').doc(uid).set(userData);
+
+          // Actualizar los controladores con los datos del usuario
+          _fullNameController.text = name;
+          _emailController.text = email;
+        }
+      } catch (e) {
+        print(e);
+      }
+    }
+  }
 
   //Method for upload photo of profile in firebase storage and get url of photo
   Future<void> uploadProfilePhoto(File? imageFile) async {
@@ -617,25 +654,6 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
         autoCloseDuration: const Duration(seconds: 2),
         showConfirmBtn: false,
       );
-    }
-  }
-
-  void updateUserDataFromGoogle(User user) async {
-    String? email = user.email;
-    String? name = user.displayName;
-    String uid = user.uid;
-
-    if (email != null && name != null) {
-      DocumentSnapshot userDoc =
-          await _firebaseFirestore.collection('users').doc(uid).get();
-
-      if (!userDoc.exists) {
-        await _firebaseFirestore.collection('users').doc(uid).set({
-          'email': email,
-          'name': name,
-          'photoUrl': user.photoURL,
-        });
-      }
     }
   }
 }
