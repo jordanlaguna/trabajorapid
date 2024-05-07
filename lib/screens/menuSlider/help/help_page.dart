@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PageHelp extends StatelessWidget {
   const PageHelp({Key? key}) : super(key: key);
@@ -130,7 +131,10 @@ class PageHelp extends StatelessWidget {
                   ),
                 ),
                 trailing: const Icon(Icons.arrow_forward),
-                onTap: () {},
+                onTap: () {
+                  const url = 'https://rapid-jobs-web.vercel.app/';
+                  launch(url);
+                },
               ),
             ),
             const Divider(),
