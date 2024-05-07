@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:trabajorapid/utils/formatters/formatter.dart';
 
-class UserModel{
+class UserModel {
   final String uid;
   String fullname;
   final bool isActive;
@@ -19,7 +19,6 @@ class UserModel{
     required this.profilePicture,
   });
 
- 
   // Para obtener el nombre completo
   //String get fullName => '$firstName $lastName';
 
@@ -30,31 +29,38 @@ class UserModel{
   static List<String> nameParts(fullName) => fullName.split(" ");
 
   // Generar el nombre de usuario
-  static String generateUsername(fullName){
+  static String generateUsername(fullName) {
     List<String> nameParts = fullName.split(" ");
     String firstName = nameParts[0].toLowerCase();
     String lastName = nameParts.length > 1 ? nameParts[1].toLowerCase() : "";
-    
+
     String camelCaseUsername = "$firstName$lastName";
-    String usernameWithPrefix  = "cwt_$camelCaseUsername";
+    String usernameWithPrefix = "cwt_$camelCaseUsername";
     return usernameWithPrefix;
   }
-  
+
   // constructor vacio
-  static UserModel empty() => UserModel(uid: '', fullname: '', isActive: false, email: '', phone: '', profilePicture: '');
+  static UserModel empty() => UserModel(
+      uid: '',
+      fullname: '',
+      isActive: false,
+      email: '',
+      phone: '',
+      profilePicture: '');
 
   // Convertir a json
   Map<String, dynamic> toJson() => {
-    'uid': uid,
-    'name': fullname,
-    'isActive': isActive,
-    'email': email,
-    'phone': phone,
-    'photoURL': profilePicture,
-  };
+        'uid': uid,
+        'name': fullname,
+        'isActive': isActive,
+        'email': email,
+        'phone': phone,
+        'photoURL': profilePicture,
+      };
 
   // factory para crear un usuario desde un snapshot
-  factory UserModel.fromSnapshot(DocumentSnapshot<Map<String, dynamic>> document) {
+  factory UserModel.fromSnapshot(
+      DocumentSnapshot<Map<String, dynamic>> document) {
     if (document.data() != null) {
       final data = document.data()!;
       return UserModel(

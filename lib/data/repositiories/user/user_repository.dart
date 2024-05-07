@@ -9,7 +9,7 @@ import '../exceptions/firebase_exceptions.dart';
 import '../exceptions/format_exceptions.dart';
 import '../exceptions/platform_exceptions.dart';
 
-class UserRepository extends GetxController{
+class UserRepository extends GetxController {
   static UserRepository get instance => Get.find();
 
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -20,7 +20,7 @@ class UserRepository extends GetxController{
       await _db.collection('users').doc(user.uid).set(user.toJson());
     } on FirebaseException catch (e) {
       throw TFirebaseAuthException(e.code);
-    // ignore: dead_code_on_catch_subtype
+      // ignore: dead_code_on_catch_subtype
     } on FirebaseAuthException catch (e) {
       throw TFirebaseException(e.code);
     } on FormatException {
@@ -32,4 +32,3 @@ class UserRepository extends GetxController{
     }
   }
 }
-

@@ -89,10 +89,10 @@ class LoginController extends GetxController {
         return;
       }
       // Google Auth
-      final userCredentials = await AuthRepository.instance.signInWithGoogle();
+      await AuthRepository.instance.signInWithGoogle();
 
       // Guardar el usuario
-      await userController.saveUserRecord(userCredentials);
+      //await userController.saveUserRecord(userCredentials);
 
       // Detener el loader
       TFullScreenLoader.stopLoading();
