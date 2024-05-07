@@ -4,10 +4,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:trabajorapid/data/repositiories/auth_repository.dart';
 import 'package:trabajorapid/screens/menuSlider/configuration/configPage/page_config.dart';
+import 'package:trabajorapid/screens/menuSlider/help/help_page.dart';
 import 'package:trabajorapid/screens/menuSlider/page_chat/page_home_chat.dart';
 import 'package:trabajorapid/screens/menuSlider/payment/payment_page.dart';
 import 'package:trabajorapid/screens/menuSlider/perfilDrawer/profile_drawer.dart';
-import 'package:trabajorapid/services/export_dates/photos_users.dart';
 
 class NavBar extends StatefulWidget {
   const NavBar({Key? key}) : super(key: key);
@@ -24,7 +24,7 @@ Future<String?> getUserPhotoUrl(String uid) async {
     if (userData.exists) {
       return userData.data()?['photoURL'] as String?;
     }
-    return null;  // Return null if user data doesn't exist or photoURL is null.
+    return null; // Return null if user data doesn't exist or photoURL is null.
   } catch (e) {
     print('Error obteniendo la URL de la foto del usuario: $e');
     return null;
@@ -110,7 +110,8 @@ class _NavBarState extends State<NavBar> {
                                   height: 100,
                                 );
                               } else {
-                                return const Icon(Icons.account_circle, size: 30);
+                                return const Icon(Icons.account_circle,
+                                    size: 30);
                               }
                             }
                           },
@@ -141,9 +142,11 @@ class _NavBarState extends State<NavBar> {
                 }
               },
             ),
-            buildListTile(Icons.account_circle, 'Perfil', const ProfileDrawer()),
+            buildListTile(
+                Icons.account_circle, 'Perfil', const ProfileDrawer()),
             buildListTile(Icons.message_rounded, 'Mensajes', const PageChat()),
-            buildListTile(Icons.attach_money_rounded, 'Pagos', const PaymentPage()),
+            buildListTile(
+                Icons.attach_money_rounded, 'Pagos', const PaymentPage()),
             ListTile(
               leading: getIconWithShader(Icons.work_history),
               title: buildTextStyle('Trabajos'),
@@ -158,8 +161,9 @@ class _NavBarState extends State<NavBar> {
               height: 30,
               color: Color(0xffB81736),
             ),
-            buildListTile(Icons.help_rounded, 'Ayuda', null),
-            buildListTile(Icons.settings_rounded, 'Configuración', const ConfigPage()),
+            buildListTile(Icons.help_rounded, 'Ayuda', const PageHelp()),
+            buildListTile(
+                Icons.settings_rounded, 'Configuración', const ConfigPage()),
             buildListTile(Icons.logout_rounded, 'Salir', null, onTap: () {
               AuthRepository.instance.logoutUser();
             }),
@@ -169,15 +173,18 @@ class _NavBarState extends State<NavBar> {
     );
   }
 
-  ListTile buildListTile(IconData icon, String title, Widget? page, {Function()? onTap}) {
+  ListTile buildListTile(IconData icon, String title, Widget? page,
+      {Function()? onTap}) {
     return ListTile(
       leading: getIconWithShader(icon),
       title: buildTextStyle(title),
-      onTap: onTap ?? () {
-        if (page != null) {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => page));
-        }
-      },
+      onTap: onTap ??
+          () {
+            if (page != null) {
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => page));
+            }
+          },
     );
   }
 
@@ -185,10 +192,10 @@ class _NavBarState extends State<NavBar> {
     return Text(
       title,
       style: const TextStyle(
-        fontSize: 18,
-        fontFamily: 'Montserrat',
-        fontWeight: FontWeight.bold,
-        color: Colors.black),
+          fontSize: 18,
+          fontFamily: 'Montserrat',
+          fontWeight: FontWeight.bold,
+          color: Colors.black),
     );
   }
 
@@ -206,4 +213,3 @@ class _NavBarState extends State<NavBar> {
     );
   }
 }
-
