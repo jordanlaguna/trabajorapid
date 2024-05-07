@@ -7,7 +7,6 @@ import 'package:trabajorapid/screens/menuSlider/configuration/configPage/page_co
 import 'package:trabajorapid/screens/menuSlider/page_chat/page_home_chat.dart';
 import 'package:trabajorapid/screens/menuSlider/payment/payment_page.dart';
 import 'package:trabajorapid/screens/menuSlider/perfilDrawer/profile_drawer.dart';
-import 'package:trabajorapid/services/export_dates/photos_users.dart';
 
 class NavBar extends StatefulWidget {
   const NavBar({Key? key}) : super(key: key);
@@ -16,21 +15,15 @@ class NavBar extends StatefulWidget {
   State<NavBar> createState() => _NavBarState();
 }
 
-Future getUserPhotoUrl(String uid) async {
+Future<String?> getUserPhotoUrl(String uid) async {
   try {
-    // Intenta obtener la URL de la foto del usuario desde la base de datos
     DocumentSnapshot<Map<String, dynamic>> userData =
         await FirebaseFirestore.instance.collection('users').doc(uid).get();
 
-    // Si la URL de la foto está disponible en la base de datos, úsala
-    if (userData.exists && userData['photoURL'] != null) {
-      return userData['photoURL'];
+    if (userData.exists) {
+      return userData.data()?['photoURL'] as String?;
     }
-    if (userData['photoURL'] == "") {
-      return const Icon(Icons.account_circle, size: 30);
-    } else {
-      return FirebaseAuth.instance.currentUser?.photoURL;
-    }
+    return null; // Return null if user data doesn't exist or photoURL is null.
   } catch (e) {
     print('Error obteniendo la URL de la foto del usuario: $e');
     return null;
@@ -97,7 +90,7 @@ class _NavBarState extends State<NavBar> {
                     currentAccountPicture: CircleAvatar(
                       child: ClipOval(
                         child: FutureBuilder<String?>(
-                          future: getUserPhotoURL(userUid!),
+                          future: getUserPhotoUrl(userUid!),
                           builder: (context, photoSnapshot) {
                             if (photoSnapshot.connectionState ==
                                 ConnectionState.waiting) {
@@ -109,17 +102,13 @@ class _NavBarState extends State<NavBar> {
                               // Verifica si la photoURL es vacía ("")
                               if (photoSnapshot.hasData &&
                                   photoSnapshot.data!.isNotEmpty) {
-                                // Si hay una URL de foto, muestra la imagen con un tamaño específico
                                 return Image.network(
                                   photoSnapshot.data!,
                                   fit: BoxFit.cover,
-                                  width:
-                                      100, // Ajusta el ancho de la imagen según tu necesidad
-                                  height:
-                                      100, // Ajusta el alto de la imagen según tu necesidad
+                                  width: 100,
+                                  height: 100,
                                 );
                               } else {
-                                // Si la URL de foto está vacía, muestra un icono
                                 return const Icon(Icons.account_circle,
                                     size: 30);
                               }
@@ -152,220 +141,74 @@ class _NavBarState extends State<NavBar> {
                 }
               },
             ),
+            buildListTile(
+                Icons.account_circle, 'Perfil', const ProfileDrawer()),
+            buildListTile(Icons.message_rounded, 'Mensajes', const PageChat()),
+            buildListTile(
+                Icons.attach_money_rounded, 'Pagos', const PaymentPage()),
             ListTile(
-              leading: ShaderMask(
-                shaderCallback: (Rect bounds) {
-                  return const LinearGradient(
-                    colors: [
-                      Color.fromARGB(255, 65, 111, 223),
-                      Color.fromARGB(255, 110, 174, 231),
-                    ],
-                  ).createShader(bounds);
-                },
-                child: const Icon(
-                  Icons.account_circle,
-                  size: 30,
-                  color: Colors.white,
-                ),
-              ),
-              title: const Text(
-                'Perfil',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontFamily: 'Montserrat',
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black),
-              ),
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const ProfileDrawer()));
-              },
-            ),
-            ListTile(
-              leading: ShaderMask(
-                shaderCallback: (Rect bounds) {
-                  return const LinearGradient(
-                    colors: [
-                      Color.fromARGB(255, 65, 111, 223),
-                      Color.fromARGB(255, 110, 174, 231),
-                    ],
-                  ).createShader(bounds);
-                },
-                child: const Icon(Icons.message_rounded,
-                    size: 30, color: Colors.white),
-              ),
-              title: const Text(
-                'Mensajes',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontFamily: 'Montserrat',
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black),
-              ),
-              onTap: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => const PageChat()));
-              },
-            ),
-            ListTile(
-              leading: ShaderMask(
-                shaderCallback: (Rect bounds) {
-                  return const LinearGradient(
-                    colors: [
-                      Color.fromARGB(255, 65, 111, 223),
-                      Color.fromARGB(255, 110, 174, 231),
-                    ],
-                  ).createShader(bounds);
-                },
-                child: const Icon(Icons.attach_money_rounded,
-                    size: 30, color: Colors.white),
-              ),
-              title: const Text(
-                'Pagos',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontFamily: 'Montserrat',
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black),
-              ),
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const PaymentPage()));
-              },
-            ),
-            ListTile(
-              leading: ShaderMask(
-                shaderCallback: (Rect bounds) {
-                  return const LinearGradient(
-                    colors: [
-                      Color.fromARGB(255, 65, 111, 223),
-                      Color.fromARGB(255, 110, 174, 231),
-                    ],
-                  ).createShader(bounds);
-                },
-                child: const Icon(Icons.work_history,
-                    size: 30, color: Colors.white),
-              ),
-              title: const Text(
-                'Trabajos',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontFamily: 'Montserrat',
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black),
-              ),
+              leading: getIconWithShader(Icons.work_history),
+              title: buildTextStyle('Trabajos'),
               onTap: () => print('Trabajos presionado'),
             ),
             ListTile(
-              leading: ShaderMask(
-                shaderCallback: (Rect bounds) {
-                  return const LinearGradient(
-                    colors: [
-                      Color.fromARGB(255, 65, 111, 223),
-                      Color.fromARGB(255, 110, 174, 231),
-                    ],
-                  ).createShader(bounds);
-                },
-                child: const Icon(Icons.notifications,
-                    size: 30, color: Colors.white),
-              ),
-              title: const Text(
-                'Notificaciones',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontFamily: 'Montserrat',
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black),
-              ),
+              leading: getIconWithShader(Icons.notifications),
+              title: buildTextStyle('Notificaciones'),
               onTap: () => print('Notificaciones presionado'),
             ),
             const Divider(
               height: 30,
               color: Color(0xffB81736),
             ),
-            ListTile(
-              leading: ShaderMask(
-                shaderCallback: (Rect bounds) {
-                  return const LinearGradient(
-                    colors: [
-                      Color.fromARGB(255, 65, 111, 223),
-                      Color.fromARGB(255, 110, 174, 231),
-                    ],
-                  ).createShader(bounds);
-                },
-                child: const Icon(Icons.help_rounded,
-                    size: 30, color: Colors.white),
-              ),
-              title: const Text(
-                'Ayuda',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontFamily: 'Montserrat',
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black),
-              ),
-              onTap: () => print('Ayuda presionado'),
-            ),
-            ListTile(
-              leading: ShaderMask(
-                shaderCallback: (Rect bounds) {
-                  return const LinearGradient(
-                    colors: [
-                      Color.fromARGB(255, 65, 111, 223),
-                      Color.fromARGB(255, 110, 174, 231),
-                    ],
-                  ).createShader(bounds);
-                },
-                child: const Icon(Icons.settings_rounded,
-                    size: 30, color: Colors.white),
-              ),
-              title: const Text(
-                'Configuración',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontFamily: 'Montserrat',
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black),
-              ),
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const ConfigPage()));
-              },
-            ),
-            ListTile(
-              leading: ShaderMask(
-                shaderCallback: (Rect bounds) {
-                  return const LinearGradient(
-                    colors: [
-                      Color.fromARGB(255, 65, 111, 223),
-                      Color.fromARGB(255, 110, 174, 231),
-                    ],
-                  ).createShader(bounds);
-                },
-                child: const Icon(Icons.logout_rounded,
-                    size: 30, color: Colors.white),
-              ),
-              title: const Text(
-                'Salir',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontFamily: 'Montserrat',
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black),
-              ),
-              onTap: () {
-                AuthRepository.instance.logoutUser();
-              },
-            ),
+            buildListTile(Icons.help_rounded, 'Ayuda', null),
+            buildListTile(
+                Icons.settings_rounded, 'Configuración', const ConfigPage()),
+            buildListTile(Icons.logout_rounded, 'Salir', null, onTap: () {
+              AuthRepository.instance.logoutUser();
+            }),
           ],
         ),
       ),
+    );
+  }
+
+  ListTile buildListTile(IconData icon, String title, Widget? page,
+      {Function()? onTap}) {
+    return ListTile(
+      leading: getIconWithShader(icon),
+      title: buildTextStyle(title),
+      onTap: onTap ??
+          () {
+            if (page != null) {
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => page));
+            }
+          },
+    );
+  }
+
+  Text buildTextStyle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+          fontSize: 18,
+          fontFamily: 'Montserrat',
+          fontWeight: FontWeight.bold,
+          color: Colors.black),
+    );
+  }
+
+  ShaderMask getIconWithShader(IconData icon) {
+    return ShaderMask(
+      shaderCallback: (Rect bounds) {
+        return const LinearGradient(
+          colors: [
+            Color.fromARGB(255, 65, 111, 223),
+            Color.fromARGB(255, 110, 174, 231),
+          ],
+        ).createShader(bounds);
+      },
+      child: Icon(icon, size: 30, color: Colors.white),
     );
   }
 }
