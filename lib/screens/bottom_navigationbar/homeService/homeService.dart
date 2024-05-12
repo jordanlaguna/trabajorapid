@@ -1,5 +1,4 @@
 // ignore_for_file: unused_element, avoid_print, file_names, unused_local_variable, non_constant_identifier_names, duplicate_ignore
-import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -569,39 +568,29 @@ class _HomePageServiceState extends State<HomePageService> {
                     ],
                   ),
                   SizedBox(
-                    width: double.infinity,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        GestureDetector(
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: const Text('Información'),
-                                  content: Text(contenido),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text('Cerrar'),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                          child: Text(
-                            contenido.length > 38
-                                ? '${contenido.substring(0, 35)}...'
-                                : contenido,
+                        SizedBox(
+                          width: 210,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.center,
+                            child: Text(
+                              contenido.length > 38
+                                  ? '${contenido.substring(0, 35)}...'
+                                  : contenido,
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 15.0,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 1.0),
                         SizedBox(
-                          width: 250,
+                          width: 210,
                           child: FittedBox(
                             fit: BoxFit.scaleDown,
                             alignment: Alignment.center,
@@ -617,7 +606,7 @@ class _HomePageServiceState extends State<HomePageService> {
                         ),
                         const SizedBox(height: 1.0),
                         SizedBox(
-                          width: 200,
+                          width: 210,
                           child: FittedBox(
                             fit: BoxFit.scaleDown,
                             alignment: Alignment.center,
