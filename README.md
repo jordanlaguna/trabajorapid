@@ -2,7 +2,7 @@
 Es un proyecto creado en flutter con lo cual se busca implementar una app para buscar trabajo en Costa Rica.
 
 💬 La app tiene un logo creativo con lo que busca llamar la atención de los usuarios.
-![RapidJobs](https://github.com/jordanlaguna/trabajorapid/raw/main/assets/logos/appLogo.png)
+<img src="https://github.com/jordanlaguna/trabajorapid/raw/main/assets/logos/appLogo.png" alt="RapidJobs" width="300"/>
 
 ## Características Principales
 
