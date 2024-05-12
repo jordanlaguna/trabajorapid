@@ -3,7 +3,7 @@ import 'package:trabajorapid/screens/menuSlider/configuration/aboutOfPage/page_a
 import 'package:trabajorapid/screens/menuSlider/configuration/PolicyPage/page_policy.dart';
 import 'package:trabajorapid/screens/menuSlider/configuration/frequentQuest/frequent_quest.dart';
 import 'package:trabajorapid/screens/menuSlider/configuration/legalPage/page_legal.dart';
-import 'package:trabajorapid/screens/menuSlider/configuration/security/security_page.dart';
+import 'package:trabajorapid/screens/menuSlider/configuration/securityPage/security_page.dart';
 import 'package:trabajorapid/screens/menuSlider/perfilDrawer/profile_drawer.dart';
 
 class ConfigPage extends StatelessWidget {

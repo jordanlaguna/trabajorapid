@@ -102,7 +102,15 @@ class _PageChatState extends State<PageChat> {
                                     builder: (context, snapshot) {
                                       if (snapshot.connectionState ==
                                           ConnectionState.waiting) {
-                                        return const CircularProgressIndicator();
+                                        return Container(
+                                          alignment: Alignment.center,
+                                          height: 50,
+                                          width: 50,
+                                          child:
+                                              const CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        );
                                       } else {
                                         if (snapshot.hasError) {
                                           return const Icon(Icons.error);

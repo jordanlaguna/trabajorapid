@@ -109,6 +109,54 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
           ),
         ),
         iconTheme: const IconThemeData(color: Colors.white, size: 30),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20.0),
+            child: FloatingActionButton(
+              onPressed: () async {
+                if (image_upload == null) {
+                  QuickAlert.show(
+                    context: context,
+                    type: QuickAlertType.error,
+                    text: 'Error: No se ha seleccionado ninguna imagen.',
+                    autoCloseDuration: const Duration(seconds: 2),
+                    showConfirmBtn: false,
+                  );
+                  return;
+                }
+
+                final uploaded = await uploadImage(image_upload!);
+
+                if (_formKey.currentState!.validate()) {
+                  _registerUser(context);
+                } else {
+                  User? user = FirebaseAuth.instance.currentUser;
+                  if (user != null) {
+                    updateUserDataFromGoogle(user);
+                  }
+                }
+              },
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.grey.shade200, Colors.grey.shade200],
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child: const Padding(
+                  padding: EdgeInsets.all(10.0),
+                  child: Icon(
+                    Icons.add,
+                    size: 20,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.only(top: 20.0),
@@ -191,9 +239,11 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                               fontFamily: 'Montserrat',
                               fontWeight: FontWeight.bold,
                             ),
-                            focusedBorder: OutlineInputBorder(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15.0),
                               borderSide: BorderSide(
-                                color: Theme.of(context).colorScheme.secondary,
+                                color: Colors.grey.withOpacity(0.7),
+                                width: 2.0,
                               ),
                             ),
                           ),
@@ -219,9 +269,11 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                               fontFamily: 'Montserrat',
                               fontWeight: FontWeight.bold,
                             ),
-                            focusedBorder: OutlineInputBorder(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15.0),
                               borderSide: BorderSide(
-                                color: Theme.of(context).colorScheme.secondary,
+                                color: Colors.grey.withOpacity(0.7),
+                                width: 2.0,
                               ),
                             ),
                           ),
@@ -260,9 +312,11 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                               fontFamily: 'Montserrat',
                               fontWeight: FontWeight.bold,
                             ),
-                            focusedBorder: OutlineInputBorder(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15.0),
                               borderSide: BorderSide(
-                                color: Theme.of(context).colorScheme.secondary,
+                                color: Colors.grey.withOpacity(0.7),
+                                width: 2.0,
                               ),
                             ),
                           ),
@@ -288,9 +342,11 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                               fontFamily: 'Montserrat',
                               fontWeight: FontWeight.bold,
                             ),
-                            focusedBorder: OutlineInputBorder(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15.0),
                               borderSide: BorderSide(
-                                color: Theme.of(context).colorScheme.secondary,
+                                color: Colors.grey.withOpacity(0.7),
+                                width: 2.0,
                               ),
                             ),
                           ),
@@ -315,9 +371,11 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                               fontFamily: 'Montserrat',
                               fontWeight: FontWeight.bold,
                             ),
-                            focusedBorder: OutlineInputBorder(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15.0),
                               borderSide: BorderSide(
-                                color: Theme.of(context).colorScheme.secondary,
+                                color: Colors.grey.withOpacity(0.7),
+                                width: 2.0,
                               ),
                             ),
                           ),
@@ -342,9 +400,11 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                               fontFamily: 'Montserrat',
                               fontWeight: FontWeight.bold,
                             ),
-                            focusedBorder: OutlineInputBorder(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15.0),
                               borderSide: BorderSide(
-                                color: Theme.of(context).colorScheme.secondary,
+                                color: Colors.grey.withOpacity(0.7),
+                                width: 2.0,
                               ),
                             ),
                           ),
@@ -369,9 +429,11 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                               fontFamily: 'Montserrat',
                               fontWeight: FontWeight.bold,
                             ),
-                            focusedBorder: OutlineInputBorder(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15.0),
                               borderSide: BorderSide(
-                                color: Theme.of(context).colorScheme.secondary,
+                                color: Colors.grey.withOpacity(0.7),
+                                width: 2.0,
                               ),
                             ),
                           ),
@@ -392,53 +454,6 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          if (image_upload == null) {
-            QuickAlert.show(
-              context: context,
-              type: QuickAlertType.error,
-              text: 'Error: No se ha seleccionado ninguna imagen.',
-              autoCloseDuration: const Duration(seconds: 2),
-              showConfirmBtn: false,
-            );
-            return;
-          }
-
-          final uploaded = await uploadImage(image_upload!);
-
-          if (_formKey.currentState!.validate()) {
-            _registerUser(context);
-          } else {
-            User? user = FirebaseAuth.instance.currentUser;
-            if (user != null) {
-              updateUserDataFromGoogle(user);
-            }
-          }
-        },
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        child: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color.fromARGB(255, 65, 111, 223),
-                Color.fromARGB(255, 110, 174, 231),
-              ],
-            ),
-            shape: BoxShape.circle,
-          ),
-          child: const Padding(
-            padding: EdgeInsets.all(10.0),
-            child: Icon(
-              Icons.add,
-              size: 32,
-              color: Colors.white,
-            ),
-          ),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
     );
   }
 

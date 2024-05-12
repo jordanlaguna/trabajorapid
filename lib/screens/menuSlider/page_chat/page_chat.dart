@@ -139,21 +139,31 @@ class _ChatHomeState extends State<ChatHome> {
 
   Widget _buildMessageList() {
     return StreamBuilder(
-        stream: _chatServices.getMessages(
-            widget.receiverUserID, _auth.currentUser!.uid),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Text('Error${snapshot.error}');
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const CircularProgressIndicator();
-          }
-          return ListView(
-            children: snapshot.data!.docs
-                .map((document) => _buildMessageItem(document))
-                .toList(),
+      stream: _chatServices.getMessages(
+        widget.receiverUserID,
+        _auth.currentUser!.uid,
+      ),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Text('Error${snapshot.error}');
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container(
+            alignment: Alignment.center,
+            height: 50,
+            width: 50,
+            child: const CircularProgressIndicator(
+              strokeWidth: 2,
+            ),
           );
-        });
+        }
+        return ListView(
+          children: snapshot.data!.docs
+              .map((document) => _buildMessageItem(document))
+              .toList(),
+        );
+      },
+    );
   }
 
   Widget _buildMessageItem(DocumentSnapshot document) {
