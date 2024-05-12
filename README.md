@@ -6,6 +6,7 @@ Es un proyecto creado en flutter con lo cual se busca implementar una app para b
   <br/>
   <img src="https://github.com/jordanlaguna/trabajorapid/raw/main/assets/logos/appLogo.png" alt="RapidJobs" width="200"/>
 </div>
+
 ## Características Principales
 
 - **Desarrollo en Flutter y Dart:** Utilizamos el framework Flutter y el lenguaje de programación Dart para crear una experiencia de usuario fluida y receptiva en dispositivos móviles.
