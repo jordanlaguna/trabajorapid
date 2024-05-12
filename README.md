@@ -1,16 +1,26 @@
-# trabajorapid
+# Bienvenido a RapidJobs 👋
+Es un proyecto creado en flutter con lo cual se busca implementar una app para buscar trabajo en Costa Rica.
 
-A new Flutter project.
+💬 La app tiene un logo creativo con lo que busca llamar la atención de los usuarios.
+[RapidJobs](https://github.com/jordanlaguna/trabajorapid/blob/main/assets/logos/appLogo.png)
 
-## Getting Started
+## Características Principales
 
-This project is a starting point for a Flutter application.
+- **Desarrollo en Flutter y Dart:** Utilizamos el framework Flutter y el lenguaje de programación Dart para crear una experiencia de usuario fluida y receptiva en dispositivos móviles.
+- **Backend en Firebase:** La aplicación se integra con Firebase para el almacenamiento de datos en la nube, la autenticación de usuarios y otras funcionalidades backend.
+- **Inicio de sesión con Google:** Implementamos la autenticación de usuarios a través de Google para una experiencia de inicio de sesión rápida y segura.
+- **Fecha de Creación:** El proyecto RapidJobs fue creado en 2024 con el objetivo de proporcionar una solución innovadora para la búsqueda de trabajo en Costa Rica.
 
-A few resources to get you started if this is your first Flutter project:
+## Funcionalidades Clave
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- **Búsqueda de Trabajo:** Los usuarios pueden buscar oportunidades laborales en Costa Rica utilizando diversas categorías y filtros.
+- **Perfil de Usuario:** Cada usuario tiene un perfil personalizado donde puede gestionar su información, guardar búsquedas y aplicar a empleos.
+- **Notificaciones en Tiempo Real:** La aplicación utiliza Firebase Cloud Messaging para enviar notificaciones instantáneas sobre nuevas oportunidades laborales y actualizaciones importantes.
+- **Interfaz Intuitiva:** Diseñamos una interfaz de usuario intuitiva y atractiva para facilitar la navegación y mejorar la experiencia del usuario.
+## Contacto
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Si tienes preguntas, sugerencias o comentarios sobre el proyecto, no dudes en ponerte en contacto con nosotros:
+
+- Email: [correo@example.com](mailto:correo@example.com)
+- Twitter: [@RapidJobsApp](https://twitter.com/RapidJobsApp)
+- Sitio web: [www.rapidjobs.com](http://www.rapidjobs.com)
