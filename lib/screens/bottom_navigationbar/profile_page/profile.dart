@@ -35,11 +35,16 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   bool _showDireccionError = false;
+  final int _perPage = 5;
+  DocumentSnapshot? _lastDocument;
+  List<DocumentSnapshot> _documentList = [];
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
+    _loadDocuments();
     _getServicios();
-    //_getCurrentPosition(); // Llama a la función para obtener los servicios al inicializar el estado
   }
 
   @override
@@ -183,11 +188,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
               ),
-
-              const SizedBox(
-                height: 15,
-              ),
-
+              const SizedBox(height: 15),
               FutureBuilder<DocumentSnapshot>(
                 future: FirebaseFirestore.instance
                     .collection('users')
@@ -218,9 +219,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   }
                 },
               ),
-              const SizedBox(
-                height: 10,
-              ),
+              const SizedBox(height: 10),
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 6),
                 child: Row(
@@ -253,11 +252,12 @@ class _ProfilePageState extends State<ProfilePage> {
                   ],
                 ),
               ),
-
               ElevatedButton(
                 onPressed: () {
                   setState(() {
                     _showWorkHistory = !_showWorkHistory;
+                    _showJobForm =
+                        false; // Asegura que el formulario de trabajo se contraiga
                   });
                 },
                 style: ElevatedButton.styleFrom(
@@ -267,70 +267,11 @@ class _ProfilePageState extends State<ProfilePage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: Material(
-                  color: const Color.fromARGB(0, 161, 160, 160),
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Container(
-                    width: double.infinity,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      boxShadow: const [
-                        BoxShadow(
-                          blurRadius: 3,
-                          color: Color(0x33000000),
-                          offset: Offset(0, 1),
-                          spreadRadius: 0,
-                        )
-                      ],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    alignment: const AlignmentDirectional(0, 0),
-                    child: Padding(
-                      padding:
-                          const EdgeInsetsDirectional.fromSTEB(12, 12, 12, 12),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.max,
-                        children: [
-                          Icon(
-                            Icons.history_rounded,
-                            color: Colors
-                                .grey[600], // Color de icono gris como ejemplo
-                            size: 24,
-                          ),
-                          Padding(
-                            padding: const EdgeInsetsDirectional.fromSTEB(
-                                12, 0, 0, 0),
-                            child: Text(
-                              _showWorkHistory
-                                  ? 'Ocultar servicios'
-                                  : 'Mostrar servicios',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey[
-                                    800], // Color de texto gris como ejemplo
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: Icon(
-                                Icons.arrow_forward_ios,
-                                color: Colors.grey[
-                                    600], // Color de icono gris como ejemplo
-                                size: 18,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+                child: _buildButtonContent(
+                    Icons.history_rounded,
+                    _showWorkHistory
+                        ? 'Ocultar servicios'
+                        : 'Mostrar servicios'),
               ),
               const SizedBox(height: 18),
               if (_showWorkHistory)
@@ -339,6 +280,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 onPressed: () {
                   setState(() {
                     _showJobForm = !_showJobForm;
+                    _showWorkHistory =
+                        false; // Asegura que el historial de trabajo se contraiga
                   });
                 },
                 style: ElevatedButton.styleFrom(
@@ -348,69 +291,8 @@ class _ProfilePageState extends State<ProfilePage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: Material(
-                  color: Colors.transparent,
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Container(
-                    width: double.infinity,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color:
-                          Colors.grey[200], // Color de fondo gris como ejemplo
-                      boxShadow: const [
-                        BoxShadow(
-                          blurRadius: 3,
-                          color: Color(0x33000000),
-                          offset: Offset(0, 1),
-                          spreadRadius: 0,
-                        )
-                      ],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    alignment: const AlignmentDirectional(0, 0),
-                    child: Padding(
-                      padding:
-                          const EdgeInsetsDirectional.fromSTEB(12, 12, 12, 12),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.max,
-                        children: [
-                          Icon(
-                            Icons.work_outline_rounded,
-                            color: Colors
-                                .grey[600], // Color de icono gris como ejemplo
-                            size: 24,
-                          ),
-                          Padding(
-                            padding: const EdgeInsetsDirectional.fromSTEB(
-                                12, 0, 0, 0),
-                            child: Text(
-                              'Ofrecer servicios',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey[
-                                    800], // Color de texto gris como ejemplo
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: Icon(
-                                Icons.arrow_forward_ios,
-                                color: Colors.grey[
-                                    600], // Color de icono gris como ejemplo
-                                size: 18,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+                child: _buildButtonContent(
+                    Icons.work_outline_rounded, 'Ofrecer servicios'),
               ),
               if (_showJobForm)
                 _buildJobForm(), // Mostrar formulario de trabajo si _showJobForm es true
@@ -421,50 +303,142 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Método que construye el historial de trabajos
-  Widget _buildWorkHistory() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
+  Widget _buildButtonContent(IconData icon, String text) {
+    return Material(
+      color: const Color.fromARGB(0, 161, 160, 160),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Container(
+        width: double.infinity,
+        height: 60,
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          boxShadow: const [
+            BoxShadow(
+              blurRadius: 3,
+              color: Color(0x33000000),
+              offset: Offset(0, 1),
+              spreadRadius: 0,
+            )
+          ],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        alignment: const AlignmentDirectional(0, 0),
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(12, 12, 12, 12),
+          child: Row(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Icon(icon, color: Colors.grey[600], size: 24),
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 0, 0),
+                child: Text(
+                  text,
+                  style: TextStyle(fontSize: 16, color: Colors.grey[800]),
+                ),
+              ),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Icon(
+                    Icons.arrow_forward_ios,
+                    color: Colors.grey[600],
+                    size: 18,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+// Método para cargar documentos
+  void _loadDocuments() {
+    FirebaseFirestore.instance
+        .collection('servicios')
+        .where('uid', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+        .orderBy('fecha', descending: true)
+        .limit(_perPage)
+        .get()
+        .then((QuerySnapshot querySnapshot) {
+      _documentList = querySnapshot.docs;
+      _lastDocument = querySnapshot.docs.last;
+      setState(() {
+        _isLoading = false;
+      });
+    });
+  }
+
+  // Método para cargar más documentos
+  void _loadMoreDocuments() {
+    if (_lastDocument != null) {
+      FirebaseFirestore.instance
           .collection('servicios')
           .where('uid', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
           .orderBy('fecha', descending: true)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CircularProgressIndicator();
-        }
-        if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        }
-        if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
-          return Column(
-            children: [
-              const Text(
-                'Historial de servicios',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+          .startAfterDocument(_lastDocument!)
+          .limit(_perPage)
+          .get()
+          .then((QuerySnapshot querySnapshot) {
+        _documentList.addAll(querySnapshot.docs);
+        _lastDocument = querySnapshot.docs.last;
+        setState(() {});
+      });
+    }
+  }
+
+  // Método que construye el historial de trabajos
+  Widget _buildWorkHistory() {
+    if (_isLoading) {
+      return const CircularProgressIndicator();
+    } else {
+      return Column(
+        children: [
+          const Text(
+            'Historial de servicios',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Column(
+            children: _documentList.map((DocumentSnapshot document) {
+              var servicio = document.data() as Map<String, dynamic>;
+              return _buildWorkHistoryItem(
+                (servicio as Map<String, dynamic>)['tipoServicio'] ?? '',
+                (servicio as Map<String, dynamic>)['contenido'] ?? '',
+                (servicio as Map<String, dynamic>)['fecha'].toDate(),
+                (servicio as Map<String, dynamic>)['tipoOferta'] ?? '',
+              );
+            }).toList(),
+          ),
+          ElevatedButton(
+            onPressed: _loadMoreDocuments,
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 35, vertical: 15), // Aumentar padding
+              textStyle:
+                  const TextStyle(fontSize: 18), // Aumentar tamaño del texto
+              shape: RoundedRectangleBorder(
+                // Bordes redondeados más definidos
+                borderRadius: BorderRadius.circular(8),
               ),
-              const SizedBox(height: 10),
-              Column(
-                children: snapshot.data!.docs.map((DocumentSnapshot document) {
-                  var servicio = document.data();
-                  return _buildWorkHistoryItem(
-                    (servicio as Map<String, dynamic>)['tipoServicio'] ?? '',
-                    (servicio as Map<String, dynamic>)['contenido'] ?? '',
-                    (servicio as Map<String, dynamic>)['fecha'].toDate(),
-                    (servicio as Map<String, dynamic>)['tipoOferta'] ?? '',
-                  );
-                }).toList(),
-              ),
-            ],
-          );
-        } else {
-          return const Text('No hay servicios publicados');
-        }
-      },
-    );
+              elevation: 5, // Sombra para dar un efecto elevado
+              shadowColor: Colors.blue, // Cambia el color de fondo si necesario
+              backgroundColor:
+                  Colors.white, // Cambia el color del texto si necesario
+            ),
+            child: const Text('Cargar más'),
+          ),
+          const SizedBox(height: 13),
+        ],
+      );
+    }
   }
 
   Widget _buildWorkHistoryItem(
@@ -642,56 +616,27 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                       actions: <Widget>[
-                        // Botón para cerrar la oferta
-
-                        ElevatedButton(
-                          onPressed: () async {
-                            /*// Obtén la referencia a Firestore
-                            final firestoreInstance =
-                                FirebaseFirestore.instance;
-
-                            // Lee los documentos de la colección 'servicios'
-                            final querySnapshot = await firestoreInstance
-                                .collection('servicios')
-                                .get();
-
-                              // Itera sobre los documentos
-                            for (var doc in querySnapshot.docs) {
-                              // Aquí puedes obtener el documentId
-                              final documentId = doc.id;
-
-                              // Y aquí puedes obtener los datos del documento
-                              final data = doc.data();
-
-                              // Ahora puedes usar el documentId y los datos del documento para moverlo a la otra colección
-                              await firestoreInstance
-                                  .collection('servicios')
-                                  .doc(documentId)
-                                  .set(data);
-
-                              // Y luego eliminarlo de la colección 'servicios'
-                              await firestoreInstance
-                                  .collection('tratoscerrados')
-                                  .doc(documentId)
-                                  .delete();
-                            }*/
-
-                            // Cierra el diálogo
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text(
-                            'Cerrar oferta',
-                            style: TextStyle(
-                              color: Color.fromARGB(255, 65, 111, 223),
-                            ),
-                          ),
-                        ),
-
                         // Botón para cerrar el diálogo
                         ElevatedButton(
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 35,
+                                vertical: 15), // Aumentar padding
+                            textStyle: const TextStyle(
+                                fontSize: 18), // Aumentar tamaño del texto
+                            shape: RoundedRectangleBorder(
+                              // Bordes redondeados más definidos
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 5, // Sombra para dar un efecto elevado
+                            shadowColor: Colors
+                                .blue, // Cambia el color de fondo si necesario
+                            backgroundColor: Colors
+                                .white, // Cambia el color del texto si necesario
+                          ),
                           child: const Text(
                             'Cerrar',
                             style: TextStyle(
@@ -705,14 +650,19 @@ class _ProfilePageState extends State<ProfilePage> {
                 );
               },
               style: ElevatedButton.styleFrom(
-                textStyle: const TextStyle(fontSize: 11),
-                fixedSize: const Size(105, 35),
-                foregroundColor: const Color.fromARGB(255, 255, 255, 255),
-                backgroundColor: const Color.fromARGB(
-                    255, 65, 111, 223), // Color de fondo del botón
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 28, vertical: 15), // Aumentar padding
+                textStyle:
+                    const TextStyle(fontSize: 11), // Aumentar tamaño del texto
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(32.0),
+                  // Bordes redondeados más definidos
+                  borderRadius: BorderRadius.circular(8),
                 ),
+                elevation: 5, // Sombra para dar un efecto elevado
+                shadowColor:
+                    Colors.blue, // Cambia el color de fondo si necesario
+                backgroundColor:
+                    Colors.white, // Cambia el color del texto si necesario
               ),
               child: const Text(
                 'Mas detalles',
@@ -943,6 +893,21 @@ class _ProfilePageState extends State<ProfilePage> {
                   ));
                 }
               },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 35, vertical: 15), // Aumentar padding
+                textStyle:
+                    const TextStyle(fontSize: 18), // Aumentar tamaño del texto
+                shape: RoundedRectangleBorder(
+                  // Bordes redondeados más definidos
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 5, // Sombra para dar un efecto elevado
+                shadowColor:
+                    Colors.blue, // Cambia el color de fondo si necesario
+                backgroundColor:
+                    Colors.white, // Cambia el color del texto si necesario
+              ),
               child: const Text('Publicar'),
             ),
           )
