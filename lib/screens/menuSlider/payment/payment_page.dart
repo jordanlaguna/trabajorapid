@@ -1,8 +1,8 @@
 // ignore_for_file: avoid_print, prefer_const_literals_to_create_immutables
 
 import 'package:flutter/material.dart';
-import 'package:trabajorapid/screens/menuSlider/widgets/payment_screen.dart';
-import 'package:trabajorapid/screens/menuSlider/widgets/sinpe_screen.dart';
+import 'package:trabajorapid/screens/menuSlider/payment/widgets/payment_screen.dart';
+import 'package:trabajorapid/screens/menuSlider/payment/widgets/sinpe_screen.dart';
 
 class PaymentPage extends StatefulWidget {
   const PaymentPage({Key? key}) : super(key: key);
@@ -61,7 +61,7 @@ class _PaymentPageState extends State<PaymentPage>
               child: Text(
                 'Sinpe Móvil',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 16,
                   color: Colors.white,
                   fontFamily: 'Montserrat',
                   fontWeight: FontWeight.w400,
@@ -72,7 +72,7 @@ class _PaymentPageState extends State<PaymentPage>
               child: Text(
                 'Tarjeta de debito',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 16,
                   color: Colors.white,
                   fontFamily: 'Montserrat',
                   fontWeight: FontWeight.w400,

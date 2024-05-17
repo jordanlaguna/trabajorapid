@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -14,6 +12,7 @@ class PageChat extends StatefulWidget {
 
 class _PageChatState extends State<PageChat> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  String searchQuery = "";
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +41,47 @@ class _PageChatState extends State<PageChat> {
         ),
         iconTheme: const IconThemeData(color: Colors.white, size: 30),
       ),
-      body: _buildUserList(),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: SizedBox(
+              height: 45,
+              child: TextField(
+                onChanged: (value) {
+                  setState(() {
+                    searchQuery = value;
+                  });
+                },
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.search),
+                  hintText: 'Buscar',
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10.0),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(40.0),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(40.0),
+                    borderSide: BorderSide(
+                      color: Colors.blue.shade300,
+                      width: 1.0,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(40.0),
+                    borderSide: BorderSide(
+                      color: Colors.blue.shade600,
+                      width: 2.0,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Expanded(child: _buildUserList()),
+        ],
+      ),
       backgroundColor: Colors.blue[50],
     );
   }
@@ -57,8 +96,16 @@ class _PageChatState extends State<PageChat> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Text('Loading..');
         }
+
+        // Filtrar los usuarios según la consulta de búsqueda
+        final filteredDocs = snapshot.data!.docs.where((doc) {
+          return (doc['name'] as String)
+              .toLowerCase()
+              .contains(searchQuery.toLowerCase());
+        }).toList();
+
         return ListView(
-          children: snapshot.data!.docs.map(
+          children: filteredDocs.map(
             (doc) {
               String currentUserID = _auth.currentUser!.uid;
               List<String> chatRoomParticipants =
@@ -201,7 +248,6 @@ Future<String?> getUserPhotoColletion(String userID) async {
   }
 
   try {
-    // Si no es un inicio de sesión de Google o Facebook, obtenemos la foto de Firestore
     CollectionReference users = FirebaseFirestore.instance.collection('users');
     final DocumentSnapshot document = await users.doc(userID).get();
 

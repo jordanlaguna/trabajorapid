@@ -42,7 +42,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
     _initializeUserData();
   }
 
-  // Función para cargar la información del usuario desde Firestore
+  // fuction to load user data from firestore
   void _loadUserInfo(String uid) async {
     DocumentSnapshot userInfo =
         await _firebaseFirestore.collection('users').doc(uid).get();
@@ -72,6 +72,19 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
           selectedValue = gender;
         }
       });
+    } else {
+      // If user data does not exist in Firestore, assume it's a Google user
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        setState(() {
+          if (_fullNameController.text.isEmpty) {
+            _fullNameController.text = user.displayName ?? '';
+          }
+          if (_emailController.text.isEmpty) {
+            _emailController.text = user.email ?? '';
+          }
+        });
+      }
     }
   }
 

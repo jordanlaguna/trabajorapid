@@ -8,6 +8,7 @@ import 'package:trabajorapid/screens/menuSlider/help/help_page.dart';
 import 'package:trabajorapid/screens/menuSlider/page_chat/page_home_chat.dart';
 import 'package:trabajorapid/screens/menuSlider/payment/payment_page.dart';
 import 'package:trabajorapid/screens/menuSlider/perfilDrawer/profile_drawer.dart';
+import 'package:trabajorapid/screens/menuSlider/works/works_page.dart';
 
 class NavBar extends StatefulWidget {
   const NavBar({Key? key}) : super(key: key);
@@ -147,11 +148,8 @@ class _NavBarState extends State<NavBar> {
             buildListTile(Icons.message_rounded, 'Mensajes', const PageChat()),
             buildListTile(
                 Icons.attach_money_rounded, 'Pagos', const PaymentPage()),
-            ListTile(
-              leading: getIconWithShader(Icons.work_history),
-              title: buildTextStyle('Trabajos'),
-              onTap: () => print('Trabajos presionado'),
-            ),
+            buildListTile(
+                Icons.work_history_rounded, 'Trabajos', const WorkPage()),
             ListTile(
               leading: getIconWithShader(Icons.notifications),
               title: buildTextStyle('Notificaciones'),
