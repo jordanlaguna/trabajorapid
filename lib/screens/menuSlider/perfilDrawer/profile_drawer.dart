@@ -1,4 +1,3 @@
-// ignore_for_file: use_build_context_synchronously, avoid_print, non_constant_identifier_names, unused_local_variable
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -9,7 +8,6 @@ import 'package:trabajorapid/firebaseAuth/firabaseAuthImple.dart';
 import 'package:quickalert/quickalert.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:trabajorapid/services/upload_image/select_image.dart';
-import 'package:trabajorapid/services/upload_image/upload_image.dart';
 
 class ProfileDrawer extends StatefulWidget {
   const ProfileDrawer({Key? key}) : super(key: key);
@@ -29,12 +27,9 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _telephoneController = TextEditingController();
-  final List<String> items = [
-    'Masculino',
-    'Femenino',
-  ];
+  final List<String> items = ['Masculino', 'Femenino'];
   String? selectedValue;
-  File? image_upload;
+  File? imageUpload;
 
   @override
   void initState() {
@@ -42,7 +37,6 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
     _initializeUserData();
   }
 
-  // fuction to load user data from firestore
   void _loadUserInfo(String uid) async {
     DocumentSnapshot userInfo =
         await _firebaseFirestore.collection('users').doc(uid).get();
@@ -68,12 +62,10 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
           _telephoneController.text = userInfo['phone'];
         }
         if (selectedValue == null) {
-          String gender = userInfo['gender'];
-          selectedValue = gender;
+          selectedValue = userInfo['gender'];
         }
       });
     } else {
-      // If user data does not exist in Firestore, assume it's a Google user
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         setState(() {
@@ -84,11 +76,12 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
             _emailController.text = user.email ?? '';
           }
         });
+        // Update Firestore with uid and photoURL if they don't exist
+        updateUserDataFromGoogle(user);
       }
     }
   }
 
-  // Llama a esta función cuando la página se carga o cuando el usuario inicia sesión
   void _initializeUserData() {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -127,7 +120,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
             padding: const EdgeInsets.only(right: 20.0),
             child: FloatingActionButton(
               onPressed: () async {
-                if (image_upload == null) {
+                if (imageUpload == null) {
                   QuickAlert.show(
                     context: context,
                     type: QuickAlertType.error,
@@ -137,8 +130,6 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                   );
                   return;
                 }
-
-                final uploaded = await uploadImage(image_upload!);
 
                 if (_formKey.currentState!.validate()) {
                   _registerUser(context);
@@ -215,14 +206,14 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                           onTap: () async {
                             final XFile? image = await getImage();
                             setState(() {
-                              image_upload = File(image!.path);
+                              imageUpload = File(image!.path);
                             });
                           },
-                          child: image_upload != null
+                          child: imageUpload != null
                               ? ClipRRect(
                                   borderRadius: BorderRadius.circular(100),
                                   child: Image.file(
-                                    image_upload!,
+                                    imageUpload!,
                                     width: 200,
                                     height: 200,
                                     fit: BoxFit.cover,
@@ -470,7 +461,6 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
     );
   }
 
-  // create method to register user
   void _registerUser(BuildContext context) async {
     final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
     final String fullName = _fullNameController.text;
@@ -485,38 +475,13 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
       DocumentSnapshot userDoc =
           await _firebaseFirestore.collection('users').doc(currentUserId).get();
 
-      // Check if user document exists
       if (!userDoc.exists) {
-        // User is new, register the data
         if (identification.isNotEmpty &&
             date.isNotEmpty &&
             address.isNotEmpty &&
             telephone.isNotEmpty &&
             gender.isNotEmpty) {
           try {
-            DocumentSnapshot userDoc = await _firebaseFirestore
-                .collection('users')
-                .doc(currentUserId)
-                .get();
-            if (userDoc.exists) {
-              Map<String, dynamic> userData =
-                  userDoc.data() as Map<String, dynamic>;
-              // We check if the data is already registered
-              if (userData['identification'] == identification &&
-                  userData['date'] == date &&
-                  userData['address'] == address &&
-                  userData['phone'] == telephone &&
-                  userData['gender'] == gender) {
-                QuickAlert.show(
-                  context: context,
-                  type: QuickAlertType.warning,
-                  text: '¡Todos los datos ya están registrados!',
-                  autoCloseDuration: const Duration(seconds: 2),
-                  showConfirmBtn: false,
-                );
-                return;
-              }
-            }
             Map<String, dynamic> newData = {
               if (fullName.isNotEmpty) 'name': fullName,
               if (email.isNotEmpty) 'email': email,
@@ -524,7 +489,9 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
               'gender': gender,
               'date': date,
               'address': address,
-              'phone': telephone
+              'phone': telephone,
+              'uid': currentUserId,
+              'photoUrl': FirebaseAuth.instance.currentUser?.photoURL ?? '',
             };
             await _firebaseFirestore
                 .collection('users')
@@ -549,14 +516,12 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
           }
         }
       } else {
-        // User already exists, check if data is already registered
         Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
         if (userData['identification'] == identification &&
             userData['date'] == date &&
             userData['address'] == address &&
             userData['phone'] == telephone &&
             userData['gender'] == gender) {
-          // All data is already registered
           QuickAlert.show(
             context: context,
             type: QuickAlertType.warning,
@@ -565,7 +530,6 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
             showConfirmBtn: false,
           );
         } else {
-          // Update user data
           Map<String, dynamic> newData = {
             if (fullName.isNotEmpty) 'name': fullName,
             if (email.isNotEmpty) 'email': email,
@@ -573,7 +537,9 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
             'gender': gender,
             'date': date,
             'address': address,
-            'phone': telephone
+            'phone': telephone,
+            'uid': currentUserId,
+            'photoUrl': FirebaseAuth.instance.currentUser?.photoURL ?? '',
           };
           await _firebaseFirestore
               .collection('users')
@@ -605,7 +571,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
     final String date = _dateController.text;
     final String address = _addressController.text;
     final String telephone = _telephoneController.text;
-    final String gender = selectedValue!;
+    final String gender = selectedValue ?? '';
     String? email = user.email;
     String? name = user.displayName;
     String uid = user.uid;
@@ -624,14 +590,22 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
             'gender': gender,
             'address': address,
             'phone': telephone,
-            'photoUrl': user.photoURL,
+            'photoUrl': user.photoURL ?? '',
             'date': date,
           };
           await _firebaseFirestore.collection('users').doc(uid).set(userData);
 
           // Actualizar los controladores con los datos del usuario
-          _fullNameController.text = name;
-          _emailController.text = email;
+          setState(() {
+            _fullNameController.text = name;
+            _emailController.text = email;
+          });
+        } else {
+          // Actualizar los controladores con los datos del usuario si ya existe en Firestore
+          setState(() {
+            _fullNameController.text = userDoc['name'];
+            _emailController.text = userDoc['email'];
+          });
         }
       } catch (e) {
         print(e);
@@ -639,7 +613,6 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
     }
   }
 
-  //Method for upload photo of profile in firebase storage and get url of photo
   Future<void> uploadProfilePhoto(File? imageFile) async {
     try {
       if (imageFile == null) {
