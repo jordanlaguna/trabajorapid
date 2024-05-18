@@ -19,7 +19,7 @@ class UserController extends GetxController {
         final user = UserModel(
           uid: userCredentials.user!.uid,
           fullname: fullname,
-          isActive: false,
+          isActive: true,
           email: userCredentials.user!.email ?? '',
           phone: userCredentials.user!.phoneNumber ?? '',
           profilePicture: userCredentials.user!.photoURL ?? '',

@@ -59,7 +59,7 @@ class SignupController extends GetxController {
       final newUser = UserModel(
         uid: userCredential.user!.uid,
         fullname: fullname.text.trim(),
-        isActive: false,
+        isActive: true,
         email: email.text.trim(),
         phone: phone.text.trim(),
         profilePicture: '',
@@ -80,7 +80,6 @@ class SignupController extends GetxController {
       Future.delayed(Duration.zero, () {
         Get.to(() => VerifyEmailScreen(email: email.text.trim()));
       });
-      
     } catch (e) {
       // Detener el loader
       TFullScreenLoader.stopLoading();

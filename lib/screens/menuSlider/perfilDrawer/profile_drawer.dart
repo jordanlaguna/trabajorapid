@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print, use_build_context_synchronously, non_constant_identifier_names, unused_local_variable
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,6 +9,7 @@ import 'package:trabajorapid/firebaseAuth/firabaseAuthImple.dart';
 import 'package:quickalert/quickalert.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:trabajorapid/services/upload_image/select_image.dart';
+import 'package:trabajorapid/services/upload_image/upload_image.dart';
 
 class ProfileDrawer extends StatefulWidget {
   const ProfileDrawer({Key? key}) : super(key: key);
@@ -29,7 +31,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
   final TextEditingController _telephoneController = TextEditingController();
   final List<String> items = ['Masculino', 'Femenino'];
   String? selectedValue;
-  File? imageUpload;
+  File? image_upload;
 
   @override
   void initState() {
@@ -42,28 +44,17 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
         await _firebaseFirestore.collection('users').doc(uid).get();
 
     if (userInfo.exists) {
+      final data = userInfo.data() as Map<String, dynamic>;
       setState(() {
-        if (_fullNameController.text.isEmpty) {
-          _fullNameController.text = userInfo['name'];
-        }
-        if (_emailController.text.isEmpty) {
-          _emailController.text = userInfo['email'];
-        }
-        if (_identificationController.text.isEmpty) {
-          _identificationController.text = userInfo['identification'];
-        }
-        if (_dateController.text.isEmpty) {
-          _dateController.text = userInfo['date'];
-        }
-        if (_addressController.text.isEmpty) {
-          _addressController.text = userInfo['address'];
-        }
-        if (_telephoneController.text.isEmpty) {
-          _telephoneController.text = userInfo['phone'];
-        }
-        if (selectedValue == null) {
-          selectedValue = userInfo['gender'];
-        }
+        _fullNameController.text = data['name'] ?? '';
+        _emailController.text = data['email'] ?? '';
+        _identificationController.text = data['identification'] ?? '';
+        _dateController.text = data['date'] ?? '';
+        _addressController.text = data['address'] ?? '';
+        _telephoneController.text = data['phone'] ?? '';
+        selectedValue = data['gender'] != null && items.contains(data['gender'])
+            ? data['gender']
+            : null;
       });
     } else {
       User? user = FirebaseAuth.instance.currentUser;
@@ -120,7 +111,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
             padding: const EdgeInsets.only(right: 20.0),
             child: FloatingActionButton(
               onPressed: () async {
-                if (imageUpload == null) {
+                if (image_upload == null) {
                   QuickAlert.show(
                     context: context,
                     type: QuickAlertType.error,
@@ -130,7 +121,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                   );
                   return;
                 }
-
+                final uploaded = await uploadImage(image_upload!);
                 if (_formKey.currentState!.validate()) {
                   _registerUser(context);
                 } else {
@@ -206,14 +197,14 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                           onTap: () async {
                             final XFile? image = await getImage();
                             setState(() {
-                              imageUpload = File(image!.path);
+                              image_upload = File(image!.path);
                             });
                           },
-                          child: imageUpload != null
+                          child: image_upload != null
                               ? ClipRRect(
                                   borderRadius: BorderRadius.circular(100),
                                   child: Image.file(
-                                    imageUpload!,
+                                    image_upload!,
                                     width: 200,
                                     height: 200,
                                     fit: BoxFit.cover,
@@ -230,6 +221,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                                   ),
                                 ),
                         ),
+                        const SizedBox(height: 15),
                         TextFormField(
                           controller: _identificationController,
                           decoration: InputDecoration(
@@ -261,7 +253,6 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                         const SizedBox(height: 18),
                         TextFormField(
                           controller: _fullNameController,
-                          enabled: false,
                           decoration: InputDecoration(
                             suffixIcon: Icon(FontAwesome.circle_user_solid,
                                 color: Theme.of(context).colorScheme.secondary),
@@ -290,7 +281,10 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                         ),
                         const SizedBox(height: 18),
                         DropdownButtonFormField<String>(
-                          value: selectedValue,
+                          value: selectedValue != null &&
+                                  items.contains(selectedValue)
+                              ? selectedValue
+                              : null,
                           hint: const Text(
                             'Seleccione',
                             style: TextStyle(fontSize: 15),
@@ -490,8 +484,6 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
               'date': date,
               'address': address,
               'phone': telephone,
-              'uid': currentUserId,
-              'photoUrl': FirebaseAuth.instance.currentUser?.photoURL ?? '',
             };
             await _firebaseFirestore
                 .collection('users')
@@ -538,8 +530,6 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
             'date': date,
             'address': address,
             'phone': telephone,
-            'uid': currentUserId,
-            'photoUrl': FirebaseAuth.instance.currentUser?.photoURL ?? '',
           };
           await _firebaseFirestore
               .collection('users')
@@ -590,7 +580,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
             'gender': gender,
             'address': address,
             'phone': telephone,
-            'photoUrl': user.photoURL ?? '',
+            'photoURL': user.photoURL,
             'date': date,
           };
           await _firebaseFirestore.collection('users').doc(uid).set(userData);
@@ -599,12 +589,14 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
           setState(() {
             _fullNameController.text = name;
             _emailController.text = email;
+            _telephoneController.text = telephone;
           });
         } else {
           // Actualizar los controladores con los datos del usuario si ya existe en Firestore
           setState(() {
             _fullNameController.text = userDoc['name'];
             _emailController.text = userDoc['email'];
+            _telephoneController.text = userDoc['phone'];
           });
         }
       } catch (e) {
@@ -627,17 +619,38 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
       }
 
       final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
+      DocumentSnapshot userDoc =
+          await _firebaseFirestore.collection('users').doc(currentUserId).get();
+
+      if (userDoc.exists && userDoc['photoUrl'] != null) {
+        String existingPhotoUrl = userDoc['photoUrl'];
+        print('URL de la foto existente: $existingPhotoUrl');
+
+        if (existingPhotoUrl.isNotEmpty) {
+          try {
+            final Reference existingPhotoRef =
+                FirebaseStorage.instance.refFromURL(existingPhotoUrl);
+            await existingPhotoRef.delete();
+            print('Foto existente eliminada con éxito.');
+          } catch (e) {
+            print('Error eliminando la foto existente: $e');
+          }
+        }
+      }
+
+      // Carga la nueva foto
       final String fileName = DateTime.now().millisecondsSinceEpoch.toString();
       final Reference storageReference =
           FirebaseStorage.instance.ref().child('profile_photos/$fileName');
       final UploadTask uploadTask = storageReference.putFile(imageFile);
       final TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() {});
-      final String photoUrl = await taskSnapshot.ref.getDownloadURL();
+      final String newPhotoUrl = await taskSnapshot.ref.getDownloadURL();
 
       await _firebaseFirestore
           .collection('users')
           .doc(currentUserId)
-          .update({'photoUrl': photoUrl});
+          .update({'photoUrl': newPhotoUrl});
+      print('URL de la nueva foto: $newPhotoUrl');
 
       QuickAlert.show(
         context: context,
@@ -647,7 +660,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
         showConfirmBtn: false,
       );
     } catch (e) {
-      print(e);
+      print('Error durante el proceso de carga: $e');
       QuickAlert.show(
         context: context,
         type: QuickAlertType.error,

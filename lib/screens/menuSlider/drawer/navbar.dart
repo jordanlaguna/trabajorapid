@@ -60,16 +60,21 @@ class _NavBarState extends State<NavBar> {
               future: getUserData(userUid),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const DrawerHeader(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Color.fromARGB(255, 65, 111, 223),
-                          Color.fromARGB(255, 110, 174, 231),
-                        ],
+                  return Container(
+                    alignment: Alignment.center,
+                    child: const DrawerHeader(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Color.fromARGB(255, 65, 111, 223),
+                            Color.fromARGB(255, 110, 174, 231),
+                          ],
+                        ),
+                      ),
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
                       ),
                     ),
-                    child: CircularProgressIndicator(color: Colors.white),
                   );
                 } else if (snapshot.hasData) {
                   return UserAccountsDrawerHeader(
