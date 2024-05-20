@@ -27,6 +27,7 @@ class Profile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('Profile build - idS: $idS');
     return Scaffold(
       backgroundColor: Colors.lightBlue[50],
       appBar: AppBar(
@@ -82,7 +83,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   String titulo = '';
   String contenido = '';
-  String idS = '';
   String name = '';
   String email = '';
   String direccion = '';
@@ -275,8 +275,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    double mediaEstrellas = userRatings[idS] ?? 0.00;
-    int nume = cantidadDocumentos[idS] ?? 0;
+    double mediaEstrellas = userRatings[widget.idS] ?? 0.00;
+    int nume = cantidadDocumentos[widget.idS] ?? 0;
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -411,7 +411,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               try {
                                 ratingDoc = ratingSnapshot.docs.firstWhere(
                                   (doc) =>
-                                      doc['id'] == idS && doc['uid'] == userId,
+                                      doc['id'] == widget.idS && doc['uid'] == userId,
                                 );
                               } catch (e) {
                                 ratingDoc = null;
@@ -426,14 +426,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   'estrellas': rating,
                                 });
                               } else {
-                                print('4');
+                                print('ID antes de guardar: ${widget.idS}');
                                 await FirebaseFirestore.instance
                                     .collection('calificacionPerfil')
                                     .doc()
                                     .set({
                                   'estrellas': rating,
                                   'uid': userId,
-                                  'id': idS,
+                                  'id': widget
+                                      .idS, // Asegurarse que widget.idS tiene el valor correcto
                                 });
                               }
                             } else {
@@ -444,7 +445,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   .set({
                                 'estrellas': rating,
                                 'uid': userId,
-                                'id': idS,
+                                'id': widget.idS,
                               });
                             }
                           }
