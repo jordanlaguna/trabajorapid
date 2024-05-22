@@ -154,7 +154,7 @@ class _NavBarState extends State<NavBar> {
             buildListTile(
                 Icons.attach_money_rounded, 'Pagos', const PaymentPage()),
             buildListTile(
-                Icons.work_history_rounded, 'Trabajos', const WorkPage()),
+                Icons.work_history_rounded, 'Trabajos', const WorksPage()),
             ListTile(
               leading: getIconWithShader(Icons.notifications),
               title: buildTextStyle('Notificaciones'),
