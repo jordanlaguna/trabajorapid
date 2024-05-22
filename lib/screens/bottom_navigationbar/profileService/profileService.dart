@@ -1,10 +1,9 @@
-// ignore_for_file: file_names, library_private_types_in_public_api, avoid_print, avoid_function_literals_in_foreach_calls
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:trabajorapid/screens/menuSlider/page_chat/page_home_chat.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:trabajorapid/screens/menuSlider/page_chat/page_chat.dart';
 
 void main() {
   runApp(
@@ -27,7 +26,6 @@ class Profile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('Profile build - idS: $idS');
     return Scaffold(
       backgroundColor: Colors.lightBlue[50],
       appBar: AppBar(
@@ -76,113 +74,95 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _commentController = TextEditingController();
-  // Define uid as a property
-
   bool showRatingSection = true;
   List<Comment> comments = [];
 
-  String titulo = '';
-  String contenido = '';
   String name = '';
   String email = '';
   String direccion = '';
 
   Map<String, double> userRatings = {};
   Map<String, int> cantidadDocumentos = {};
-  final StreamController<List<DocumentSnapshot>> _star =
-      StreamController<List<DocumentSnapshot>>();
-
-  // Stream controllers for fetching data
-  final StreamController<List<DocumentSnapshot>> _controller =
-      StreamController<List<DocumentSnapshot>>();
 
   @override
   void initState() {
     super.initState();
+    _fetchComments();
+    _fetchUserData();
+    _fetchUserServices();
+    _loadUserRatingsFromFirebase();
+  }
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
+  }
+
+  void _fetchComments() {
     getComments(widget.idS).then((value) {
       setState(() {
         comments = value;
       });
     });
+  }
+
+  void _fetchUserData() {
     getUserData(widget.uid).then((userData) {
       if (userData != null) {
         setState(() {
           email = userData['email'];
           name = userData['name'];
-          // Suponiendo que 'nombre' es un campo en tus datos de usuario
         });
       }
     });
+  }
 
-    // Obtener los datos de los servicios del usuario utilizando las variables uid e idS reales
+  void _fetchUserServices() {
     getUserServices(widget.uid, widget.idS).then((servicesSnapshot) {
       if (servicesSnapshot != null) {
         setState(() {
           direccion = servicesSnapshot['direccion'];
-
-          // Suponiendo que 'nombre' es un campo en tus datos de usuario
         });
       }
     });
-    _fetchDataFromFirebase();
-    _StarDataFromFirebase();
-    _loadUserRatingsFromFirebase();
   }
 
   void _loadUserRatingsFromFirebase() async {
     try {
-      // Get the current user's ID
       String? userId = FirebaseAuth.instance.currentUser?.uid;
 
       if (userId != null) {
-        // Fetch ratings data from Firestore
         QuerySnapshot ratingSnapshot = await FirebaseFirestore.instance
             .collection('calificacionPerfil')
             .get();
 
-        // Map to store total sum and document count per service ID
         Map<String, Map<String, dynamic>> ratingStats = {};
 
-        // Loop through each document in the ratings collection
         for (QueryDocumentSnapshot ratingDoc in ratingSnapshot.docs) {
-          // Extract service ID and stars rating
           String servicioId = ratingDoc['id'];
           double estrellas = (ratingDoc['estrellas'] as num).toDouble();
 
-          // Check if the service ID exists in ratingStats
           if (ratingStats.containsKey(servicioId)) {
-            // If it exists, update the total sum and document count
             ratingStats[servicioId]!['sumaTotal'] += estrellas;
             ratingStats[servicioId]!['cantidadDocumentos'] += 1;
           } else {
-            // If it doesn't exist, create a new entry in the map
             ratingStats[servicioId] = {
               'sumaTotal': estrellas,
               'cantidadDocumentos': 1,
             };
           }
         }
-        // Update the document count in the state
         setState(() {
           cantidadDocumentos = ratingStats
               .map((key, value) => MapEntry(key, value['cantidadDocumentos']));
         });
 
-        // Output rating results to the console
-        print('Resultados de la calificación:');
-        ratingStats.forEach((key, value) {
-          double media = value['sumaTotal'] / value['cantidadDocumentos'];
-          int nume = value['cantidadDocumentos'];
-          print(
-              'ID de Servicio: $key, Media de Calificación: $media, cantidad: $nume');
-        });
-        // Update userRatings map with the average ratings
         for (QueryDocumentSnapshot ratingDoc in ratingSnapshot.docs) {
           String servicioId = ratingDoc['id'];
           double estrellas = (ratingDoc['estrellas'] as num).toDouble();
           userRatings[servicioId] = estrellas;
         }
-        // Update the state with the updated user ratings and document counts
         setState(() {
           userRatings = ratingStats.map((key, value) =>
               MapEntry(key, value['sumaTotal'] / value['cantidadDocumentos']));
@@ -228,32 +208,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (e) {
       print('Error obteniendo datos del usuario: $e');
       return null;
-    }
-  }
-
-  // ignore: non_constant_identifier_names
-  void _StarDataFromFirebase() async {
-    try {
-      // Fetches data (snapshot) from the 'calificacion' collection in Firestore
-      QuerySnapshot snapshot = await FirebaseFirestore.instance
-          .collection('calificacionPerfil')
-          .get();
-
-      // Adds the snapshot documents to the '_star' stream controller
-      _star.add(snapshot.docs);
-    } catch (e) {
-      print('Error fetching data: $e');
-    }
-  }
-
-  void _fetchDataFromFirebase() async {
-    try {
-      QuerySnapshot snapshot =
-          await FirebaseFirestore.instance.collection('servicios').get();
-
-      _controller.add(snapshot.docs);
-    } catch (e) {
-      print('Error fetching data: $e');
     }
   }
 
@@ -371,13 +325,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    titulo,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18.0,
-                    ),
-                  ),
                   Row(
                     children: [
                       RatingBar.builder(
@@ -404,21 +351,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     .where('uid', isEqualTo: userId)
                                     .get();
 
-                            print('1');
                             if (ratingSnapshot.docs.isNotEmpty) {
-                              print('2');
                               DocumentSnapshot? ratingDoc;
                               try {
                                 ratingDoc = ratingSnapshot.docs.firstWhere(
                                   (doc) =>
-                                      doc['id'] == widget.idS && doc['uid'] == userId,
+                                      doc['id'] == widget.idS &&
+                                      doc['uid'] == userId,
                                 );
                               } catch (e) {
                                 ratingDoc = null;
                               }
 
                               if (ratingDoc != null) {
-                                print('3');
                                 await FirebaseFirestore.instance
                                     .collection('calificacionPerfil')
                                     .doc(ratingDoc.id)
@@ -426,19 +371,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   'estrellas': rating,
                                 });
                               } else {
-                                print('ID antes de guardar: ${widget.idS}');
                                 await FirebaseFirestore.instance
                                     .collection('calificacionPerfil')
                                     .doc()
                                     .set({
                                   'estrellas': rating,
                                   'uid': userId,
-                                  'id': widget
-                                      .idS, // Asegurarse que widget.idS tiene el valor correcto
+                                  'id': widget.idS,
                                 });
                               }
                             } else {
-                              print('5');
                               await FirebaseFirestore.instance
                                   .collection('calificacionPerfil')
                                   .doc()
@@ -455,74 +397,118 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Text('($nume)'),
                     ],
                   ),
-                  const SizedBox(height: 10.0),
-                  Text(contenido),
                 ],
               ),
             )
           else
-            SingleChildScrollView(
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.3,
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: comments.length,
-                      itemBuilder: (context, index) {
-                        final comment = comments[index];
-                        final isCurrentUser =
-                            FirebaseAuth.instance.currentUser?.uid ==
-                                comment.uid;
-                        return ChatBubble(
-                          name: comment.name,
-                          comment: comment.comment,
-                          isCurrentUser: isCurrentUser,
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  const Divider(),
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.grey),
-                    ),
-                    child: ListTile(
-                      title: TextField(
-                          controller: _commentController,
-                          decoration: const InputDecoration(
-                            hintText: 'Escribe tu comentario',
-                          )),
-                      tileColor: Colors.grey[200],
-                      trailing: IconButton(
-                        icon: const Icon(Icons.send),
-                        onPressed: () async {
-                          await addComment(_commentController.text);
-                          _commentController.clear();
-                        },
+            StreamBuilder<List<Comment>>(
+              stream: getCommentStream(widget.idS),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator();
+                } else if (snapshot.hasError) {
+                  return const Text('Error cargando comentarios');
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Text('No hay comentarios');
+                } else {
+                  List<Comment> comments = snapshot.data!;
+                  return Column(
+                    children: [
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.3,
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: comments.length,
+                          itemBuilder: (context, index) {
+                            final comment = comments[index];
+                            final isCurrentUser =
+                                FirebaseAuth.instance.currentUser?.uid ==
+                                    comment.uid;
+                            return ChatBubble(
+                              name: comment.name,
+                              comment: comment.comment,
+                              isCurrentUser: isCurrentUser,
+                            );
+                          },
+                        ),
                       ),
-                    ),
-                  ),
-                ],
-              ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      const Divider(),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.grey),
+                        ),
+                        child: ListTile(
+                          title: TextField(
+                              controller: _commentController,
+                              decoration: const InputDecoration(
+                                hintText: 'Escribe tu comentario',
+                              )),
+                          tileColor: Colors.grey[200],
+                          trailing: IconButton(
+                            icon: const Icon(Icons.send),
+                            onPressed: () async {
+                              await addComment(_commentController.text);
+                              _commentController.clear();
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+              },
             ),
           const Divider(),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const PageChat()),
-              );
+              _showConfirmDialog(context);
             },
             child: const Text('Negociar'),
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _showConfirmDialog(BuildContext context) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible:
+          false, // El usuario debe presionar un botón para cerrar el diálogo
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirmación'),
+          content: Text('¿Seguro que quieres negociar con $name?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('No'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Cierra el diálogo
+              },
+            ),
+            TextButton(
+              child: const Text('Sí'),
+              onPressed: () {
+                Navigator.of(context)
+                    .pop(); // Cierra el diálogo y navega a ChatHome
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => ChatHome(
+                      receiverUserEmail: name,
+                      receiverUserID: widget.uid,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -609,6 +595,22 @@ Future<List<Comment>> getComments(String serviceId) async {
       .toList();
 
   return comments;
+}
+
+Stream<List<Comment>> getCommentStream(String serviceId) {
+  return FirebaseFirestore.instance
+      .collection('serviceComments')
+      .doc(serviceId)
+      .collection('comments')
+      .orderBy('timestamp', descending: true)
+      .snapshots()
+      .map((snapshot) => snapshot.docs
+          .map((doc) => Comment(
+                name: doc['name'],
+                comment: doc['comment'],
+                uid: doc['uid'],
+              ))
+          .toList());
 }
 
 class Comment {
