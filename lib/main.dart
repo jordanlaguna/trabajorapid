@@ -9,6 +9,9 @@ import 'package:trabajorapid/data/repositiories/auth_repository.dart';
 import 'package:trabajorapid/firebase_options.dart';
 import 'package:trabajorapid/app.dart';
 import 'package:trabajorapid/services/notification/notification_services.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
   // -- WidgetsBinding Initialization
@@ -34,8 +37,28 @@ void main() async {
   // Firebase Local Notifications
   await initNotification();
 
+  // Update FCM Token
+  await updateFCMToken();
+
   SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
 
   runApp(const MyApp());
+}
+
+// Function to update FCM Token
+Future<void> updateFCMToken() async {
+  User? user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    String? fcmToken = await FirebaseMessaging.instance.getToken();
+    if (fcmToken != null) {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .update({
+        'fcmToken': fcmToken,
+      });
+      print('FCM Token actualizado con éxito');
+    }
+  }
 }
