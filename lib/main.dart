@@ -8,6 +8,7 @@ import 'package:trabajorapid/api/firebase_api.dart';
 import 'package:trabajorapid/data/repositiories/auth_repository.dart';
 import 'package:trabajorapid/firebase_options.dart';
 import 'package:trabajorapid/app.dart';
+import 'package:trabajorapid/services/notification/notification_services.dart';
 
 void main() async {
   // -- WidgetsBinding Initialization
@@ -29,6 +30,9 @@ void main() async {
 
   // Firebase Notifications
   await firebaseApi.initNotifications();
+
+  // Firebase Local Notifications
+  await initNotification();
 
   SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(statusBarColor: Colors.transparent));

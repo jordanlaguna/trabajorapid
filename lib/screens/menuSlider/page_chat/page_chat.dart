@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:trabajorapid/components/burbleChat/burble_chat.dart';
 import 'package:trabajorapid/services/chat/chat_services.dart';
+import 'package:trabajorapid/services/notification/notification_services.dart';
 
 class ChatHome extends StatefulWidget {
   final String receiverUserEmail;
@@ -31,7 +32,6 @@ class _ChatHomeState extends State<ChatHome> {
 
   void _markMessagesAsRead() async {
     try {
-      // Obtener los IDs de usuario ordenados alfabéticamente
       List<String> userIds = [_auth.currentUser!.uid, widget.receiverUserID]
         ..sort();
 
@@ -46,7 +46,9 @@ class _ChatHomeState extends State<ChatHome> {
           await messagesRef.where('read', isEqualTo: false).get();
 
       for (var doc in messagesSnapshot.docs) {
-        messagesRef.doc(doc.id).update({'read': true});
+        if (doc['receiverId'] == _auth.currentUser!.uid) {
+          messagesRef.doc(doc.id).update({'read': true});
+        }
       }
     } catch (e) {
       print('Error marking messages as read: $e');
@@ -58,6 +60,7 @@ class _ChatHomeState extends State<ChatHome> {
       await _chatServices.sendMessage(
           widget.receiverUserID, messageTextController.text);
       messageTextController.clear();
+      showNotification();
     }
   }
 
@@ -66,6 +69,7 @@ class _ChatHomeState extends State<ChatHome> {
     return Scaffold(
       appBar: AppBar(
         title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               widget.receiverUserEmail,
