@@ -58,7 +58,8 @@ Future<void> updateFCMToken() async {
           .update({
         'fcmToken': fcmToken,
       });
-      print('FCM Token actualizado con éxito');
+      print(
+          'FCM Token actualizado con éxito'); // FCM Token updated successfully
     }
   }
 }
