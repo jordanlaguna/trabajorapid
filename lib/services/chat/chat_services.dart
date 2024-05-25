@@ -1,13 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:trabajorapid/model/message/message.dart';
-import 'package:trabajorapid/api/firebase_api.dart'; // Import the FirebaseApi
+import 'package:trabajorapid/api/firebase_api.dart';
 
 class ChatServices {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
-  final FirebaseApi _firebaseApi =
-      FirebaseApi(); // Create an instance of FirebaseApi
+  final FirebaseApi _firebaseApi = FirebaseApi(); // Instancia de FirebaseApi
 
   Future<void> sendMessage(String receiverId, String message) async {
     final String currentUserId = _auth.currentUser!.uid;
@@ -33,7 +32,7 @@ class ChatServices {
         .collection('messages')
         .add(newMessage.toMap());
 
-    // Send a push notification to the receiver
+    // Enviar una notificación push al receptor sin URL de imagen
     await _firebaseApi.sendPushNotification(receiverId, senderName, message);
   }
 
