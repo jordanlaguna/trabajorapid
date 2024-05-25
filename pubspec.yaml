@@ -48,6 +48,7 @@ dependencies:
   cloud_firestore: ^4.15.5
   firebase_storage: ^11.6.9
   firebase_messaging: ^14.7.19
+  googleapis_auth: ^1.0.1
 
   # State Management
   get: ^4.6.5
@@ -69,6 +70,8 @@ flutter:
     - assets/images/lottie_animations/
     - assets/fonts/
     - assets/logos/
+    - assets/service_account_file.json
+   
 
   fonts:
     - family: Poppins
