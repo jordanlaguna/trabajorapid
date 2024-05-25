@@ -245,6 +245,7 @@ class _PageChatState extends State<PageChat> {
                                   builder: (context) => ChatHome(
                                     receiverUserEmail: doc['name'],
                                     receiverUserID: doc['uid'],
+                                    idS: '',
                                   ),
                                 ),
                               );

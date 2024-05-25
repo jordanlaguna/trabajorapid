@@ -2,9 +2,7 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:trabajorapid/firebaseAuth/firabaseAuthImple.dart';
 import 'package:quickalert/quickalert.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -31,6 +29,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
   final TextEditingController _telephoneController = TextEditingController();
   final List<String> items = ['Masculino', 'Femenino'];
   String? selectedValue;
+
   File? image_upload;
 
   @override
@@ -60,14 +59,9 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         setState(() {
-          if (_fullNameController.text.isEmpty) {
-            _fullNameController.text = user.displayName ?? '';
-          }
-          if (_emailController.text.isEmpty) {
-            _emailController.text = user.email ?? '';
-          }
+          _fullNameController.text = user.displayName ?? '';
+          _emailController.text = user.email ?? '';
         });
-        // Update Firestore with uid and photoURL if they don't exist
         updateUserDataFromGoogle(user);
       }
     }
@@ -121,14 +115,15 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                   );
                   return;
                 }
+
                 final uploaded = await uploadImage(image_upload!);
+                print('Botón de agregar presionado');
+
                 if (_formKey.currentState!.validate()) {
+                  print('Formulario válido, registrando usuario...');
                   _registerUser(context);
                 } else {
-                  User? user = FirebaseAuth.instance.currentUser;
-                  if (user != null) {
-                    updateUserDataFromGoogle(user);
-                  }
+                  print('Formulario no válido');
                 }
               },
               backgroundColor: Colors.transparent,
@@ -195,10 +190,12 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                       child: Column(children: [
                         GestureDetector(
                           onTap: () async {
-                            final XFile? image = await getImage();
-                            setState(() {
-                              image_upload = File(image!.path);
-                            });
+                            final image = await getImage();
+                            if (image != null) {
+                              setState(() {
+                                image_upload = File(image.path);
+                              });
+                            }
                           },
                           child: image_upload != null
                               ? ClipRRect(
@@ -253,6 +250,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                         const SizedBox(height: 18),
                         TextFormField(
                           controller: _fullNameController,
+                          enabled: false,
                           decoration: InputDecoration(
                             suffixIcon: Icon(FontAwesome.circle_user_solid,
                                 color: Theme.of(context).colorScheme.secondary),
@@ -333,7 +331,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                             suffixIcon: Icon(FontAwesome.envelope_solid,
                                 color: Theme.of(context).colorScheme.secondary),
                             labelText: 'Ingrese su correo',
-                            hintText: 'ejemplousuaro@gmail.com',
+                            hintText: 'ejemplousuario@gmail.com',
                             labelStyle: TextStyle(
                               color: Theme.of(context).colorScheme.secondary,
                               fontSize: 17,
@@ -466,6 +464,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
     final String gender = selectedValue!;
 
     try {
+      print('Registrando usuario...');
       DocumentSnapshot userDoc =
           await _firebaseFirestore.collection('users').doc(currentUserId).get();
 
@@ -485,10 +484,12 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
               'address': address,
               'phone': telephone,
             };
+            print('Datos a registrar: $newData');
             await _firebaseFirestore
                 .collection('users')
                 .doc(currentUserId)
                 .set(newData);
+            print('Datos registrados exitosamente');
             QuickAlert.show(
               context: context,
               type: QuickAlertType.success,
@@ -497,7 +498,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
               showConfirmBtn: false,
             );
           } catch (e) {
-            print(e);
+            print('Error al registrar datos: $e');
             QuickAlert.show(
               context: context,
               type: QuickAlertType.error,
@@ -531,10 +532,12 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
             'address': address,
             'phone': telephone,
           };
+          print('Datos a actualizar: $newData');
           await _firebaseFirestore
               .collection('users')
               .doc(currentUserId)
               .update(newData);
+          print('Datos actualizados exitosamente');
           QuickAlert.show(
             context: context,
             type: QuickAlertType.success,
@@ -545,7 +548,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
         }
       }
     } catch (e) {
-      print(e);
+      print('Error en el proceso de registro: $e');
       QuickAlert.show(
         context: context,
         type: QuickAlertType.error,
@@ -573,15 +576,12 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
 
         if (!userDoc.exists) {
           Map<String, dynamic> userData = {
-            'email': email,
-            'name': name,
-            'uid': uid,
-            'identification': identification,
             'gender': gender,
             'address': address,
             'phone': telephone,
             'photoURL': user.photoURL,
             'date': date,
+            'uid': uid,
           };
           await _firebaseFirestore.collection('users').doc(uid).set(userData);
 
@@ -602,72 +602,6 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
       } catch (e) {
         print(e);
       }
-    }
-  }
-
-  Future<void> uploadProfilePhoto(File? imageFile) async {
-    try {
-      if (imageFile == null) {
-        QuickAlert.show(
-          context: context,
-          type: QuickAlertType.error,
-          text: 'Error: No se ha seleccionado ninguna imagen.',
-          autoCloseDuration: const Duration(seconds: 2),
-          showConfirmBtn: false,
-        );
-        return;
-      }
-
-      final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
-      DocumentSnapshot userDoc =
-          await _firebaseFirestore.collection('users').doc(currentUserId).get();
-
-      if (userDoc.exists && userDoc['photoUrl'] != null) {
-        String existingPhotoUrl = userDoc['photoUrl'];
-        print('URL de la foto existente: $existingPhotoUrl');
-
-        if (existingPhotoUrl.isNotEmpty) {
-          try {
-            final Reference existingPhotoRef =
-                FirebaseStorage.instance.refFromURL(existingPhotoUrl);
-            await existingPhotoRef.delete();
-            print('Foto existente eliminada con éxito.');
-          } catch (e) {
-            print('Error eliminando la foto existente: $e');
-          }
-        }
-      }
-
-      // Carga la nueva foto
-      final String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-      final Reference storageReference =
-          FirebaseStorage.instance.ref().child('profile_photos/$fileName');
-      final UploadTask uploadTask = storageReference.putFile(imageFile);
-      final TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() {});
-      final String newPhotoUrl = await taskSnapshot.ref.getDownloadURL();
-
-      await _firebaseFirestore
-          .collection('users')
-          .doc(currentUserId)
-          .update({'photoUrl': newPhotoUrl});
-      print('URL de la nueva foto: $newPhotoUrl');
-
-      QuickAlert.show(
-        context: context,
-        type: QuickAlertType.success,
-        text: 'Foto de perfil cargada con éxito!',
-        autoCloseDuration: const Duration(seconds: 2),
-        showConfirmBtn: false,
-      );
-    } catch (e) {
-      print('Error durante el proceso de carga: $e');
-      QuickAlert.show(
-        context: context,
-        type: QuickAlertType.error,
-        text: 'Hubo un error al cargar la foto de perfil.',
-        autoCloseDuration: const Duration(seconds: 2),
-        showConfirmBtn: false,
-      );
     }
   }
 }

@@ -8,11 +8,13 @@ import 'package:trabajorapid/services/notification/notification_services.dart';
 class ChatHome extends StatefulWidget {
   final String receiverUserEmail;
   final String receiverUserID;
+  final String idS;
 
   const ChatHome({
     Key? key,
     required this.receiverUserEmail,
     required this.receiverUserID,
+    required this.idS,
   }) : super(key: key);
 
   @override
@@ -23,11 +25,13 @@ class _ChatHomeState extends State<ChatHome> {
   TextEditingController messageTextController = TextEditingController();
   final ChatServices _chatServices = ChatServices();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  bool isModalShown = false;
 
   @override
   void initState() {
     super.initState();
     _markMessagesAsRead();
+    _checkForPendingTrabajos();
   }
 
   void _markMessagesAsRead() async {
@@ -62,6 +66,110 @@ class _ChatHomeState extends State<ChatHome> {
       messageTextController.clear();
       showNotification();
     }
+  }
+
+  // Function to create or update a trabajo
+  Future<void> createOrUpdateTrabajo(
+      String estado, String uidReceptor, String idS) async {
+    try {
+      QuerySnapshot existingTrabajos = await FirebaseFirestore.instance
+          .collection('trabajos')
+          .where('uidReceptor', isEqualTo: uidReceptor)
+          .where('uidEmisor', isEqualTo: _auth.currentUser!.uid)
+          .where('idEmpleo', isEqualTo: idS)
+          .get();
+
+      if (existingTrabajos.docs.isEmpty) {
+        await FirebaseFirestore.instance.collection('trabajos').add({
+          'estado': estado,
+          'uidReceptor': uidReceptor,
+          'uidEmisor': _auth.currentUser!.uid,
+          'idEmpleo': idS,
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+      } else {
+        String trabajoId = existingTrabajos.docs.first.id;
+        await FirebaseFirestore.instance
+            .collection('trabajos')
+            .doc(trabajoId)
+            .update({'estado': estado});
+      }
+    } catch (e) {
+      print('Error creating or updating trabajo: $e');
+    }
+  }
+
+  void _solidForm() async {
+    if (widget.idS.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Función no permitida')),
+      );
+      return;
+    }
+    await createOrUpdateTrabajo('pendiente', widget.receiverUserID, widget.idS);
+  }
+
+  void _checkForPendingTrabajos() {
+    FirebaseFirestore.instance
+        .collection('trabajos')
+        .where('estado', isEqualTo: 'pendiente')
+        .snapshots()
+        .listen((snapshot) {
+      for (var doc in snapshot.docs) {
+        if (doc['uidReceptor'] == _auth.currentUser!.uid &&
+            doc['uidEmisor'] == widget.receiverUserID) {
+          if (!isModalShown) {
+            isModalShown = true;
+            _showConfirmDialog(context, doc);
+          }
+        } else if (doc['uidEmisor'] == _auth.currentUser!.uid &&
+            doc['uidReceptor'] == widget.receiverUserID) {
+          if (!isModalShown) {
+            isModalShown = true;
+            _showConfirmDialog(context, doc);
+          }
+        }
+      }
+    });
+  }
+
+  Future<void> _showConfirmDialog(
+      BuildContext context, DocumentSnapshot doc) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirmación'),
+          content: Text(
+              '¿Seguro que quieres aceptar la oferta?\n\nID Empleo: ${doc['idEmpleo']}\nEstado: ${doc['estado']}'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('No'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  isModalShown = false;
+                });
+              },
+            ),
+            TextButton(
+              child: const Text('Sí'),
+              onPressed: () async {
+                await FirebaseFirestore.instance
+                    .collection('trabajos')
+                    .doc(doc.id)
+                    .update({'estado': 'aceptado'});
+                Navigator.of(context).pop();
+                setState(() {
+                  isModalShown = false;
+                });
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -265,6 +373,12 @@ class _ChatHomeState extends State<ChatHome> {
                 contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
               ),
             ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.check_box),
+            onPressed: () {
+              _solidForm();
+            },
           ),
           IconButton(
             icon: const Icon(Icons.send),
