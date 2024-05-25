@@ -501,6 +501,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     builder: (context) => ChatHome(
                       receiverUserEmail: name,
                       receiverUserID: widget.uid,
+                      idS: widget.idS,
                     ),
                   ),
                 );

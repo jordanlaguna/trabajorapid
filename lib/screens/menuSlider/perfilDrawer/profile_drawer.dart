@@ -250,6 +250,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                         const SizedBox(height: 18),
                         TextFormField(
                           controller: _fullNameController,
+                          enabled: false,
                           decoration: InputDecoration(
                             suffixIcon: Icon(FontAwesome.circle_user_solid,
                                 color: Theme.of(context).colorScheme.secondary),
@@ -575,15 +576,12 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
 
         if (!userDoc.exists) {
           Map<String, dynamic> userData = {
-            'email': email,
-            'name': name,
-            'uid': uid,
-            'identification': identification,
             'gender': gender,
             'address': address,
             'phone': telephone,
             'photoURL': user.photoURL,
             'date': date,
+            'uid': uid,
           };
           await _firebaseFirestore.collection('users').doc(uid).set(userData);
 
