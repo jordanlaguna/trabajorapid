@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:trabajorapid/components/burbleChat/burble_chat.dart';
 import 'package:trabajorapid/services/chat/chat_services.dart';
-import 'package:trabajorapid/services/notification/notification_services.dart';
 
 class ChatHome extends StatefulWidget {
   final String receiverUserEmail;
@@ -60,7 +59,6 @@ class _ChatHomeState extends State<ChatHome> {
       await _chatServices.sendMessage(
           widget.receiverUserID, messageTextController.text);
       messageTextController.clear();
-      showNotification();
     }
   }
 

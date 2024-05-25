@@ -20,7 +20,7 @@ class _PageChatState extends State<PageChat> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Chats',
+          'Mensajes',
           style: TextStyle(
             color: Colors.white,
             fontSize: 24,
@@ -98,7 +98,6 @@ class _PageChatState extends State<PageChat> {
           return const Text('Loading..');
         }
 
-        // Filtrar los usuarios según la consulta de búsqueda
         final filteredDocs = snapshot.data!.docs.where((doc) {
           return (doc['name'] as String)
               .toLowerCase()
@@ -120,7 +119,6 @@ class _PageChatState extends State<PageChat> {
                   children: [
                     SlidableAction(
                       onPressed: (context) {
-                        // Acción de eliminar el chat
                         FirebaseFirestore.instance
                             .collection('chatRooms')
                             .doc(chatRoomID)
@@ -134,6 +132,7 @@ class _PageChatState extends State<PageChat> {
                       foregroundColor: Colors.white,
                       icon: Icons.delete,
                       label: 'Eliminar',
+                      borderRadius: BorderRadius.circular(5),
                     ),
                   ],
                 ),
@@ -157,59 +156,67 @@ class _PageChatState extends State<PageChat> {
                     return Column(
                       children: [
                         Container(
-                          margin: const EdgeInsets.symmetric(vertical: 6.0),
+                          margin: const EdgeInsets.symmetric(vertical: 2.0),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(15.0),
+                            borderRadius: BorderRadius.circular(0),
                           ),
                           child: ListTile(
                             contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 10),
+                                horizontal: 20, vertical: 15),
                             title: Row(
                               children: [
-                                CircleAvatar(
-                                  child: ClipOval(
-                                    child: FutureBuilder<String?>(
-                                      future: getUserPhotoColletion(doc['uid']),
-                                      builder: (context, snapshot) {
-                                        if (snapshot.connectionState ==
-                                            ConnectionState.waiting) {
-                                          return Container(
-                                            alignment: Alignment.center,
-                                            height: 50,
-                                            width: 50,
-                                            child:
-                                                const CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                            ),
-                                          );
-                                        } else {
-                                          if (snapshot.hasError) {
-                                            return const Icon(Icons.error);
-                                          } else {
-                                            if (snapshot.data != null) {
-                                              return Image.network(
-                                                snapshot.data!,
-                                                width: 100,
-                                                height: 100,
-                                                fit: BoxFit.cover,
-                                              );
-                                            } else {
-                                              return const Icon(
-                                                  Icons.account_circle,
-                                                  size: 25);
-                                            }
-                                          }
-                                        }
-                                      },
-                                    ),
-                                  ),
+                                FutureBuilder<String?>(
+                                  future: getUserPhotoColletion(doc['uid']),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return CircleAvatar(
+                                        radius: 25,
+                                        backgroundColor: Colors.grey.shade200,
+                                        child: const CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      );
+                                    } else if (snapshot.hasError) {
+                                      return CircleAvatar(
+                                        radius: 25,
+                                        backgroundColor: Colors.blue[50],
+                                        child: const Icon(Icons.error),
+                                      );
+                                    } else if (snapshot.hasData &&
+                                        snapshot.data != null) {
+                                      return CircleAvatar(
+                                        radius: 25,
+                                        backgroundImage: NetworkImage(
+                                          snapshot.data!,
+                                        ),
+                                      );
+                                    } else {
+                                      return CircleAvatar(
+                                        radius: 25,
+                                        backgroundColor: Colors.blue[50],
+                                        child: const Icon(
+                                          Icons.account_circle,
+                                          size: 50,
+                                          color: Colors.blue,
+                                        ),
+                                      );
+                                    }
+                                  },
                                 ),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Row(
                                     children: [
-                                      Text(doc['name']),
+                                      Text(
+                                        doc['name'],
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w400,
+                                          fontFamily: 'Montserrat',
+                                        ),
+                                      ),
                                       const SizedBox(width: 5),
                                       if (doc.data() is Map &&
                                           (doc.data() as Map)
