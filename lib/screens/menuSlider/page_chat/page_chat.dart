@@ -37,36 +37,41 @@ class _ChatHomeState extends State<ChatHome> {
     try {
       List<String> userIds = [_auth.currentUser!.uid, widget.receiverUserID]
         ..sort();
-
       String chatRoomId = userIds.join('_');
-
       CollectionReference messagesRef = FirebaseFirestore.instance
           .collection('chatRooms')
           .doc(chatRoomId)
           .collection('messages');
-
       QuerySnapshot messagesSnapshot =
           await messagesRef.where('read', isEqualTo: false).get();
-
+      WriteBatch batch = FirebaseFirestore.instance.batch();
       for (var doc in messagesSnapshot.docs) {
         if (doc['receiverId'] == _auth.currentUser!.uid) {
-          messagesRef.doc(doc.id).update({'read': true});
+          batch.update(messagesRef.doc(doc.id), {'read': true});
         }
       }
+      await batch.commit();
     } catch (e) {
-      print('Error marking messages as read: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error marking messages as read: $e')),
+      );
     }
   }
 
   void _sendMessage() async {
     if (messageTextController.text.isNotEmpty) {
-      await _chatServices.sendMessage(
-          widget.receiverUserID, messageTextController.text);
-      messageTextController.clear();
+      try {
+        await _chatServices.sendMessage(
+            widget.receiverUserID, messageTextController.text);
+        messageTextController.clear();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error sending message: $e')),
+        );
+      }
     }
   }
 
-  // Function to create or update a trabajo
   Future<void> createOrUpdateTrabajo(
       String estado, String uidReceptor, String idS) async {
     try {
@@ -93,7 +98,9 @@ class _ChatHomeState extends State<ChatHome> {
             .update({'estado': estado});
       }
     } catch (e) {
-      print('Error creating or updating trabajo: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error creating or updating trabajo: $e')),
+      );
     }
   }
 
@@ -124,23 +131,125 @@ class _ChatHomeState extends State<ChatHome> {
             doc['uidReceptor'] == widget.receiverUserID) {
           if (!isModalShown) {
             isModalShown = true;
-            _showConfirmDialog(context, doc);
+            _showConfirmDialogEmisor(context, doc);
           }
         }
       }
     });
   }
 
-  Future<void> _showConfirmDialog(
+  Future<void> _showConfirmDialogEmisor(
       BuildContext context, DocumentSnapshot doc) async {
-    return showDialog<void>(
+    // Mostrar el diálogo de carga mientras se obtiene la información del servicio
+    showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
+        return const Center(child: CircularProgressIndicator());
+      },
+    );
+
+    // Obtener los datos del servicio
+    DocumentSnapshot? servicioDoc = await _fetchServicio(doc['idEmpleo']);
+
+    // Cerrar el diálogo de carga
+    Navigator.of(context).pop();
+
+    if (servicioDoc == null || !servicioDoc.exists) {
+      // Mostrar un mensaje de error si no se encontró el servicio
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se encontraron datos del servicio.')),
+      );
+      return;
+    }
+
+    // Mostrar el diálogo de confirmación con los datos del servicio
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        var servicioData = servicioDoc.data() as Map<String, dynamic>;
         return AlertDialog(
           title: const Text('Confirmación'),
-          content: Text(
-              '¿Seguro que quieres aceptar la oferta?\n\nID Empleo: ${doc['idEmpleo']}\nEstado: ${doc['estado']}'),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('¿Seguro que quieres aceptar la oferta?'),
+              const SizedBox(height: 10),
+              Text('ID Empleo: ${doc['idEmpleo']}'),
+              Text('Estado: ${doc['estado']}'),
+              const SizedBox(height: 10),
+              Text('Tipo de Servicio: ${servicioData['tipoServicio']}'),
+              Text('Contenido: ${servicioData['contenido']}'),
+              Text('Tipo de Oferta: ${servicioData['tipoOferta']}'),
+              Text('Título: ${servicioData['titulo']}'),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Atrás'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  isModalShown = false;
+                });
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showConfirmDialog(
+      BuildContext context, DocumentSnapshot doc) async {
+    // Mostrar el diálogo de carga mientras se obtiene la información del servicio
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(child: CircularProgressIndicator());
+      },
+    );
+
+    // Obtener los datos del servicio
+    DocumentSnapshot? servicioDoc = await _fetchServicio(doc['idEmpleo']);
+
+    // Cerrar el diálogo de carga
+    Navigator.of(context).pop();
+
+    if (servicioDoc == null || !servicioDoc.exists) {
+      // Mostrar un mensaje de error si no se encontró el servicio
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se encontraron datos del servicio.')),
+      );
+      return;
+    }
+
+    // Mostrar el diálogo de confirmación con los datos del servicio
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        var servicioData = servicioDoc.data() as Map<String, dynamic>;
+        return AlertDialog(
+          title: const Text('Confirmación'),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('¿Seguro que quieres aceptar la oferta?'),
+              const SizedBox(height: 10),
+              Text('ID Empleo: ${doc['idEmpleo']}'),
+              Text('Estado: ${doc['estado']}'),
+              const SizedBox(height: 10),
+              Text('Tipo de Servicio: ${servicioData['tipoServicio']}'),
+              Text('Contenido: ${servicioData['contenido']}'),
+              Text('Tipo de Oferta: ${servicioData['tipoOferta']}'),
+              Text('Título: ${servicioData['titulo']}'),
+            ],
+          ),
           actions: <Widget>[
             TextButton(
               child: const Text('No'),
@@ -168,6 +277,21 @@ class _ChatHomeState extends State<ChatHome> {
         );
       },
     );
+  }
+
+  Future<DocumentSnapshot?> _fetchServicio(String idEmpleo) async {
+    try {
+      DocumentSnapshot servicioDoc = await FirebaseFirestore.instance
+          .collection('servicios')
+          .doc(idEmpleo)
+          .get();
+      return servicioDoc;
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching servicio: $e')),
+      );
+      return null;
+    }
   }
 
   @override
@@ -374,9 +498,7 @@ class _ChatHomeState extends State<ChatHome> {
           ),
           IconButton(
             icon: const Icon(Icons.check_box),
-            onPressed: () {
-              _solidForm();
-            },
+            onPressed: _solidForm,
           ),
           IconButton(
             icon: const Icon(Icons.send),
