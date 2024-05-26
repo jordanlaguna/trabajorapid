@@ -75,16 +75,15 @@ class _ChatHomeState extends State<ChatHome> {
   Future<void> createOrUpdateTrabajo(
       String estado, String uidReceptor, String idS) async {
     try {
-      DocumentReference trabajoRef = FirebaseFirestore.instance
+      QuerySnapshot existingTrabajos = await FirebaseFirestore.instance
           .collection('trabajos')
-          .doc(uidReceptor)
-          .collection('salas')
-          .doc(idS);
+          .where('uidReceptor', isEqualTo: uidReceptor)
+          .where('uidEmisor', isEqualTo: _auth.currentUser!.uid)
+          .where('idEmpleo', isEqualTo: idS)
+          .get();
 
-      DocumentSnapshot trabajoDoc = await trabajoRef.get();
-
-      if (!trabajoDoc.exists) {
-        await trabajoRef.set({
+      if (existingTrabajos.docs.isEmpty) {
+        await FirebaseFirestore.instance.collection('trabajos').add({
           'estado': estado,
           'uidReceptor': uidReceptor,
           'uidEmisor': _auth.currentUser!.uid,
@@ -92,7 +91,11 @@ class _ChatHomeState extends State<ChatHome> {
           'timestamp': FieldValue.serverTimestamp(),
         });
       } else {
-        await trabajoRef.update({'estado': estado});
+        String trabajoId = existingTrabajos.docs.first.id;
+        await FirebaseFirestore.instance
+            .collection('trabajos')
+            .doc(trabajoId)
+            .update({'estado': estado});
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -114,8 +117,6 @@ class _ChatHomeState extends State<ChatHome> {
   void _checkForPendingTrabajos() {
     FirebaseFirestore.instance
         .collection('trabajos')
-        .doc(widget.receiverUserID)
-        .collection('salas')
         .where('estado', isEqualTo: 'pendiente')
         .snapshots()
         .listen((snapshot) {
@@ -139,6 +140,7 @@ class _ChatHomeState extends State<ChatHome> {
 
   Future<void> _showConfirmDialogEmisor(
       BuildContext context, DocumentSnapshot doc) async {
+    // Mostrar el diálogo de carga mientras se obtiene la información del servicio
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -147,17 +149,21 @@ class _ChatHomeState extends State<ChatHome> {
       },
     );
 
+    // Obtener los datos del servicio
     DocumentSnapshot? servicioDoc = await _fetchServicio(doc['idEmpleo']);
 
+    // Cerrar el diálogo de carga
     Navigator.of(context).pop();
 
     if (servicioDoc == null || !servicioDoc.exists) {
+      // Mostrar un mensaje de error si no se encontró el servicio
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No se encontraron datos del servicio.')),
       );
       return;
     }
 
+    // Mostrar el diálogo de confirmación con los datos del servicio
     showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -198,6 +204,7 @@ class _ChatHomeState extends State<ChatHome> {
 
   Future<void> _showConfirmDialog(
       BuildContext context, DocumentSnapshot doc) async {
+    // Mostrar el diálogo de carga mientras se obtiene la información del servicio
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -206,17 +213,21 @@ class _ChatHomeState extends State<ChatHome> {
       },
     );
 
+    // Obtener los datos del servicio
     DocumentSnapshot? servicioDoc = await _fetchServicio(doc['idEmpleo']);
 
+    // Cerrar el diálogo de carga
     Navigator.of(context).pop();
 
     if (servicioDoc == null || !servicioDoc.exists) {
+      // Mostrar un mensaje de error si no se encontró el servicio
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No se encontraron datos del servicio.')),
       );
       return;
     }
 
+    // Mostrar el diálogo de confirmación con los datos del servicio
     showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -230,7 +241,6 @@ class _ChatHomeState extends State<ChatHome> {
             children: [
               Text('¿Seguro que quieres aceptar la oferta?'),
               const SizedBox(height: 10),
-              Text('ID Empleo: ${doc['idEmpleo']}'),
               Text('Estado: ${doc['estado']}'),
               const SizedBox(height: 10),
               Text('Tipo de Servicio: ${servicioData['tipoServicio']}'),
@@ -254,10 +264,9 @@ class _ChatHomeState extends State<ChatHome> {
               onPressed: () async {
                 await FirebaseFirestore.instance
                     .collection('trabajos')
-                    .doc(widget.receiverUserID)
-                    .collection('salas')
                     .doc(doc.id)
                     .update({'estado': 'aceptado'});
+                // ignore: use_build_context_synchronously
                 Navigator.of(context).pop();
                 setState(() {
                   isModalShown = false;
