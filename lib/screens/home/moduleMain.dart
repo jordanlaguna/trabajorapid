@@ -1,6 +1,6 @@
-// ignore_for_file: file_names
-import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+// ignore: file_names
 import 'package:flutter/material.dart';
+import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:trabajorapid/screens/menuSlider/drawer/navbar.dart';
 import 'package:trabajorapid/screens/bottom_navigationbar/favorite_page/favorite.dart';
 import 'package:trabajorapid/screens/bottom_navigationbar/home_page/home.dart';
@@ -20,12 +20,44 @@ class ModuleMain extends StatefulWidget {
 
 class _ModuleMainState extends State<ModuleMain> {
   int index = 0;
-  final screen = const [
-    HomePage(),
-    ProfilePage(),
-    Favorite(),
-    WorksPage(),
+  final List<Widget> screens = [
+    const HomePage(),
+    const ProfilePage(),
+    const Favorite(),
+    WorksPage(key: WorksPage.pageKey),
   ];
+
+  List<Widget>? _getActionsForPage(int index) {
+    if (index == 3) {
+      // WorksPage
+      return [
+        IconButton(
+          icon: const Icon(Icons.search),
+          onPressed: () => WorksPage.showJobSearch(context),
+        ),
+        PopupMenuButton<String>(
+          onSelected: (String result) {
+            WorksPage.pageKey.currentState?.filtrarTrabajos(result);
+          },
+          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+            const PopupMenuItem<String>(
+              value: 'Todos',
+              child: Text('Todos'),
+            ),
+            const PopupMenuItem<String>(
+              value: 'Pendiente',
+              child: Text('Pendiente'),
+            ),
+            const PopupMenuItem<String>(
+              value: 'En Proceso',
+              child: Text('En Proceso'),
+            ),
+          ],
+        ),
+      ];
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,8 +103,9 @@ class _ModuleMainState extends State<ModuleMain> {
             ),
           ),
           iconTheme: const IconThemeData(color: Colors.white, size: 35),
+          actions: _getActionsForPage(index),
         ),
-        body: screen.elementAt(index),
+        body: screens.elementAt(index),
         bottomNavigationBar: CurvedNavigationBar(
           color: const Color.fromARGB(255, 65, 111, 223),
           backgroundColor: Colors.transparent,
@@ -81,7 +114,7 @@ class _ModuleMainState extends State<ModuleMain> {
           index: index,
           onTap: (newIndex) {
             setState(() {
-              index = newIndex % screen.length;
+              index = newIndex % screens.length;
             });
           },
         ),
