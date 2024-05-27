@@ -632,7 +632,7 @@ class _HomePageServiceState extends State<HomePageService> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>
-                                        Profile(uid: uid, idS: idS),
+                                        Profile(uid: uid, idS: idS, contenido: contenido, pago:pago, tipoOferta:tipoOferta),
                                   ),
                                 );
                               },

@@ -494,8 +494,12 @@ class _FavoritePageService extends State<FavoritePageService> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) =>
-                                        Profile(uid: uid, idS: idS),
+                                    builder: (context) => Profile(
+                                        uid: uid,
+                                        idS: idS,
+                                        contenido: contenido,
+                                        tipoOferta: tipoOferta,
+                                        pago: pago),
                                   ),
                                 );
                               },

@@ -11,6 +11,9 @@ void main() {
       home: Profile(
         uid: 'uid',
         idS: 'idS',
+        contenido: 'contenido',
+        pago: 'pago',
+        tipoOferta: 'tipoOferta',
       ),
       debugShowCheckedModeBanner: false,
     ),
@@ -20,8 +23,17 @@ void main() {
 class Profile extends StatelessWidget {
   final String uid;
   final String idS;
+  final String contenido;
+  final String pago;
+  final String tipoOferta;
 
-  const Profile({Key? key, required this.uid, required this.idS})
+  const Profile(
+      {Key? key,
+      required this.uid,
+      required this.idS,
+      required this.contenido,
+      required this.pago,
+      required this.tipoOferta})
       : super(key: key);
 
   @override
@@ -56,6 +68,9 @@ class Profile extends StatelessWidget {
         child: ProfileScreen(
           uid: uid,
           idS: idS,
+          contenido: contenido,
+          tipoOferta: tipoOferta,
+          pago: pago,
         ),
       ),
     );
@@ -65,9 +80,19 @@ class Profile extends StatelessWidget {
 class ProfileScreen extends StatefulWidget {
   final String uid;
   final String idS;
+  final String contenido;
+  final String tipoOferta;
+  final String pago;
 
-  const ProfileScreen({Key? key, required this.uid, required this.idS})
+  const ProfileScreen(
+      {Key? key,
+      required this.uid,
+      required this.idS,
+      required this.contenido,
+      required this.tipoOferta,
+      required this.pago})
       : super(key: key);
+
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 }
@@ -294,6 +319,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 14),
           Text(
             direccion,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 16, color: Colors.black),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            widget.contenido,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 16, color: Colors.black),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            widget.tipoOferta,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 16, color: Colors.black),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            '${widget.pago} ₡',
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 16, color: Colors.black),
           ),

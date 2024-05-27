@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -21,7 +23,8 @@ class ChatHome extends StatefulWidget {
 }
 
 class _ChatHomeState extends State<ChatHome> {
-  TextEditingController messageTextController = TextEditingController();
+  final TextEditingController messageTextController = TextEditingController();
+  final TextEditingController oferta = TextEditingController();
   final ChatServices _chatServices = ChatServices();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   bool isModalShown = false;
@@ -33,7 +36,13 @@ class _ChatHomeState extends State<ChatHome> {
     _checkForPendingTrabajos();
   }
 
-  void _markMessagesAsRead() async {
+  @override
+  void dispose() {
+    messageTextController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _markMessagesAsRead() async {
     try {
       List<String> userIds = [_auth.currentUser!.uid, widget.receiverUserID]
         ..sort();
@@ -52,22 +61,26 @@ class _ChatHomeState extends State<ChatHome> {
       }
       await batch.commit();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error marking messages as read: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error marking messages as read: $e')),
+        );
+      }
     }
   }
 
-  void _sendMessage() async {
+  Future<void> _sendMessage() async {
     if (messageTextController.text.isNotEmpty) {
       try {
         await _chatServices.sendMessage(
             widget.receiverUserID, messageTextController.text);
         messageTextController.clear();
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error sending message: $e')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error sending message: $e')),
+          );
+        }
       }
     }
   }
@@ -98,26 +111,34 @@ class _ChatHomeState extends State<ChatHome> {
             .update({'estado': estado});
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error creating or updating trabajo: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error creating or updating trabajo: $e')),
+        );
+      }
     }
   }
 
-  void _solidForm() async {
+  Future<void> _solidForm() async {
     if (widget.idS.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Función no permitida')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Función no permitida')),
+        );
+      }
       return;
     }
-    await createOrUpdateTrabajo('pendiente', widget.receiverUserID, widget.idS);
+
+    await _chatServices.sendMessage(
+        widget.receiverUserID, oferta.text = '¡Oferta aceptada!');
+    oferta.clear();
+    await createOrUpdateTrabajo('Pendiente', widget.receiverUserID, widget.idS);
   }
 
   void _checkForPendingTrabajos() {
     FirebaseFirestore.instance
         .collection('trabajos')
-        .where('estado', isEqualTo: 'pendiente')
+        .where('estado', isEqualTo: 'Pendiente')
         .snapshots()
         .listen((snapshot) {
       for (var doc in snapshot.docs) {
@@ -125,13 +146,17 @@ class _ChatHomeState extends State<ChatHome> {
             doc['uidEmisor'] == widget.receiverUserID) {
           if (!isModalShown) {
             isModalShown = true;
-            _showConfirmDialog(context, doc);
+            if (mounted) {
+              _showConfirmDialog(context, doc);
+            }
           }
         } else if (doc['uidEmisor'] == _auth.currentUser!.uid &&
             doc['uidReceptor'] == widget.receiverUserID) {
           if (!isModalShown) {
             isModalShown = true;
-            _showConfirmDialogEmisor(context, doc);
+            if (mounted) {
+              _showConfirmDialogEmisor(context, doc);
+            }
           }
         }
       }
@@ -140,143 +165,262 @@ class _ChatHomeState extends State<ChatHome> {
 
   Future<void> _showConfirmDialogEmisor(
       BuildContext context, DocumentSnapshot doc) async {
-    // Mostrar el diálogo de carga mientras se obtiene la información del servicio
     showDialog(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: true,
       builder: (BuildContext context) {
         return const Center(child: CircularProgressIndicator());
       },
     );
 
-    // Obtener los datos del servicio
     DocumentSnapshot? servicioDoc = await _fetchServicio(doc['idEmpleo']);
 
-    // Cerrar el diálogo de carga
     Navigator.of(context).pop();
 
     if (servicioDoc == null || !servicioDoc.exists) {
-      // Mostrar un mensaje de error si no se encontró el servicio
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se encontraron datos del servicio.')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('No se encontraron datos del servicio.')),
+        );
+      }
       return;
     }
 
-    // Mostrar el diálogo de confirmación con los datos del servicio
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        var servicioData = servicioDoc.data() as Map<String, dynamic>;
-        return AlertDialog(
-          title: const Text('Confirmación'),
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('¿Seguro que quieres aceptar la oferta?'),
-              const SizedBox(height: 10),
-              Text('ID Empleo: ${doc['idEmpleo']}'),
-              Text('Estado: ${doc['estado']}'),
-              const SizedBox(height: 10),
-              Text('Tipo de Servicio: ${servicioData['tipoServicio']}'),
-              Text('Contenido: ${servicioData['contenido']}'),
-              Text('Tipo de Oferta: ${servicioData['tipoOferta']}'),
-              Text('Título: ${servicioData['titulo']}'),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Atrás'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                setState(() {
-                  isModalShown = false;
-                });
-              },
+    if (mounted) {
+      showDialog<void>(
+        context: context,
+        barrierDismissible: true,
+        builder: (BuildContext context) {
+          var servicioData = servicioDoc.data() as Map<String, dynamic>;
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15.0),
             ),
-          ],
-        );
-      },
-    );
+            title: const Row(
+              children: [
+                Icon(Icons.info_outline, color: Colors.blue),
+                SizedBox(width: 10),
+                Text(
+                  'Confirmación',
+                  style: TextStyle(
+                    color: Colors.blue,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  const Text(
+                    'Solicitó la oferta',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Tipo de Servicio: ${servicioData['tipoServicio']}',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Contenido: ${servicioData['contenido']}',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Tipo de Oferta: ${servicioData['tipoOferta']}',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Ofrecido por: ${servicioData['titulo']}',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Estado: ${doc['estado']}',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.grey,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+                child: const Text(
+                  'Atrás',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  setState(() {
+                    isModalShown = false;
+                  });
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
   Future<void> _showConfirmDialog(
       BuildContext context, DocumentSnapshot doc) async {
-    // Mostrar el diálogo de carga mientras se obtiene la información del servicio
     showDialog(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: true,
       builder: (BuildContext context) {
         return const Center(child: CircularProgressIndicator());
       },
     );
 
-    // Obtener los datos del servicio
     DocumentSnapshot? servicioDoc = await _fetchServicio(doc['idEmpleo']);
 
-    // Cerrar el diálogo de carga
     Navigator.of(context).pop();
 
     if (servicioDoc == null || !servicioDoc.exists) {
-      // Mostrar un mensaje de error si no se encontró el servicio
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se encontraron datos del servicio.')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('No se encontraron datos del servicio.')),
+        );
+      }
       return;
     }
 
-    // Mostrar el diálogo de confirmación con los datos del servicio
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        var servicioData = servicioDoc.data() as Map<String, dynamic>;
-        return AlertDialog(
-          title: const Text('Confirmación'),
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('¿Seguro que quieres aceptar la oferta?'),
-              const SizedBox(height: 10),
-              Text('Estado: ${doc['estado']}'),
-              const SizedBox(height: 10),
-              Text('Tipo de Servicio: ${servicioData['tipoServicio']}'),
-              Text('Contenido: ${servicioData['contenido']}'),
-              Text('Tipo de Oferta: ${servicioData['tipoOferta']}'),
-              Text('Título: ${servicioData['titulo']}'),
+    if (mounted) {
+      showDialog<void>(
+        context: context,
+        barrierDismissible: true,
+        builder: (BuildContext context) {
+          var servicioData = servicioDoc.data() as Map<String, dynamic>;
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15.0),
+            ),
+            title: const Row(
+              children: [
+                Icon(Icons.info_outline, color: Colors.blue),
+                Text(
+                  'Confirmación',
+                  style: TextStyle(
+                    color: Colors.blue,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  const Text(
+                    '¿Seguro que quieres aceptar la oferta?',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Estado: ${doc['estado']}',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Tipo de Servicio: ${servicioData['tipoServicio']}',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Descripción: ${servicioData['contenido']}',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Tipo de Oferta: ${servicioData['tipoOferta']}',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Ofrecido por: ${servicioData['titulo']}',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+                child: const Text(
+                  'No',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onPressed: () async {
+                  await FirebaseFirestore.instance
+                      .collection('trabajos')
+                      .doc(doc.id)
+                      .update({'estado': 'Rechazado'});
+
+                  Navigator.of(context).pop();
+                  setState(() {
+                    isModalShown = false;
+                  });
+                },
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+                child: const Text(
+                  'Sí',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onPressed: () async {
+                  await FirebaseFirestore.instance
+                      .collection('trabajos')
+                      .doc(doc.id)
+                      .update({'estado': 'En proceso'});
+
+                  String message = 'Estado: En proceso\n'
+                      'Tipo de Servicio: ${servicioData['tipoServicio']}\n'
+                      'Descripción: ${servicioData['contenido']}\n'
+                      'Tipo de Oferta: ${servicioData['tipoOferta']}\n'
+                      'Ofrecido por: ${servicioData['titulo']}';
+
+                  await _chatServices.sendMessage(
+                      widget.receiverUserID, message);
+
+                  Navigator.of(context).pop();
+                  setState(() {
+                    isModalShown = false;
+                  });
+                },
+              ),
             ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('No'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                setState(() {
-                  isModalShown = false;
-                });
-              },
-            ),
-            TextButton(
-              child: const Text('Sí'),
-              onPressed: () async {
-                await FirebaseFirestore.instance
-                    .collection('trabajos')
-                    .doc(doc.id)
-                    .update({'estado': 'aceptado'});
-                // ignore: use_build_context_synchronously
-                Navigator.of(context).pop();
-                setState(() {
-                  isModalShown = false;
-                });
-              },
-            ),
-          ],
-        );
-      },
-    );
+          );
+        },
+      );
+    }
   }
 
   Future<DocumentSnapshot?> _fetchServicio(String idEmpleo) async {
@@ -287,9 +431,11 @@ class _ChatHomeState extends State<ChatHome> {
           .get();
       return servicioDoc;
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching servicio: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error fetching servicio: $e')),
+        );
+      }
       return null;
     }
   }
@@ -374,9 +520,7 @@ class _ChatHomeState extends State<ChatHome> {
   Widget _buildMessageList() {
     return StreamBuilder(
       stream: _chatServices.getMessages(
-        widget.receiverUserID,
-        _auth.currentUser!.uid,
-      ),
+          widget.receiverUserID, _auth.currentUser!.uid),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Text('Error${snapshot.error}');
@@ -393,7 +537,7 @@ class _ChatHomeState extends State<ChatHome> {
         }
         return ListView(
           children: snapshot.data!.docs
-              .map((document) => _buildMessageItem(document))
+              .map<Widget>((document) => _buildMessageItem(document))
               .toList(),
         );
       },
@@ -443,12 +587,8 @@ class _ChatHomeState extends State<ChatHome> {
                 ),
                 Padding(
                   padding: isMe
-                      ? const EdgeInsets.only(
-                          right: 5.0,
-                        )
-                      : const EdgeInsets.only(
-                          left: 16.0,
-                        ),
+                      ? const EdgeInsets.only(right: 5.0)
+                      : const EdgeInsets.only(left: 16.0),
                   child: Text(
                     formattedTime,
                     style: const TextStyle(
