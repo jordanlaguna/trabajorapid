@@ -636,9 +636,12 @@ class _ChatHomeState extends State<ChatHome> {
               ),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.check_box),
-            onPressed: _solidForm,
+          Visibility(
+            visible: widget.idS.isNotEmpty,
+            child: IconButton(
+              icon: const Icon(Icons.check_box),
+              onPressed: widget.idS.isEmpty ? null : _solidForm,
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.send),
