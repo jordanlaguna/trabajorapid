@@ -211,10 +211,10 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                                   radius: 80,
                                   backgroundColor: Colors.grey[200],
                                   backgroundImage: null,
-                                  child: Icon(
+                                  child: const Icon(
                                     Icons.add_a_photo,
                                     size: 40,
-                                    color: Colors.grey[600],
+                                    color: Color.fromARGB(255, 65, 111, 223),
                                   ),
                                 ),
                         ),
@@ -222,8 +222,10 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                         TextFormField(
                           controller: _identificationController,
                           decoration: InputDecoration(
-                            suffixIcon: Icon(FontAwesome.id_card,
-                                color: Theme.of(context).colorScheme.secondary),
+                            suffixIcon: const Icon(
+                              FontAwesome.id_card,
+                              color: Color.fromARGB(255, 65, 111, 223),
+                            ),
                             labelText: 'Ingrese su cédula',
                             hintText: '000000000',
                             labelStyle: TextStyle(
@@ -250,10 +252,11 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                         const SizedBox(height: 18),
                         TextFormField(
                           controller: _fullNameController,
-                          enabled: false,
                           decoration: InputDecoration(
-                            suffixIcon: Icon(FontAwesome.circle_user_solid,
-                                color: Theme.of(context).colorScheme.secondary),
+                            suffixIcon: const Icon(
+                              FontAwesome.circle_user_solid,
+                              color: Color.fromARGB(255, 65, 111, 223),
+                            ),
                             labelText: 'Ingrese su nombre completo',
                             hintText: 'Nombre completo',
                             labelStyle: TextStyle(
@@ -299,8 +302,10 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                             );
                           }).toList(),
                           decoration: InputDecoration(
-                            suffixIcon: Icon(FontAwesome.venus_mars_solid,
-                                color: Theme.of(context).colorScheme.secondary),
+                            suffixIcon: const Icon(
+                              FontAwesome.venus_mars_solid,
+                              color: Color.fromARGB(255, 65, 111, 223),
+                            ),
                             labelText: 'Género',
                             labelStyle: TextStyle(
                               color: Theme.of(context).colorScheme.secondary,
@@ -328,8 +333,10 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                           controller: _emailController,
                           enabled: false,
                           decoration: InputDecoration(
-                            suffixIcon: Icon(FontAwesome.envelope_solid,
-                                color: Theme.of(context).colorScheme.secondary),
+                            suffixIcon: const Icon(
+                              FontAwesome.envelope_solid,
+                              color: Color.fromARGB(255, 65, 111, 223),
+                            ),
                             labelText: 'Ingrese su correo',
                             hintText: 'ejemplousuario@gmail.com',
                             labelStyle: TextStyle(
@@ -357,8 +364,10 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                         TextFormField(
                           controller: _dateController,
                           decoration: InputDecoration(
-                            suffixIcon: Icon(FontAwesome.calendar_xmark_solid,
-                                color: Theme.of(context).colorScheme.secondary),
+                            suffixIcon: const Icon(
+                              FontAwesome.calendar_xmark_solid,
+                              color: Color.fromARGB(255, 65, 111, 223),
+                            ),
                             labelText: 'Ingrese su fecha de nacimiento',
                             hintText: 'dd/mm/aaaa',
                             labelStyle: TextStyle(
@@ -386,8 +395,10 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                         TextFormField(
                           controller: _addressController,
                           decoration: InputDecoration(
-                            suffixIcon: Icon(FontAwesome.location_dot_solid,
-                                color: Theme.of(context).colorScheme.secondary),
+                            suffixIcon: const Icon(
+                              FontAwesome.location_dot_solid,
+                              color: Color.fromARGB(255, 65, 111, 223),
+                            ),
                             labelText: 'Ingrese su dirección completa',
                             hintText: 'Provincia/Cantón/Distrito/',
                             labelStyle: TextStyle(
@@ -415,8 +426,10 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                         TextFormField(
                           controller: _telephoneController,
                           decoration: InputDecoration(
-                            suffixIcon: Icon(FontAwesome.phone_solid,
-                                color: Theme.of(context).colorScheme.secondary),
+                            suffixIcon: const Icon(
+                              FontAwesome.phone_solid,
+                              color: Color.fromARGB(255, 65, 111, 223),
+                            ),
                             labelText: 'Ingrese su número de teléfono',
                             hintText: '00000000',
                             labelStyle: TextStyle(

@@ -155,14 +155,9 @@ class _NavBarState extends State<NavBar> {
                 Icons.attach_money_rounded, 'Pagos', const PaymentPage()),
             buildListTile(
                 Icons.work_history_rounded, 'Trabajos', const WorksPage()),
-            ListTile(
-              leading: getIconWithShader(Icons.notifications),
-              title: buildTextStyle('Notificaciones'),
-              onTap: () => print('Notificaciones presionado'),
-            ),
             const Divider(
               height: 30,
-              color: Color(0xffB81736),
+              color: Color.fromARGB(255, 65, 111, 223),
             ),
             buildListTile(Icons.help_rounded, 'Ayuda', const PageHelp()),
             buildListTile(

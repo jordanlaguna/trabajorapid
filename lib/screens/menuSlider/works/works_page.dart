@@ -266,7 +266,7 @@ class _WorksPageState extends State<WorksPage> {
                                   style: const TextStyle(
                                     fontFamily: 'Montserrat',
                                     fontSize: 18,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w400,
                                   ),
                                 ),
                                 subtitle: Column(
@@ -293,14 +293,10 @@ class _WorksPageState extends State<WorksPage> {
                                 trailing: const Text(
                                   'Ver Detalles',
                                   style: TextStyle(
-                                    color: Colors.black,
+                                    color: Color.fromARGB(255, 65, 111, 223),
                                     fontFamily: "Montserrat",
                                     fontSize: 14,
                                     fontWeight: FontWeight.w400,
-                                    decoration: TextDecoration.underline,
-                                    decorationStyle: TextDecorationStyle.solid,
-                                    decorationThickness: 1.5,
-                                    height: 2.0,
                                   ),
                                 ),
                                 onTap: () {
@@ -330,7 +326,7 @@ class _WorksPageState extends State<WorksPage> {
                           child: Text(
                             itemsToShow >= filteredJobs.length
                                 ? 'Mostrar menos'
-                                : 'Cargar más',
+                                : 'Mostrar más',
                             style: const TextStyle(
                               fontFamily: 'Montserrat',
                               fontSize: 16,
