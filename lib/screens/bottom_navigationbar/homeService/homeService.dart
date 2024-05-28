@@ -242,8 +242,16 @@ class _HomePageServiceState extends State<HomePageService> {
             String uid = servicio['uid'];
             final double pagoDouble = servicio['pago']?.toDouble() ?? 0.0;
             final String pago = pagoDouble.toStringAsFixed(2);
+
+            Map<String, dynamic>? data =
+                servicio.data() as Map<String, dynamic>?;
+            List<dynamic> fotos = [];
+            if (data != null && data.containsKey('fotos')) {
+              fotos = data['fotos'];
+            }
+
             return buildCuadro(context, titulo, contenido, idS, tipoOferta,
-                direccion, pago, uid);
+                direccion, pago, uid, fotos);
           })
           .map((widget) => Container(
                 margin: const EdgeInsets.symmetric(horizontal: 6.0),
@@ -269,9 +277,9 @@ class _HomePageServiceState extends State<HomePageService> {
     }
   }
 
-  bool _isPressed = false;
   String titulo = "Nombre";
 
+  // Change 3: Add fotos parameter to the buildCuadro method
   Widget buildCuadro(
       BuildContext context,
       String titulo,
@@ -280,153 +288,168 @@ class _HomePageServiceState extends State<HomePageService> {
       String tipoOferta,
       String direccion,
       String pago,
-      String uid) {
+      String uid,
+      List<dynamic> fotos) {
     double mediaEstrellas = userRatings[idS] ?? 0.00;
     int nume = cantidadDocumentos[idS] ?? 0;
+
+    // Validar si el array de fotos está presente y no está vacío
+    List<dynamic> fotosValidas = fotos.isNotEmpty ? fotos : [];
+
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10.0),
-      padding: const EdgeInsets.all(20.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-        borderRadius: BorderRadius.circular(15.0),
-      ),
-      child: SingleChildScrollView(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              flex: 3,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Row(
-                    children: [
-                      SizedBox(
-                        width: 50,
-                        height: 50,
-                        child: CircleAvatar(
-                          backgroundColor: Colors.transparent,
-                          child: Container(
-                            width: 50,
-                            height: 50,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.grey,
-                                width: 1,
+        margin: const EdgeInsets.symmetric(vertical: 10.0),
+        padding: const EdgeInsets.all(20.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.5),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: const Offset(0, 3),
+            ),
+          ],
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        child: SingleChildScrollView(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                flex: 3,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 50,
+                          height: 50,
+                          child: CircleAvatar(
+                            backgroundColor: Colors.transparent,
+                            child: Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.grey,
+                                  width: 1,
+                                ),
                               ),
-                            ),
-                            child: ClipOval(
-                              child: FutureBuilder<String?>(
-                                future: getUserPhotoUrl(uid),
-                                builder: (context, photoSnapshot) {
-                                  if (photoSnapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return const CircularProgressIndicator();
-                                  } else if (photoSnapshot.hasError) {
-                                    return const Icon(Icons.error_outline,
-                                        size: 30, color: Colors.red);
-                                  } else {
-                                    if (photoSnapshot.hasData &&
-                                        photoSnapshot.data!.isNotEmpty) {
-                                      return Image.network(
-                                        photoSnapshot.data!,
-                                        fit: BoxFit.cover,
-                                        width: 100,
-                                        height: 100,
-                                      );
+                              child: ClipOval(
+                                child: FutureBuilder<String?>(
+                                  future: getUserPhotoUrl(uid),
+                                  builder: (context, photoSnapshot) {
+                                    if (photoSnapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return const CircularProgressIndicator();
+                                    } else if (photoSnapshot.hasError) {
+                                      return const Icon(Icons.error_outline,
+                                          size: 30, color: Colors.red);
                                     } else {
-                                      return const Icon(Icons.account_circle,
-                                          size: 30);
+                                      if (photoSnapshot.hasData &&
+                                          photoSnapshot.data!.isNotEmpty) {
+                                        return Image.network(
+                                          photoSnapshot.data!,
+                                          fit: BoxFit.cover,
+                                          width: 100,
+                                          height: 100,
+                                        );
+                                      } else {
+                                        return const Icon(Icons.account_circle,
+                                            size: 30);
+                                      }
                                     }
-                                  }
-                                },
+                                  },
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 8.0),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: <Widget>[
-                                SizedBox(
-                                  width: 190,
-                                  child: FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    alignment: Alignment.topLeft,
-                                    child: Text(
-                                      titulo,
-                                      style: const TextStyle(
-                                        color: Colors.black,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 20.0,
+                        const SizedBox(width: 8.0),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: <Widget>[
+                                  SizedBox(
+                                    width: 190,
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.topLeft,
+                                      child: Text(
+                                        titulo,
+                                        style: const TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20.0,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 8.0),
-                          Row(
-                            children: [
-                              RatingBar.builder(
-                                initialRating: mediaEstrellas,
-                                minRating: 1,
-                                direction: Axis.horizontal,
-                                allowHalfRating: true,
-                                itemCount: 5,
-                                itemPadding:
-                                    const EdgeInsets.symmetric(horizontal: 4.0),
-                                itemSize: 20,
-                                itemBuilder: (context, _) => const Icon(
-                                  Icons.star,
-                                  color: Colors.amber,
-                                ),
-                                onRatingUpdate: (rating) async {
-                                  String? userId =
-                                      FirebaseAuth.instance.currentUser?.uid;
+                            const SizedBox(height: 8.0),
+                            Row(
+                              children: [
+                                RatingBar.builder(
+                                  initialRating: mediaEstrellas,
+                                  minRating: 1,
+                                  direction: Axis.horizontal,
+                                  allowHalfRating: true,
+                                  itemCount: 5,
+                                  itemPadding: const EdgeInsets.symmetric(
+                                      horizontal: 4.0),
+                                  itemSize: 20,
+                                  itemBuilder: (context, _) => const Icon(
+                                    Icons.star,
+                                    color: Colors.amber,
+                                  ),
+                                  onRatingUpdate: (rating) async {
+                                    String? userId =
+                                        FirebaseAuth.instance.currentUser?.uid;
 
-                                  if (userId != null) {
-                                    QuerySnapshot ratingSnapshot =
-                                        await FirebaseFirestore.instance
-                                            .collection('calificacion')
-                                            .where('uid', isEqualTo: userId)
-                                            .get();
+                                    if (userId != null) {
+                                      QuerySnapshot ratingSnapshot =
+                                          await FirebaseFirestore.instance
+                                              .collection('calificacion')
+                                              .where('uid', isEqualTo: userId)
+                                              .get();
 
-                                    if (ratingSnapshot.docs.isNotEmpty) {
-                                      DocumentSnapshot? ratingDoc;
-                                      try {
-                                        ratingDoc =
-                                            ratingSnapshot.docs.firstWhere(
-                                          (doc) =>
-                                              doc['id'] == idS &&
-                                              doc['uid'] == userId,
-                                        );
-                                      } catch (e) {
-                                        ratingDoc = null;
-                                      }
+                                      if (ratingSnapshot.docs.isNotEmpty) {
+                                        DocumentSnapshot? ratingDoc;
+                                        try {
+                                          ratingDoc =
+                                              ratingSnapshot.docs.firstWhere(
+                                            (doc) =>
+                                                doc['id'] == idS &&
+                                                doc['uid'] == userId,
+                                          );
+                                        } catch (e) {
+                                          ratingDoc = null;
+                                        }
 
-                                      if (ratingDoc != null) {
-                                        await FirebaseFirestore.instance
-                                            .collection('calificacion')
-                                            .doc(ratingDoc.id)
-                                            .update({'estrellas': rating});
+                                        if (ratingDoc != null) {
+                                          await FirebaseFirestore.instance
+                                              .collection('calificacion')
+                                              .doc(ratingDoc.id)
+                                              .update({'estrellas': rating});
+                                        } else {
+                                          await FirebaseFirestore.instance
+                                              .collection('calificacion')
+                                              .doc()
+                                              .set({
+                                            'estrellas': rating,
+                                            'uid': userId,
+                                            'id': idS,
+                                          });
+                                        }
                                       } else {
                                         await FirebaseFirestore.instance
                                             .collection('calificacion')
@@ -437,197 +460,181 @@ class _HomePageServiceState extends State<HomePageService> {
                                           'id': idS,
                                         });
                                       }
-                                    } else {
-                                      await FirebaseFirestore.instance
-                                          .collection('calificacion')
-                                          .doc()
-                                          .set({
-                                        'estrellas': rating,
-                                        'uid': userId,
-                                        'id': idS,
-                                      });
-                                    }
-                                  }
-                                },
-                              ),
-                              const SizedBox(width: 1.0),
-                              Text('($nume)'),
-                              const SizedBox(width: 5.0),
-                              GestureDetector(
-                                onTap: () async {
-                                  _toggleLike(idS);
-                                },
-                                child: FutureBuilder<bool>(
-                                  future: _isLiked(idS),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState ==
-                                        ConnectionState.waiting) {
-                                      return const CircularProgressIndicator();
-                                    } else {
-                                      if (snapshot.hasData && snapshot.data!) {
-                                        return const Icon(
-                                          Icons.favorite,
-                                          color: Colors.red,
-                                        );
-                                      } else {
-                                        return const Icon(
-                                          Icons.favorite_border,
-                                          color: Colors.grey,
-                                        );
-                                      }
                                     }
                                   },
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: 210,
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.center,
-                            child: Text(
-                              contenido.length > 38
-                                  ? '${contenido.substring(0, 35)}...'
-                                  : contenido,
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontSize: 15.0,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 1.0),
-                        SizedBox(
-                          width: 210,
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.center,
-                            child: Text(
-                              '${tipoOferta.length > 35 ? '${tipoOferta.substring(0, 30)}...' : tipoOferta} - $pago ₡',
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontSize: 15.0,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 1.0),
-                        SizedBox(
-                          width: 210,
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.center,
-                            child: Text(
-                              direccion.length > 38
-                                  ? '${direccion.substring(0, 35)}...'
-                                  : direccion,
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontSize: 15.0,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 5.0),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => Profile(
-                                        uid: uid,
-                                        idS: idS,
-                                        contenido: contenido,
-                                        pago: pago,
-                                        tipoOferta: tipoOferta),
-                                  ),
-                                );
-                              },
-                              child: Transform.scale(
-                                scale: _isPressed ? 0.9 : 1.0,
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 6, horizontal: 20),
-                                  decoration: BoxDecoration(
-                                    gradient: const LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [
-                                        Color.fromARGB(255, 0, 92, 252),
-                                        Color.fromARGB(255, 86, 173, 255)
-                                      ],
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.2),
-                                        spreadRadius: 1,
-                                        blurRadius: 2,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        'Información',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      SizedBox(width: 10),
-                                      Icon(
-                                        Icons.touch_app,
-                                        color: Colors.white,
-                                        size: 20,
-                                      ),
-                                    ],
+                                const SizedBox(width: 1.0),
+                                Text('($nume)'),
+                                const SizedBox(width: 5.0),
+                                GestureDetector(
+                                  onTap: () async {
+                                    _toggleLike(idS);
+                                  },
+                                  child: FutureBuilder<bool>(
+                                    future: _isLiked(idS),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return const CircularProgressIndicator();
+                                      } else {
+                                        if (snapshot.hasData &&
+                                            snapshot.data!) {
+                                          return const Icon(
+                                            Icons.favorite,
+                                            color: Colors.red,
+                                          );
+                                        } else {
+                                          return const Icon(
+                                            Icons.favorite_border,
+                                            color: Colors.grey,
+                                          );
+                                        }
+                                      }
+                                    },
                                   ),
                                 ),
-                              ),
-                              onTapDown: (_) => setState(() {
-                                _isPressed =
-                                    true; // Para la animación de escala
-                              }),
-                              onTapUp: (_) => setState(() {
-                                _isPressed =
-                                    false; // Para revertir la animación
-                              }),
-                              onTapCancel: () => setState(() {
-                                _isPressed =
-                                    false; // Asegura que el estado se resetee si la acción es cancelada
-                              }),
+                              ],
                             ),
                           ],
                         ),
                       ],
                     ),
-                  ),
-                ],
+                    SizedBox(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 210,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.center,
+                              child: Text(
+                                contenido.length > 38
+                                    ? '${contenido.substring(0, 35)}...'
+                                    : contenido,
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 15.0,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 1.0),
+                          SizedBox(
+                            width: 210,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.center,
+                              child: Text(
+                                '${tipoOferta.length > 35 ? '${tipoOferta.substring(0, 30)}...' : tipoOferta} - $pago ₡',
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 15.0,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 1.0),
+                          SizedBox(
+                            width: 210,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.center,
+                              child: Text(
+                                direccion.length > 38
+                                    ? '${direccion.substring(0, 35)}...'
+                                    : direccion,
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 15.0,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 5.0),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              // Colocar los botones en una fila
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      _showPhotosModal(context, fotosValidas);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.blue,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 8),
+                                    ),
+                                    child: const Row(
+                                      children: [
+                                        Icon(Icons.photo,
+                                            size: 16, color: Colors.white),
+                                        SizedBox(width: 4),
+                                        Text('Ver Fotos',
+                                            style: TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.white)),
+                                      ],
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => Profile(
+                                            uid: uid,
+                                            idS: idS,
+                                            contenido: contenido,
+                                            pago: pago,
+                                            tipoOferta: tipoOferta,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.blue,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 8),
+                                    ),
+                                    child: const Row(
+                                      children: [
+                                        Icon(Icons.info,
+                                            size: 16, color: Colors.white),
+                                        SizedBox(width: 4),
+                                        Text('Información',
+                                            style: TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.white)),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
+            ],
+          ),
+        ));
   }
 
   Widget buildCuadrosFromDatabase(
@@ -642,15 +649,79 @@ class _HomePageServiceState extends State<HomePageService> {
         String uid = cuadro['uid'];
         final double pagoDouble = cuadro['pago']?.toDouble() ?? 0.0;
         final String pago = pagoDouble.toStringAsFixed(2);
+
+        Map<String, dynamic>? data = cuadro.data() as Map<String, dynamic>?;
+        List<dynamic> fotos = [];
+        if (data != null && data.containsKey('fotos')) {
+          fotos = data['fotos'];
+        }
+
         return SizedBox(
           height: 240,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 25.0),
             child: buildCuadro(context, titulo, contenido, idS, tipoOferta,
-                direccion, pago, uid),
+                direccion, pago, uid, fotos),
           ),
         );
       }).toList(),
+    );
+  }
+
+  void _showPhotosModal(BuildContext context, List<dynamic> fotos) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Fotos de la oferta'),
+          content: fotos.isNotEmpty
+              ? SingleChildScrollView(
+                  child: Column(
+                    children: fotos.map((fotoUrl) {
+                      print(
+                          'Photo URL: $fotoUrl'); // Imprimir la URL en la consola para verificar
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10.0),
+                        child: Image.network(
+                          fotoUrl,
+                          width: 300, // Ajustar el ancho de la imagen
+                          height: 200, // Ajustar el alto de la imagen
+                          fit: BoxFit
+                              .cover, // Ajustar cómo la imagen se adapta al espacio
+                          loadingBuilder: (BuildContext context, Widget child,
+                              ImageChunkEvent? loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes !=
+                                        null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        (loadingProgress.expectedTotalBytes ??
+                                            1)
+                                    : null,
+                              ),
+                            );
+                          },
+                          errorBuilder: (BuildContext context, Object exception,
+                              StackTrace? stackTrace) {
+                            return const Text('No se pudo cargar la imagen');
+                          },
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                )
+              : const Text('No hay fotos disponibles.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cerrar'),
+            ),
+          ],
+        );
+      },
     );
   }
 
