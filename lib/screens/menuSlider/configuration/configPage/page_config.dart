@@ -4,7 +4,7 @@ import 'package:trabajorapid/screens/menuSlider/configuration/PolicyPage/page_po
 import 'package:trabajorapid/screens/menuSlider/configuration/frequentQuest/frequent_quest.dart';
 import 'package:trabajorapid/screens/menuSlider/configuration/legalPage/page_legal.dart';
 import 'package:trabajorapid/screens/menuSlider/configuration/securityPage/security_page.dart';
-import 'package:trabajorapid/screens/menuSlider/perfilDrawer/profile_drawer.dart';
+import 'package:trabajorapid/screens/menuSlider/profile_drawer/profile_drawer.dart';
 
 class ConfigPage extends StatelessWidget {
   const ConfigPage({Key? key}) : super(key: key);
