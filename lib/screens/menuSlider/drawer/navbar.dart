@@ -7,7 +7,7 @@ import 'package:trabajorapid/screens/menuSlider/configuration/configPage/page_co
 import 'package:trabajorapid/screens/menuSlider/help/help_page.dart';
 import 'package:trabajorapid/screens/menuSlider/page_chat/page_home_chat.dart';
 import 'package:trabajorapid/screens/menuSlider/payment/payment_page.dart';
-import 'package:trabajorapid/screens/menuSlider/perfilDrawer/profile_drawer.dart';
+import 'package:trabajorapid/screens/menuSlider/profile_drawer/profile_drawer.dart';
 import 'package:trabajorapid/screens/menuSlider/works/works_page.dart';
 
 class NavBar extends StatefulWidget {

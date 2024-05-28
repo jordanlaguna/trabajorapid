@@ -576,6 +576,8 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
 
         if (!userDoc.exists) {
           Map<String, dynamic> userData = {
+            'name': name,
+            'email': email,
             'gender': gender,
             'address': address,
             'phone': telephone,
