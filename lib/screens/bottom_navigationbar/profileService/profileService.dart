@@ -451,33 +451,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   return const CircularProgressIndicator();
                 } else if (snapshot.hasError) {
                   return const Text('Error cargando comentarios');
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Text('No hay comentarios');
                 } else {
                   List<Comment> comments = snapshot.data!;
                   return Column(
                     children: [
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.3,
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: comments.length,
-                          itemBuilder: (context, index) {
-                            final comment = comments[index];
-                            final isCurrentUser =
-                                FirebaseAuth.instance.currentUser?.uid ==
-                                    comment.uid;
-                            return ChatBubble(
-                              name: comment.name,
-                              comment: comment.comment,
-                              isCurrentUser: isCurrentUser,
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
                       const Divider(),
                       Container(
                         decoration: BoxDecoration(
@@ -498,6 +475,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               _commentController.clear();
                             },
                           ),
+                        ),
+                      ),
+                      const Divider(),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.3,
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: comments.length,
+                          itemBuilder: (context, index) {
+                            final comment = comments[index];
+                            final isCurrentUser =
+                                FirebaseAuth.instance.currentUser?.uid ==
+                                    comment.uid;
+                            return ChatBubble(
+                              name: comment.name,
+                              comment: comment.comment,
+                              isCurrentUser: isCurrentUser,
+                            );
+                          },
                         ),
                       ),
                     ],
