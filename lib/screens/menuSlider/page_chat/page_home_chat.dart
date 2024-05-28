@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:trabajorapid/screens/menuSlider/page_chat/page_chat.dart';
+import 'dart:async';
 
 class PageChat extends StatefulWidget {
   const PageChat({Key? key}) : super(key: key);
@@ -14,6 +17,52 @@ class PageChat extends StatefulWidget {
 class _PageChatState extends State<PageChat> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   String searchQuery = "";
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startAutoDeleteOldMessages();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+// start the once a day timer to delete old messages
+  void _startAutoDeleteOldMessages() {
+    _timer = Timer.periodic(const Duration(days: 1), (timer) {
+      _deleteOldMessages();
+    });
+  }
+
+// delete messages older than 8 days
+  Future<void> _deleteOldMessages() async {
+    var chatRooms =
+        await FirebaseFirestore.instance.collection('chatRooms').get();
+    for (var chatRoom in chatRooms.docs) {
+      var messagesRef = chatRoom.reference.collection('messages');
+      var messagesSnapshot = await messagesRef.get();
+
+      WriteBatch batch = FirebaseFirestore.instance.batch();
+      for (var messageDoc in messagesSnapshot.docs) {
+        if (_isMessageOlderThanEightDays(messageDoc['timestamp'])) {
+          batch.delete(messageDoc.reference);
+        }
+      }
+      await batch.commit();
+    }
+  }
+
+// check if a message is older than 8 days and to delete it
+  bool _isMessageOlderThanEightDays(Timestamp timestamp) {
+    var now = DateTime.now();
+    var messageDate = timestamp.toDate();
+    var difference = now.difference(messageDate);
+    return difference.inDays >= 8;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -112,21 +161,18 @@ class _PageChatState extends State<PageChat> {
                   [currentUserID, doc['uid']].cast<String>().toList();
               chatRoomParticipants.sort();
               String chatRoomID = chatRoomParticipants.join('_');
+
               return Slidable(
                 key: Key(doc['uid']),
                 endActionPane: ActionPane(
                   motion: const ScrollMotion(),
                   children: [
                     SlidableAction(
-                      onPressed: (context) {
-                        FirebaseFirestore.instance
-                            .collection('chatRooms')
-                            .doc(chatRoomID)
-                            .delete();
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('${doc['name']} eliminado')),
-                        );
+                      onPressed: (context) async {
+                        bool confirmed = await _showConfirmationDialog(context);
+                        if (confirmed) {
+                          await _deleteMessages(chatRoomID, doc['name']);
+                        }
                       },
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
@@ -141,18 +187,31 @@ class _PageChatState extends State<PageChat> {
                       .collection('chatRooms')
                       .doc(chatRoomID)
                       .collection('messages')
+                      .orderBy('timestamp', descending: true)
+                      .limit(1)
                       .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
+                  builder: (context, messageSnapshot) {
+                    if (messageSnapshot.hasError) {
                       return const Text('Error');
                     }
-                    if (snapshot.connectionState == ConnectionState.waiting) {
+                    if (messageSnapshot.connectionState ==
+                        ConnectionState.waiting) {
                       return const Text('Loading..');
                     }
-                    int unreadMessageCount = snapshot.data!.docs
-                        .where((doc) =>
-                            doc['senderId'] != currentUserID && !doc['read'])
+
+                    String lastMessageTime = '';
+                    if (messageSnapshot.hasData &&
+                        messageSnapshot.data!.docs.isNotEmpty) {
+                      var lastMessage = messageSnapshot.data!.docs.first;
+                      lastMessageTime =
+                          formatTimestamp(lastMessage['timestamp']);
+                    }
+
+                    int unreadMessageCount = messageSnapshot.data!.docs
+                        .where((msg) =>
+                            msg['senderId'] != currentUserID && !msg['read'])
                         .length;
+
                     return Column(
                       children: [
                         Container(
@@ -207,27 +266,40 @@ class _PageChatState extends State<PageChat> {
                                 ),
                                 const SizedBox(width: 10),
                                 Expanded(
-                                  child: Row(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                            doc['name'],
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w400,
+                                              fontFamily: 'Montserrat',
+                                            ),
+                                          ),
+                                          const SizedBox(width: 5),
+                                          if (doc.data() is Map &&
+                                              (doc.data() as Map)
+                                                  .containsKey('isActive'))
+                                            CircleAvatar(
+                                              backgroundColor:
+                                                  doc['isActive'] == true
+                                                      ? Colors.green
+                                                      : Colors.red,
+                                              radius: 6,
+                                            ),
+                                        ],
+                                      ),
                                       Text(
-                                        doc['name'],
+                                        lastMessageTime,
                                         style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w400,
-                                          fontFamily: 'Montserrat',
+                                          fontSize: 14,
+                                          color: Colors.grey,
                                         ),
                                       ),
-                                      const SizedBox(width: 5),
-                                      if (doc.data() is Map &&
-                                          (doc.data() as Map)
-                                              .containsKey('isActive'))
-                                        CircleAvatar(
-                                          backgroundColor:
-                                              doc['isActive'] == true
-                                                  ? Colors.green
-                                                  : Colors.red,
-                                          radius: 6,
-                                        ),
                                     ],
                                   ),
                                 ),
@@ -275,30 +347,129 @@ class _PageChatState extends State<PageChat> {
       },
     );
   }
-}
 
-Future<String?> getUserPhotoColletion(String userID) async {
-  if (userID.isEmpty) {
-    return null;
-  }
+// get the photo of a user from the database
+  Future<String?> getUserPhotoColletion(String userID) async {
+    if (userID.isEmpty) {
+      return null;
+    }
 
-  try {
-    CollectionReference users = FirebaseFirestore.instance.collection('users');
-    final DocumentSnapshot document = await users.doc(userID).get();
+    try {
+      CollectionReference users =
+          FirebaseFirestore.instance.collection('users');
+      final DocumentSnapshot document = await users.doc(userID).get();
 
-    if (document.exists) {
-      Map<String, dynamic>? userData = document.data() as Map<String, dynamic>?;
+      if (document.exists) {
+        Map<String, dynamic>? userData =
+            document.data() as Map<String, dynamic>?;
 
-      if (userData != null && userData['photoURL'] != null) {
-        return userData['photoURL'];
+        if (userData != null && userData['photoURL'] != null) {
+          return userData['photoURL'];
+        } else {
+          return null;
+        }
       } else {
         return null;
       }
-    } else {
+    } catch (e) {
+      print(e);
       return null;
     }
-  } catch (e) {
-    print(e);
-    return null;
+  }
+
+// format the timestamp of a message
+  String formatTimestamp(Timestamp timestamp) {
+    initializeDateFormatting('es_ES', null);
+    var now = DateTime.now();
+    var messageDate = timestamp.toDate();
+    var difference = now.difference(messageDate);
+
+    if (difference.inDays == 0) {
+      return DateFormat('HH:mm').format(messageDate);
+    } else if (difference.inDays == 1) {
+      return 'Ayer';
+    } else if (difference.inDays < 7) {
+      return capitalize(DateFormat('EEEE', 'es_ES').format(messageDate));
+    } else {
+      return DateFormat('dd/MM/yyyy', 'es_ES').format(messageDate);
+    }
+  }
+
+// capitalize the first letter of a string
+  String capitalize(String input) {
+    if (input.isEmpty) return input;
+    return input[0].toUpperCase() + input.substring(1).toLowerCase();
+  }
+
+// modal of confirmation to delete a chat
+  Future<bool> _showConfirmationDialog(BuildContext context) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text(
+              'Confirmar eliminación',
+              style: TextStyle(
+                fontFamily: 'Monserrat',
+                fontSize: 22,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            content: const Text(
+              '¿Estás seguro de que deseas eliminar esta conversación?',
+              style: TextStyle(
+                  fontFamily: 'Monserrat',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text(
+                  'Cancelar',
+                  style: TextStyle(
+                    fontFamily: 'Monserrat',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text(
+                  'Eliminar',
+                  style: TextStyle(
+                    fontFamily: 'Monserrat',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+// delete messages and show a snackbar
+  Future<void> _deleteMessages(String chatRoomID, String userName) async {
+    var messagesRef = FirebaseFirestore.instance
+        .collection('chatRooms')
+        .doc(chatRoomID)
+        .collection('messages');
+
+    var messagesSnapshot = await messagesRef.get();
+
+    WriteBatch batch = FirebaseFirestore.instance.batch();
+    for (var messageDoc in messagesSnapshot.docs) {
+      batch.delete(messageDoc.reference);
+    }
+
+    await batch.commit();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Eliminando la conversación de $userName'),
+      ),
+    );
   }
 }
