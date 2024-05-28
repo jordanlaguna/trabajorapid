@@ -1,10 +1,12 @@
-// ignore_for_file: unnecessary_import, use_build_context_synchronously
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-// ignore_for_file: library_private_types_in_public_api
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -27,6 +29,10 @@ class _ProfilePageState extends State<ProfilePage> {
   final TextEditingController _descripcionController = TextEditingController();
   final TextEditingController _direccionController = TextEditingController();
   final TextEditingController _pagoController = TextEditingController();
+  final TextEditingController _experienciaController = TextEditingController();
+  final TextEditingController _requerimientoController =
+      TextEditingController();
+  List<XFile>? _imageFiles;
 
   bool _isValidDireccion(String value) {
     // Expresión regular para verificar el formato de la dirección
@@ -53,6 +59,8 @@ class _ProfilePageState extends State<ProfilePage> {
     _descripcionController.dispose();
     _direccionController.dispose();
     _pagoController.dispose();
+    _experienciaController.dispose();
+    _requerimientoController.dispose();
     super.dispose();
   }
 
@@ -128,6 +136,58 @@ class _ProfilePageState extends State<ProfilePage> {
     return null; // Devuelve null si no se encuentra una URL válida
   }
 
+  Future<void> _pickImages() async {
+    final ImagePicker _picker = ImagePicker();
+    final List<XFile>? selectedImages =
+        await _picker.pickMultiImage(imageQuality: 50);
+    if (selectedImages != null && selectedImages.length <= 2) {
+      setState(() {
+        _imageFiles = selectedImages;
+      });
+    } else {
+      // Mostrar mensaje de error si selecciona más de 2 imágenes
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Solo puedes seleccionar hasta 2 imágenes.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<List<String>> uploadImages(List<File> images) async {
+    final FirebaseStorage storage = FirebaseStorage.instance;
+    List<String> downloadUrls = [];
+
+    for (File image in images) {
+      final String fileName = image.path.split('/').last;
+      Reference ref = storage.ref().child("serviceImages").child(fileName);
+      UploadTask uploadTask = ref.putFile(image);
+      TaskSnapshot snapshot = await uploadTask;
+      String downloadUrl = await snapshot.ref.getDownloadURL();
+      downloadUrls.add(downloadUrl);
+    }
+
+    return downloadUrls;
+  }
+
+  void _resetForm() {
+    setState(() {
+      _selectedJobType = 'Seleccionar...';
+      _selectedOfferType = 'Seleccionar...';
+      _descripcionController.clear();
+      _direccionController.clear();
+      _pagoController.clear();
+      _experienciaController.clear();
+      _requerimientoController.clear();
+      _imageFiles = null;
+      _showJobForm = false;
+      _showWorkHistory = false;
+      _isLoading = true;
+    });
+    _loadDocuments();
+  }
+
   @override
   Widget build(BuildContext context) {
     int fullStars = rating.floor(); // Estrellas completas
@@ -192,8 +252,7 @@ class _ProfilePageState extends State<ProfilePage> {
               FutureBuilder<DocumentSnapshot>(
                 future: FirebaseFirestore.instance
                     .collection('users')
-                    .doc(FirebaseAuth.instance.currentUser!
-                        .uid) // Asegura que el usuario está autenticado
+                    .doc(FirebaseAuth.instance.currentUser!.uid)
                     .get(),
                 builder: (BuildContext context,
                     AsyncSnapshot<DocumentSnapshot> snapshot) {
@@ -207,8 +266,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     Map<String, dynamic> userData =
                         snapshot.data!.data() as Map<String, dynamic>;
                     return Text(
-                      userData['name'] ??
-                          'Nombre no disponible', // Asume que el campo se llama 'name'
+                      userData['name'] ?? 'Nombre no disponible',
                       style: const TextStyle(
                         fontSize: 25,
                         fontWeight: FontWeight.bold,
@@ -226,26 +284,25 @@ class _ProfilePageState extends State<ProfilePage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      rating.toString(), // Mostrar el valor de la calificación
+                      rating.toString(),
                       style: const TextStyle(fontSize: 20),
                     ),
                     const Icon(
-                      Icons.star, // Ícono de estrella completa
+                      Icons.star,
                       color: Colors.amber,
                       size: 25,
                     ),
-                    if (fraction >
-                        0) // Mostrar estrella parcial si hay fracción
+                    if (fraction > 0)
                       const Icon(
-                        Icons.star_half, // Ícono de estrella parcial
+                        Icons.star_half,
                         color: Colors.amber,
                         size: 25,
                       ),
                     for (int i = 0;
                         i < 5 - fullStars - (fraction > 0 ? 1 : 0);
-                        i++) // Mostrar estrellas vacías restantes
+                        i++)
                       const Icon(
-                        Icons.star_border, // Ícono de estrella vacía
+                        Icons.star_border,
                         color: Colors.amber,
                         size: 25,
                       ),
@@ -256,8 +313,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 onPressed: () {
                   setState(() {
                     _showWorkHistory = !_showWorkHistory;
-                    _showJobForm =
-                        false; // Asegura que el formulario de trabajo se contraiga
+                    _showJobForm = false;
                   });
                 },
                 style: ElevatedButton.styleFrom(
@@ -274,14 +330,12 @@ class _ProfilePageState extends State<ProfilePage> {
                         : 'Mostrar servicios'),
               ),
               const SizedBox(height: 18),
-              if (_showWorkHistory)
-                _buildWorkHistory(), // Mostrar historial de trabajos si _showWorkHistory es true
+              if (_showWorkHistory) _buildWorkHistory(),
               ElevatedButton(
                 onPressed: () {
                   setState(() {
                     _showJobForm = !_showJobForm;
-                    _showWorkHistory =
-                        false; // Asegura que el historial de trabajo se contraiga
+                    _showWorkHistory = false;
                   });
                 },
                 style: ElevatedButton.styleFrom(
@@ -294,8 +348,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: _buildButtonContent(
                     Icons.work_outline_rounded, 'Ofrecer servicios'),
               ),
-              if (_showJobForm)
-                _buildJobForm(), // Mostrar formulario de trabajo si _showJobForm es true
+              if (_showJobForm) _buildJobForm(),
             ],
           ),
         ),
@@ -356,7 +409,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-// Método para cargar documentos
+  // Método para cargar documentos
   void _loadDocuments() {
     FirebaseFirestore.instance
         .collection('servicios')
@@ -365,9 +418,11 @@ class _ProfilePageState extends State<ProfilePage> {
         .limit(_perPage)
         .get()
         .then((QuerySnapshot querySnapshot) {
-      _documentList = querySnapshot.docs;
-      _lastDocument = querySnapshot.docs.last;
       setState(() {
+        _documentList = querySnapshot.docs;
+        if (querySnapshot.docs.isNotEmpty) {
+          _lastDocument = querySnapshot.docs.last;
+        }
         _isLoading = false;
       });
     });
@@ -384,9 +439,12 @@ class _ProfilePageState extends State<ProfilePage> {
           .limit(_perPage)
           .get()
           .then((QuerySnapshot querySnapshot) {
-        _documentList.addAll(querySnapshot.docs);
-        _lastDocument = querySnapshot.docs.last;
-        setState(() {});
+        setState(() {
+          _documentList.addAll(querySnapshot.docs);
+          if (querySnapshot.docs.isNotEmpty) {
+            _lastDocument = querySnapshot.docs.last;
+          }
+        });
       });
     }
   }
@@ -414,6 +472,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 (servicio as Map<String, dynamic>)['contenido'] ?? '',
                 (servicio as Map<String, dynamic>)['fecha'].toDate(),
                 (servicio as Map<String, dynamic>)['tipoOferta'] ?? '',
+                (servicio as Map<String, dynamic>)['fotos'] ?? [],
               );
             }).toList(),
           ),
@@ -441,8 +500,8 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Widget _buildWorkHistoryItem(
-      String tipoServicio, String contenido, DateTime fecha, String otroDato) {
+  Widget _buildWorkHistoryItem(String tipoServicio, String contenido,
+      DateTime fecha, String otroDato, List<dynamic> fotos) {
     Duration difference = DateTime.now().difference(fecha);
     String tiempoTranscurrido = '';
 
@@ -460,9 +519,10 @@ class _ProfilePageState extends State<ProfilePage> {
       padding: const EdgeInsets.symmetric(vertical: 6),
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
       decoration: BoxDecoration(
-          border: Border.all(color: const Color.fromARGB(255, 252, 250, 250)),
-          borderRadius: BorderRadius.circular(10),
-          color: const Color.fromARGB(255, 252, 250, 250)),
+        border: Border.all(color: const Color.fromARGB(255, 252, 250, 250)),
+        borderRadius: BorderRadius.circular(10),
+        color: const Color.fromARGB(255, 252, 250, 250),
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -487,14 +547,6 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
           ),
-
-          /*Text(
-            tipoServicio,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),*/
           Expanded(
             child: Container(
               padding: const EdgeInsets.only(
@@ -612,30 +664,154 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ],
                               ),
                             ),
+                            const SizedBox(height: 10),
+                            if (fotos.isNotEmpty) ...[
+                              const Text(
+                                
+                                'Imágenes publicadas:',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              for (int i = 0; i < fotos.length; i++)
+                                GestureDetector(
+                                  onTap: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return Dialog(
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                          child: Container(
+                                            constraints: BoxConstraints(
+                                              maxHeight: 900,
+                                              maxWidth: 400,
+                                            ),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.all(10),
+                                                  child: Column(
+                                                    children: [
+                                                      Container(
+                                                        width: 300,
+                                                        height: 300,
+                                                        child: Image.network(
+                                                          fotos[i],
+                                                          fit: BoxFit.contain,
+                                                          errorBuilder:
+                                                              (context, error,
+                                                                  stackTrace) {
+                                                            return const Center(
+                                                              child: Text(
+                                                                'Error al cargar la imagen',
+                                                                style: TextStyle(
+                                                                    color: Colors
+                                                                        .red),
+                                                              ),
+                                                            );
+                                                          },
+                                                        ),
+                                                      ),
+                                                      const SizedBox(
+                                                          height: 10),
+                                                      ElevatedButton(
+                                                        onPressed: () {
+                                                          Navigator.of(context)
+                                                              .pop();
+                                                        },
+                                                        style: ElevatedButton
+                                                            .styleFrom(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .symmetric(
+                                                                  horizontal:
+                                                                      35,
+                                                                  vertical: 15),
+                                                          textStyle:
+                                                              const TextStyle(
+                                                                  fontSize: 18),
+                                                          shape:
+                                                              RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        8),
+                                                          ),
+                                                          elevation: 5,
+                                                          shadowColor:
+                                                              Colors.blue,
+                                                          backgroundColor:
+                                                              Colors.white,
+                                                        ),
+                                                        child: const Text(
+                                                          'Cerrar',
+                                                          style: TextStyle(
+                                                            color:
+                                                                Color.fromARGB(
+                                                                    255,
+                                                                    65,
+                                                                    111,
+                                                                    223),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
+                                  child: Container(
+                                    width: 100,
+                                    height: 100,
+                                    margin:
+                                        const EdgeInsets.symmetric(vertical: 5),
+                                    child: Image.network(
+                                      fotos[i],
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return const Center(
+                                          child: Text(
+                                            'Existe un error con la imagen solicitada',
+                                            style: TextStyle(color: Colors.red),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ],
                         ),
                       ),
                       actions: <Widget>[
-                        // Botón para cerrar el diálogo
                         ElevatedButton(
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 35,
-                                vertical: 15), // Aumentar padding
-                            textStyle: const TextStyle(
-                                fontSize: 18), // Aumentar tamaño del texto
+                                horizontal: 35, vertical: 15),
+                            textStyle: const TextStyle(fontSize: 18),
                             shape: RoundedRectangleBorder(
-                              // Bordes redondeados más definidos
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            elevation: 5, // Sombra para dar un efecto elevado
-                            shadowColor: Colors
-                                .blue, // Cambia el color de fondo si necesario
-                            backgroundColor: Colors
-                                .white, // Cambia el color del texto si necesario
+                            elevation: 5,
+                            shadowColor: Colors.blue,
+                            backgroundColor: Colors.white,
                           ),
                           child: const Text(
                             'Cerrar',
@@ -650,22 +826,18 @@ class _ProfilePageState extends State<ProfilePage> {
                 );
               },
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 28, vertical: 15), // Aumentar padding
-                textStyle:
-                    const TextStyle(fontSize: 11), // Aumentar tamaño del texto
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 28, vertical: 15),
+                textStyle: const TextStyle(fontSize: 11),
                 shape: RoundedRectangleBorder(
-                  // Bordes redondeados más definidos
                   borderRadius: BorderRadius.circular(8),
                 ),
-                elevation: 5, // Sombra para dar un efecto elevado
-                shadowColor:
-                    Colors.blue, // Cambia el color de fondo si necesario
-                backgroundColor:
-                    Colors.white, // Cambia el color del texto si necesario
+                elevation: 5,
+                shadowColor: Colors.blue,
+                backgroundColor: Colors.white,
               ),
               child: const Text(
-                'Mas detalles',
+                'Más detalles',
                 textAlign: TextAlign.center,
               ),
             ),
@@ -724,45 +896,122 @@ class _ProfilePageState extends State<ProfilePage> {
               labelText: 'Tipo de oferta:',
             ),
           ),
-          TextFormField(
-            controller:
-                _descripcionController, // Controlador para el campo de descripción
-            decoration:
-                const InputDecoration(labelText: 'Descripción del servicio:'),
-          ),
-          TextFormField(
-            controller: _direccionController,
-            decoration: const InputDecoration(labelText: 'Dirección:'),
-            keyboardType: TextInputType.text,
-            onChanged: (value) {
-              setState(() {
-                _showDireccionError = !_isValidDireccion(value);
-              });
-            },
-            onEditingComplete: () {
-              setState(() {
-                _showDireccionError = false;
-              });
-            },
-            validator: (value) {
-              if (_showDireccionError && !_isValidDireccion(value!)) {
-                return 'La dirección no tiene un formato válido.';
-              }
-              return null;
-            },
-          ),
-
-          // Campo de pago
-          TextFormField(
-            controller: _pagoController,
-            decoration: const InputDecoration(labelText: 'Pago:'),
-            keyboardType: TextInputType.number,
-            onChanged: (value) {
-              setState(() {
-                _pago = double.tryParse(value) ?? 0.0;
-              });
-            },
-          ),
+          if (_selectedOfferType == 'Oferta de servicio') ...[
+            TextFormField(
+              controller: _descripcionController,
+              decoration:
+                  const InputDecoration(labelText: 'Descripción del servicio:'),
+            ),
+            TextFormField(
+              controller: _direccionController,
+              decoration: const InputDecoration(
+                  labelText: 'Dirección ó zona de servicio:'),
+              keyboardType: TextInputType.text,
+              onChanged: (value) {
+                setState(() {
+                  _showDireccionError = !_isValidDireccion(value);
+                });
+              },
+              onEditingComplete: () {
+                setState(() {
+                  _showDireccionError = false;
+                });
+              },
+              validator: (value) {
+                if (_showDireccionError && !_isValidDireccion(value!)) {
+                  return 'La dirección no tiene un formato válido.';
+                }
+                return null;
+              },
+            ),
+            TextFormField(
+              controller: _pagoController,
+              decoration:
+                  const InputDecoration(labelText: 'Costo del servicio:'),
+              keyboardType: TextInputType.number,
+              onChanged: (value) {
+                setState(() {
+                  _pago = double.tryParse(value) ?? 0.0;
+                });
+              },
+            ),
+            TextFormField(
+              controller: _experienciaController,
+              decoration: const InputDecoration(
+                  labelText: 'Experiencia en el servicio que ofrece:'),
+            ),
+            TextFormField(
+              decoration: const InputDecoration(
+                  labelText: 'Fotos de trabajos realizados:'),
+              readOnly: true,
+              onTap: () async {
+                _pickImages();
+              },
+            ),
+            if (_imageFiles != null && _imageFiles!.isNotEmpty)
+              SizedBox(
+                height: 300, // Altura fija para todas las imágenes
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _imageFiles!.length,
+                  itemBuilder: (context, index) {
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 5),
+                      child: Image.file(
+                        File(_imageFiles![index].path),
+                        width: 250, // Ancho fijo para todas las imágenes
+                        height: 250, // Altura fija para todas las imágenes
+                        fit: BoxFit.cover,
+                      ),
+                    );
+                  },
+                ),
+              ),
+          ] else if (_selectedOfferType == 'Oferta de empleo') ...[
+            TextFormField(
+              controller: _descripcionController,
+              decoration:
+                  const InputDecoration(labelText: 'Descripción del empleo:'),
+            ),
+            TextFormField(
+              controller: _direccionController,
+              decoration: const InputDecoration(
+                  labelText: 'Dirección en donde se solicita a la persona:'),
+              keyboardType: TextInputType.text,
+              onChanged: (value) {
+                setState(() {
+                  _showDireccionError = !_isValidDireccion(value);
+                });
+              },
+              onEditingComplete: () {
+                setState(() {
+                  _showDireccionError = false;
+                });
+              },
+              validator: (value) {
+                if (_showDireccionError && !_isValidDireccion(value!)) {
+                  return 'La dirección no tiene un formato válido.';
+                }
+                return null;
+              },
+            ),
+            TextFormField(
+              controller: _pagoController,
+              decoration:
+                  const InputDecoration(labelText: 'Cuanto se va a pagar:'),
+              keyboardType: TextInputType.number,
+              onChanged: (value) {
+                setState(() {
+                  _pago = double.tryParse(value) ?? 0.0;
+                });
+              },
+            ),
+            TextFormField(
+              controller: _requerimientoController,
+              decoration: const InputDecoration(
+                  labelText: '¿Se requiere experiencia?:'),
+            ),
+          ],
           const SizedBox(height: 10),
           Center(
             child: ElevatedButton(
@@ -778,7 +1027,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         'Provincia/Canton/Ciudad'),
                     backgroundColor: Colors.red,
                   ));
-                  return; // Detener el proceso de publicación si la dirección no es válida
+                  return;
                 }
 
                 if (user != null) {
@@ -825,7 +1074,16 @@ class _ProfilePageState extends State<ProfilePage> {
                           // Obtener la descripción, dirección y pago del formulario
                           String descripcion = _descripcionController.text;
                           String direccion = _direccionController.text;
-                          String uid = user.uid; // Obtener el UID del usuario
+                          String uid = user.uid;
+
+                          List<String> downloadUrls = [];
+                          if (_selectedOfferType == 'Oferta de servicio' &&
+                              _imageFiles != null) {
+                            List<File> files = _imageFiles!
+                                .map((file) => File(file.path))
+                                .toList();
+                            downloadUrls = await uploadImages(files);
+                          }
 
                           // Guardar la información en la colección servicios
                           await FirebaseFirestore.instance
@@ -842,15 +1100,15 @@ class _ProfilePageState extends State<ProfilePage> {
                             'longitude': position?.longitude,
                             'fecha': currentDate,
                             'id': servicioId,
-                            'uid': uid
+                            'uid': uid,
+                            'experiencia': _experienciaController.text,
+                            if (downloadUrls.isNotEmpty) 'fotos': downloadUrls,
+                            if (_selectedOfferType == 'Oferta de empleo')
+                              'requerimiento': _requerimientoController.text,
                           });
 
-                          // Limpiar los campos del formulario después de guardar la información
-                          _descripcionController.clear();
-                          _direccionController.clear();
-                          _pagoController.clear();
+                          _resetForm();
 
-                          // Mostrar un mensaje de éxito
                           ScaffoldMessenger.of(context)
                               .showSnackBar(const SnackBar(
                             content: Text(
@@ -894,19 +1152,15 @@ class _ProfilePageState extends State<ProfilePage> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 35, vertical: 15), // Aumentar padding
-                textStyle:
-                    const TextStyle(fontSize: 18), // Aumentar tamaño del texto
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 45, vertical: 20),
+                textStyle: const TextStyle(fontSize: 18),
                 shape: RoundedRectangleBorder(
-                  // Bordes redondeados más definidos
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(25),
                 ),
-                elevation: 5, // Sombra para dar un efecto elevado
-                shadowColor:
-                    Colors.blue, // Cambia el color de fondo si necesario
-                backgroundColor:
-                    Colors.white, // Cambia el color del texto si necesario
+                elevation: 5,
+                shadowColor: Colors.blue,
+                backgroundColor: Colors.white,
               ),
               child: const Text('Publicar'),
             ),

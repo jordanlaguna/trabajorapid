@@ -27,3 +27,20 @@ Future<bool> uploadImage(File image) async {
   }
   return false;
 }
+
+
+Future<List<String>> uploadImages(List<File> images) async {
+  final FirebaseStorage storage = FirebaseStorage.instance;
+  List<String> downloadUrls = [];
+
+  for (File image in images) {
+    final String fileName = image.path.split('/').last;
+    Reference ref = storage.ref().child("serviceImages").child(fileName);
+    UploadTask uploadTask = ref.putFile(image);
+    TaskSnapshot snapshot = await uploadTask;
+    String downloadUrl = await snapshot.ref.getDownloadURL();
+    downloadUrls.add(downloadUrl);
+  }
+
+  return downloadUrls;
+}
