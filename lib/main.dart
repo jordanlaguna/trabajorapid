@@ -41,9 +41,6 @@ void main() async {
   // Firebase Local Notifications
   await initNotification();
 
-  // Update FCM Token
-  await updateFCMToken();
-
   SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
 

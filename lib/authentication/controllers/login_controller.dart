@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:trabajorapid/authentication/controllers/user_controller.dart';
 import 'package:trabajorapid/data/repositiories/auth_repository.dart';
+import 'package:trabajorapid/main.dart';
 import 'package:trabajorapid/utils/constans/image_strings.dart';
 import 'package:trabajorapid/utils/constans/loaders.dart';
 import 'package:trabajorapid/utils/network/network_manager.dart';
@@ -63,6 +64,9 @@ class LoginController extends GetxController {
       await AuthRepository.instance
           .loginWithEmailAndPassword(email.text.trim(), password.text.trim());
 
+      // update FCM Token
+      await updateFCMToken();
+
       // Detener el loader
       TFullScreenLoader.stopLoading();
 
@@ -93,6 +97,9 @@ class LoginController extends GetxController {
 
       // Guardar el usuario
       //await userController.saveUserRecord(userCredentials);
+
+      // update FCM Token
+      await updateFCMToken();
 
       // Detener el loader
       TFullScreenLoader.stopLoading();

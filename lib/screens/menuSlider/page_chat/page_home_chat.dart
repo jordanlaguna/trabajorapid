@@ -245,10 +245,16 @@ class _PageChatState extends State<PageChat> {
                                       );
                                     } else if (snapshot.hasData &&
                                         snapshot.data != null) {
-                                      return CircleAvatar(
-                                        radius: 25,
-                                        backgroundImage: NetworkImage(
-                                          snapshot.data!,
+                                      return GestureDetector(
+                                        onTap: () {
+                                          _showImageDialog(
+                                              context, snapshot.data!);
+                                        },
+                                        child: CircleAvatar(
+                                          radius: 25,
+                                          backgroundImage: NetworkImage(
+                                            snapshot.data!,
+                                          ),
                                         ),
                                       );
                                     } else {
@@ -470,6 +476,25 @@ class _PageChatState extends State<PageChat> {
       SnackBar(
         content: Text('Eliminando la conversación de $userName'),
       ),
+    );
+  }
+
+  void _showImageDialog(BuildContext context, String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: GestureDetector(
+            onTap: () {
+              Navigator.of(context).pop();
+            },
+            child: InteractiveViewer(
+              child: Image.network(imageUrl),
+            ),
+          ),
+        );
+      },
     );
   }
 }

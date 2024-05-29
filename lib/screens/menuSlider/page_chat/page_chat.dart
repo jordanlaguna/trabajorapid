@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -27,19 +27,52 @@ class _ChatHomeState extends State<ChatHome> {
   final TextEditingController oferta = TextEditingController();
   final ChatServices _chatServices = ChatServices();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final ScrollController _scrollController = ScrollController();
   bool isModalShown = false;
+  Timer? _typingTimer;
+  final StreamController<bool> _isTypingController =
+      StreamController<bool>.broadcast();
 
   @override
   void initState() {
     super.initState();
     _markMessagesAsRead();
     _checkForPendingTrabajos();
+
+    // Delay to ensure the messages are loaded before scrolling
+    Future.delayed(Duration(milliseconds: 300), () {
+      _scrollToBottom();
+    });
+
+    messageTextController.addListener(_handleTyping);
   }
 
   @override
   void dispose() {
+    messageTextController.removeListener(_handleTyping);
     messageTextController.dispose();
+    _scrollController.dispose();
+    _typingTimer?.cancel();
+    _isTypingController.close();
     super.dispose();
+  }
+
+  void _handleTyping() {
+    if (_typingTimer?.isActive ?? false) _typingTimer?.cancel();
+    _isTypingController.add(true);
+    _setTypingState(true);
+
+    _typingTimer = Timer(const Duration(seconds: 1), () {
+      _isTypingController.add(false);
+      _setTypingState(false);
+    });
+  }
+
+  Future<void> _setTypingState(bool isTyping) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_auth.currentUser!.uid)
+        .update({'isTyping': isTyping});
   }
 
   Future<void> _markMessagesAsRead() async {
@@ -75,6 +108,7 @@ class _ChatHomeState extends State<ChatHome> {
         await _chatServices.sendMessage(
             widget.receiverUserID, messageTextController.text);
         messageTextController.clear();
+        _scrollToBottom();
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -440,24 +474,73 @@ class _ChatHomeState extends State<ChatHome> {
     }
   }
 
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
+        title: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              widget.receiverUserEmail,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontFamily: 'Montserrat',
-                fontWeight: FontWeight.w400,
-              ),
-              textAlign: TextAlign.center,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Flexible(
+                  child: Text(
+                    widget.receiverUserEmail,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontFamily: 'Montserrat',
+                      fontWeight: FontWeight.w400,
+                    ),
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                StreamBuilder<DocumentSnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(widget.receiverUserID)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      Map<String, dynamic>? userData =
+                          snapshot.data!.data() as Map<String, dynamic>?;
+
+                      if (userData != null) {
+                        bool isActive = userData['isActive'] ?? false;
+
+                        return Container(
+                          width: 16,
+                          margin: const EdgeInsets.only(left: 5),
+                          child: CircleAvatar(
+                            radius: 12,
+                            backgroundColor: isActive
+                                ? const Color.fromARGB(255, 64, 174, 67)
+                                : Colors.red,
+                          ),
+                        );
+                      } else {
+                        return const SizedBox.shrink();
+                      }
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ],
             ),
-            const SizedBox(width: 10),
+            const SizedBox(height: 5),
             StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('users')
@@ -468,19 +551,24 @@ class _ChatHomeState extends State<ChatHome> {
                   Map<String, dynamic>? userData =
                       snapshot.data!.data() as Map<String, dynamic>?;
 
-                  if (userData != null && userData.containsKey('isActive')) {
-                    bool isActive = userData['isActive'];
+                  if (userData != null) {
+                    bool isTyping = userData['isTyping'] ?? false;
 
-                    return Container(
-                      width: 16,
-                      margin: const EdgeInsets.only(left: 5),
-                      child: CircleAvatar(
-                        radius: 12,
-                        backgroundColor: isActive
-                            ? const Color.fromARGB(255, 64, 174, 67)
-                            : Colors.red,
-                      ),
-                    );
+                    if (isTyping) {
+                      return const Center(
+                        child: Text(
+                          'escribiendo...',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontStyle: FontStyle.italic,
+                            fontSize: 14,
+                            fontFamily: 'Montserrat',
+                          ),
+                        ),
+                      );
+                    } else {
+                      return const SizedBox.shrink();
+                    }
                   } else {
                     return const SizedBox.shrink();
                   }
@@ -536,6 +624,7 @@ class _ChatHomeState extends State<ChatHome> {
           );
         }
         return ListView(
+          controller: _scrollController,
           children: snapshot.data!.docs
               .map<Widget>((document) => _buildMessageItem(document))
               .toList(),

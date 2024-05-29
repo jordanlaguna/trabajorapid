@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trabajorapid/data/repositiories/auth_repository.dart';
 import 'package:trabajorapid/screens/menuSlider/configuration/aboutOfPage/page_about.dart';
 import 'package:trabajorapid/screens/menuSlider/configuration/PolicyPage/page_policy.dart';
 import 'package:trabajorapid/screens/menuSlider/configuration/frequentQuest/frequent_quest.dart';
@@ -105,9 +106,11 @@ class ConfigPage extends StatelessWidget {
           ),
           _buildDivider(),
           _buildListItem(
-            title: 'Desactivar cuenta',
+            title: 'Cerrar sesión',
             icon: Icons.cancel,
-            onTap: () {},
+            onTap: () {
+              AuthRepository.instance.logoutUser();
+            },
           ),
         ],
       ),
