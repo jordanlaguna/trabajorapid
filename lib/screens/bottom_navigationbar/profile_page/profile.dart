@@ -137,10 +137,10 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _pickImages() async {
-    final ImagePicker _picker = ImagePicker();
-    final List<XFile>? selectedImages =
-        await _picker.pickMultiImage(imageQuality: 50);
-    if (selectedImages != null && selectedImages.length <= 2) {
+    final ImagePicker picker = ImagePicker();
+    final List<XFile> selectedImages =
+        await picker.pickMultiImage(imageQuality: 50);
+    if (selectedImages.length <= 2) {
       setState(() {
         _imageFiles = selectedImages;
       });
@@ -667,7 +667,6 @@ class _ProfilePageState extends State<ProfilePage> {
                             const SizedBox(height: 10),
                             if (fotos.isNotEmpty) ...[
                               const Text(
-                                
                                 'Imágenes publicadas:',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,

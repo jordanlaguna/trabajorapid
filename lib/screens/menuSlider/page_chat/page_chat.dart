@@ -39,10 +39,13 @@ class _ChatHomeState extends State<ChatHome> {
     _markMessagesAsRead();
     _checkForPendingTrabajos();
 
-    // Delay to ensure the messages are loaded before scrolling
-    Future.delayed(Duration(milliseconds: 300), () {
+    Future.delayed(const Duration(milliseconds: 300), () {
       _scrollToBottom();
     });
+
+    if (widget.idS.isNotEmpty) {
+      _solidForm();
+    }
 
     messageTextController.addListener(_handleTyping);
   }
@@ -723,13 +726,6 @@ class _ChatHomeState extends State<ChatHome> {
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
               ),
-            ),
-          ),
-          Visibility(
-            visible: widget.idS.isNotEmpty,
-            child: IconButton(
-              icon: const Icon(Icons.check_box),
-              onPressed: widget.idS.isEmpty ? null : _solidForm,
             ),
           ),
           IconButton(
