@@ -8,10 +8,12 @@ import 'badge_status.dart';
 class WorksPage extends StatefulWidget {
   const WorksPage({Key? key}) : super(key: key);
 
+  // ignore: library_private_types_in_public_api
   static final GlobalKey<_WorksPageState> pageKey =
       GlobalKey<_WorksPageState>();
 
   @override
+  // ignore: library_private_types_in_public_api
   _WorksPageState createState() => _WorksPageState();
 
   static void showJobSearch(BuildContext context) {
@@ -48,6 +50,21 @@ class _WorksPageState extends State<WorksPage> {
     });
   }
 
+  Color getBadgeColor(String estado) {
+    switch (estado) {
+      case 'Cancelado':
+        return Colors.redAccent;
+      case 'Pendiente':
+        return Colors.orangeAccent;
+      case 'En proceso':
+        return Colors.blueAccent;
+      case 'Terminado':
+        return Colors.green;
+      default:
+        return Colors.grey;
+    }
+  }
+
   void buscarTrabajos(String query) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       setState(() {
@@ -80,8 +97,8 @@ class _WorksPageState extends State<WorksPage> {
       final input = searchQuery.toLowerCase();
       final estadoTrabajo = trabajo.estado.toLowerCase();
       return tituloTrabajo.contains(input) &&
-          estadoTrabajo != 'cancelado' &&
-          estadoTrabajo != 'terminado';
+          estadoTrabajo != '' &&
+          estadoTrabajo != '';
     }).toList();
 
     if (selectedFilter.toLowerCase() != 'todos') {
@@ -322,8 +339,10 @@ class _WorksPageState extends State<WorksPage> {
               }
             }
             final job = trabajosFiltrados[index];
+            // cambiar el color segun el estado cancelado, pendiente, en proceso, terminado
+            // ignore: unused_local_variable
             final Color badgeColor = job.estado == 'Pendiente'
-                ? Colors.redAccent
+                ? Colors.orangeAccent
                 : Colors.blueAccent;
 
             return Card(
@@ -335,7 +354,9 @@ class _WorksPageState extends State<WorksPage> {
                     style: const TextStyle(fontWeight: FontWeight.bold)),
                 subtitle: Row(
                   children: [
-                    BadgeStatus(text: job.estado, color: badgeColor),
+                    // Aquí usamos getBadgeColor para obtener el color basado en el estado del trabajo
+                    BadgeStatus(
+                        text: job.estado, color: getBadgeColor(job.estado)),
                     const SizedBox(width: 8.0),
                     Text(job.fecha),
                   ],

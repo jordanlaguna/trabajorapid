@@ -51,10 +51,20 @@ class _ModuleMainState extends State<ModuleMain> {
               ),
             ),
             const PopupMenuItem<String>(
+              value: 'Cancelado',
+              child: Row(
+                children: [
+                  Icon(Icons.cancel, color: Colors.redAccent),
+                  SizedBox(width: 8),
+                  Text('Cancelado'),
+                ],
+              ),
+            ),
+            const PopupMenuItem<String>(
               value: 'Pendiente',
               child: Row(
                 children: [
-                  Icon(Icons.pending, color: Colors.redAccent),
+                  Icon(Icons.pending, color: Colors.orangeAccent),
                   SizedBox(width: 8),
                   Text('Pendiente'),
                 ],
@@ -67,6 +77,16 @@ class _ModuleMainState extends State<ModuleMain> {
                   Icon(Icons.work, color: Colors.blueAccent),
                   SizedBox(width: 8),
                   Text('En Proceso'),
+                ],
+              ),
+            ),
+            const PopupMenuItem<String>(
+              value: 'Terminado',
+              child: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.green),
+                  SizedBox(width: 8),
+                  Text('Terminado'),
                 ],
               ),
             ),

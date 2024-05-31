@@ -5,7 +5,7 @@ class FirebaseService {
   static Future<List<Job>> fetchJobs() async {
     final trabajosSnapshot = await FirebaseFirestore.instance
         .collection('trabajos')
-        .where('estado', whereIn: ['Pendiente', 'En proceso']).get();
+        .where('estado', whereIn: ['Cancelado','Pendiente', 'En proceso', 'Terminado']).get();
 
     final List<Job> jobs = trabajosSnapshot.docs.map((doc) {
       return Job.fromFirestore(doc);
