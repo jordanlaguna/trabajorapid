@@ -687,7 +687,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                                 BorderRadius.circular(10),
                                           ),
                                           child: Container(
-                                            constraints: BoxConstraints(
+                                            constraints: const BoxConstraints(
                                               maxHeight: 900,
                                               maxWidth: 400,
                                             ),
