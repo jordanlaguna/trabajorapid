@@ -132,6 +132,48 @@ class _ChatHomeState extends State<ChatHome> {
           .where('idEmpleo', isEqualTo: idS)
           .get();
 
+      // Obtener los datos del servicio
+      DocumentSnapshot servicioDoc = await FirebaseFirestore.instance
+          .collection('servicios')
+          .doc(idS)
+          .get();
+
+      if (!servicioDoc.exists) {
+        throw Exception("Servicio no encontrado");
+      }
+
+      Map<String, dynamic> servicioData =
+          servicioDoc.data() as Map<String, dynamic>;
+
+      // Obtener el nombre del emisor
+      DocumentSnapshot emisorDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_auth.currentUser!.uid)
+          .get();
+
+      if (!emisorDoc.exists) {
+        throw Exception("Usuario emisor no encontrado");
+      }
+
+      Map<String, dynamic> emisorData =
+          emisorDoc.data() as Map<String, dynamic>? ?? {};
+      String emisorNombre =
+          emisorData['name']?.toString() ?? 'Nombre desconocido';
+
+      // Datos adicionales del servicio
+      String titulo =
+          servicioData['titulo']?.toString() ?? 'Título desconocido';
+      String contenido =
+          servicioData['contenido']?.toString() ?? 'Contenido no disponible';
+      String direccion =
+          servicioData['direccion']?.toString() ?? 'Dirección no disponible';
+      String pago = servicioData['pago']?.toString() ?? 'Pago no especificado';
+      String tipoOferta = servicioData['tipoOferta']?.toString() ??
+          'Tipo de oferta no especificado';
+      String tipoServicio = servicioData['tipoServicio']?.toString() ??
+          'Tipo de servicio no especificado';
+
+       
       if (existingTrabajos.docs.isEmpty) {
         await FirebaseFirestore.instance.collection('trabajos').add({
           'estado': estado,
@@ -139,13 +181,29 @@ class _ChatHomeState extends State<ChatHome> {
           'uidEmisor': _auth.currentUser!.uid,
           'idEmpleo': idS,
           'timestamp': FieldValue.serverTimestamp(),
+          'titulo': titulo,
+          'contenido': contenido,
+          'direccion': direccion,
+          'pago': pago,
+          'tipoOferta': tipoOferta,
+          'tipoServicio': tipoServicio,
+          'emisorNombre': emisorNombre,
         });
       } else {
         String trabajoId = existingTrabajos.docs.first.id;
         await FirebaseFirestore.instance
             .collection('trabajos')
             .doc(trabajoId)
-            .update({'estado': estado});
+            .update({
+          'estado': estado,
+          'titulo': titulo,
+          'contenido': contenido,
+          'direccion': direccion,
+          'pago': pago,
+          'tipoOferta': tipoOferta,
+          'tipoServicio': tipoServicio,
+          'emisorNombre': emisorNombre,
+        });
       }
     } catch (e) {
       if (mounted) {

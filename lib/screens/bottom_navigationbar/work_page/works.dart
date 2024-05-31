@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'works_services.dart';
 import 'job.dart';
@@ -7,11 +8,10 @@ import 'badge_status.dart';
 class WorksPage extends StatefulWidget {
   const WorksPage({Key? key}) : super(key: key);
 
-  // ignore: library_private_types_in_public_api
-  static final GlobalKey<_WorksPageState> pageKey = GlobalKey<_WorksPageState>();
+  static final GlobalKey<_WorksPageState> pageKey =
+      GlobalKey<_WorksPageState>();
 
   @override
-  // ignore: library_private_types_in_public_api
   _WorksPageState createState() => _WorksPageState();
 
   static void showJobSearch(BuildContext context) {
@@ -78,7 +78,10 @@ class _WorksPageState extends State<WorksPage> {
     List<Job> resultados = trabajos.where((trabajo) {
       final tituloTrabajo = trabajo.tipoServicio.toLowerCase();
       final input = searchQuery.toLowerCase();
-      return tituloTrabajo.contains(input);
+      final estadoTrabajo = trabajo.estado.toLowerCase();
+      return tituloTrabajo.contains(input) &&
+          estadoTrabajo != 'cancelado' &&
+          estadoTrabajo != 'terminado';
     }).toList();
 
     if (selectedFilter.toLowerCase() != 'todos') {
@@ -94,29 +97,168 @@ class _WorksPageState extends State<WorksPage> {
   }
 
   void showJobDetails(Job job) {
+    final String currentUserUid = FirebaseAuth.instance.currentUser?.uid ?? '';
+
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: Text(
-            job.tipoServicio,
-            style: const TextStyle(fontWeight: FontWeight.bold)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Center(
+            child: Column(
+              children: [
+                const Icon(
+                  Icons.work,
+                  color: Colors.blueAccent,
+                  size: 40,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  job.tipoServicio,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                  ),
+                ),
+              ],
+            ),
+          ),
           content: SingleChildScrollView(
-            child: ListBody(
+            child: Column(
               children: <Widget>[
-                Text('Tipo de oferta: ${job.tipoOferta}'),
-                Text('Tipo de servicio: ${job.tipoServicio}'),
-                Text('Detalles: ${job.detalles}'),
-                Text('Estado: ${job.estado}'),
-                Text('Fecha: ${job.fecha}'),
+                const Divider(),
+                _buildInfoTile(Icons.person, 'Encargado', job.nameReceptor),
+                _buildInfoTile(
+                    Icons.local_offer, 'Tipo de oferta', job.tipoOferta),
+                _buildInfoTile(
+                    Icons.build, 'Tipo de servicio', job.tipoServicio),
+                _buildInfoTile(Icons.details, 'Detalles', job.detalles),
+                _buildInfoTile(Icons.location_on, 'Dirección', job.direccion),
+                _buildInfoTile(Icons.timeline, 'Estado', job.estado),
+                _buildInfoTile(Icons.person_pin, 'Interesado', job.nameEmisor),
+                _buildInfoTile(Icons.attach_money, 'Precio', job.pago),
+                _buildInfoTile(Icons.date_range, 'Fecha', job.fecha),
               ],
             ),
           ),
           actions: <Widget>[
+            Center(
+              child: TextButton(
+                child: const Text(
+                  'Cerrar',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.redAccent,
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                },
+              ),
+            ),
+            if (job.uidEmisor == currentUserUid) ...[
+              Center(
+                child: TextButton(
+                  child: const Text(
+                    'Cancelar',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange,
+                    ),
+                  ),
+                  onPressed: () {
+                    showConfirmationDialog(
+                      context,
+                      '¿Seguro que quiere cancelar la oferta?',
+                      () {
+                        updateJobStatus(job, 'Cancelado');
+                        Navigator.of(dialogContext)
+                            .pop(); // Cerrar el diálogo principal
+                      },
+                    );
+                  },
+                ),
+              ),
+              Center(
+                child: TextButton(
+                  child: const Text(
+                    'Terminar',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green,
+                    ),
+                  ),
+                  onPressed: () {
+                    showConfirmationDialog(
+                      context,
+                      '¿Seguro que quiere terminar la oferta?',
+                      () {
+                        updateJobStatus(job, 'Terminado');
+                        Navigator.of(dialogContext)
+                            .pop(); // Cerrar el diálogo principal
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> updateJobStatus(Job job, String newStatus) async {
+    await FirebaseService.updateJobStatus(job.id, newStatus);
+
+    setState(() {
+      job.estado = newStatus;
+      aplicarFiltros(); // Vuelve a aplicar filtros para actualizar la lista
+    });
+  }
+
+  void showConfirmationDialog(
+      BuildContext context, String message, VoidCallback onConfirm) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text('Confirmación'),
+          content: Text(message),
+          actions: <Widget>[
             TextButton(
-              child: const Text('Cerrar'),
+              child: const Text(
+                'No',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.redAccent,
+                ),
+              ),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+            TextButton(
+              child: const Text(
+                'Sí',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green,
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                onConfirm();
               },
             ),
           ],
@@ -125,10 +267,39 @@ class _WorksPageState extends State<WorksPage> {
     );
   }
 
+  Widget _buildInfoTile(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        children: <Widget>[
+          Icon(icon, color: Colors.blueAccent),
+          const SizedBox(width: 10),
+          Text(
+            '$label: ',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    int itemCount = showAll ? trabajosFiltrados.length : min(trabajosFiltrados.length, 7);
+    int itemCount =
+        showAll ? trabajosFiltrados.length : min(trabajosFiltrados.length, 7);
     return Scaffold(
+      backgroundColor: Colors.blue[50], // Cambia el color de fondo aquí
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: ListView.builder(
@@ -160,7 +331,8 @@ class _WorksPageState extends State<WorksPage> {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: ListTile(
-                title: Text(job.tipoServicio, style: const TextStyle(fontWeight: FontWeight.bold)),
+                title: Text(job.tipoServicio,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
                 subtitle: Row(
                   children: [
                     BadgeStatus(text: job.estado, color: badgeColor),
@@ -247,28 +419,92 @@ class JobSearchDelegate extends SearchDelegate<String> {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: Text(job.tipoServicio),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Center(
+            child: Column(
+              children: [
+                const Icon(
+                  Icons.work,
+                  color: Colors.blueAccent,
+                  size: 40,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  job.tipoServicio,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                  ),
+                ),
+              ],
+            ),
+          ),
           content: SingleChildScrollView(
-            child: ListBody(
+            child: Column(
               children: <Widget>[
-                Text('Tipo de oferta: ${job.tipoOferta}'),
-                Text('Tipo de servicio: ${job.tipoServicio}'),
-                Text('Detalles: ${job.detalles}'),
-                Text('Estado: ${job.estado}'),
-                Text('Fecha: ${job.fecha}'),
+                const Divider(),
+                _buildInfoTile(Icons.person, 'Encargado', job.nameReceptor),
+                _buildInfoTile(
+                    Icons.local_offer, 'Tipo de oferta', job.tipoOferta),
+                _buildInfoTile(
+                    Icons.build, 'Tipo de servicio', job.tipoServicio),
+                _buildInfoTile(Icons.details, 'Detalles', job.detalles),
+                _buildInfoTile(Icons.location_on, 'Dirección', job.direccion),
+                _buildInfoTile(Icons.timeline, 'Estado', job.estado),
+                _buildInfoTile(Icons.person_pin, 'Interesado', job.nameEmisor),
+                _buildInfoTile(Icons.attach_money, 'Precio', job.pago),
+                _buildInfoTile(Icons.date_range, 'Fecha', job.fecha),
               ],
             ),
           ),
           actions: <Widget>[
-            TextButton(
-              child: const Text('Cerrar'),
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
+            Center(
+              child: TextButton(
+                child: const Text(
+                  'Cerrar',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.redAccent,
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                },
+              ),
             ),
           ],
         );
       },
+    );
+  }
+
+  Widget _buildInfoTile(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        children: <Widget>[
+          Icon(icon, color: Colors.blueAccent),
+          const SizedBox(width: 10),
+          Text(
+            '$label: ',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
