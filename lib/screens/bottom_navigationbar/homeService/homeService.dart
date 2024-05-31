@@ -9,6 +9,8 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'dart:math';
 import 'dart:async';
 
+import 'package:trabajorapid/screens/menuSlider/drawer/navbar.dart';
+
 class HomePageService extends StatefulWidget {
   final String servicio;
 
@@ -226,7 +228,7 @@ class _HomePageServiceState extends State<HomePageService> {
   Widget buildCarousel(BuildContext context, List<DocumentSnapshot> servicios) {
     return CarouselSlider(
       options: CarouselOptions(
-        height: 240,
+        height: 280,
         enableInfiniteScroll: true,
         autoPlay: true,
         viewportFraction: 0.8,
@@ -243,15 +245,25 @@ class _HomePageServiceState extends State<HomePageService> {
             final double pagoDouble = servicio['pago']?.toDouble() ?? 0.0;
             final String pago = pagoDouble.toStringAsFixed(2);
 
+            // Validar si los campos existen antes de acceder a ellos
             Map<String, dynamic>? data =
                 servicio.data() as Map<String, dynamic>?;
+            String experiencia =
+                (data != null && data.containsKey('experiencia'))
+                    ? data['experiencia'] ?? ''
+                    : '';
+            String requerimientos =
+                (data != null && data.containsKey('requerimientos'))
+                    ? data['requerimientos'] ?? ''
+                    : '';
+
             List<dynamic> fotos = [];
             if (data != null && data.containsKey('fotos')) {
               fotos = data['fotos'];
             }
 
             return buildCuadro(context, titulo, contenido, idS, tipoOferta,
-                direccion, pago, uid, fotos);
+                direccion, pago, uid, fotos, experiencia, requerimientos);
           })
           .map((widget) => Container(
                 margin: const EdgeInsets.symmetric(horizontal: 6.0),
@@ -261,39 +273,24 @@ class _HomePageServiceState extends State<HomePageService> {
     );
   }
 
-  Future<String?> getUserPhotoUrl(String uid) async {
-    try {
-      DocumentSnapshot<Map<String, dynamic>> userData =
-          await FirebaseFirestore.instance.collection('users').doc(uid).get();
-
-      if (userData.exists && userData['photoURL'] != null) {
-        return userData['photoURL'];
-      } else {
-        return FirebaseAuth.instance.currentUser?.photoURL;
-      }
-    } catch (e) {
-      print('Error obteniendo la URL de la foto del usuario: $e');
-      return null;
-    }
-  }
-
   String titulo = "Nombre";
 
-  // Change 3: Add fotos parameter to the buildCuadro method
   Widget buildCuadro(
-      BuildContext context,
-      String titulo,
-      String contenido,
-      String idS,
-      String tipoOferta,
-      String direccion,
-      String pago,
-      String uid,
-      List<dynamic> fotos) {
+    BuildContext context,
+    String titulo,
+    String contenido,
+    String idS,
+    String tipoOferta,
+    String direccion,
+    String pago,
+    String uid,
+    List<dynamic> fotos,
+    String experiencia,
+    String requerimientos,
+  ) {
     double mediaEstrellas = userRatings[idS] ?? 0.00;
     int nume = cantidadDocumentos[idS] ?? 0;
 
-    // Validar si el array de fotos está presente y no está vacío
     List<dynamic> fotosValidas = fotos.isNotEmpty ? fotos : [];
 
     return Container(
@@ -554,11 +551,47 @@ class _HomePageServiceState extends State<HomePageService> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 5.0),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              // Colocar los botones en una fila
+                              // Muestra la experiencia o los requerimientos según el tipo de oferta
+                              if (tipoOferta == 'Oferta de servicio' &&
+                                  experiencia.isNotEmpty) ...[
+                                const SizedBox(height: 5.0),
+                                SizedBox(
+                                  width: 210,
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      'Experiencia: $experiencia',
+                                      style: const TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 15.0,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ] else if (tipoOferta == 'Oferta de empleo' &&
+                                  requerimientos.isNotEmpty) ...[
+                                const SizedBox(height: 5.0),
+                                SizedBox(
+                                  width: 210,
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      'Requerimientos: $requerimientos',
+                                      style: const TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 15.0,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ],
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceEvenly,
@@ -650,18 +683,27 @@ class _HomePageServiceState extends State<HomePageService> {
         final double pagoDouble = cuadro['pago']?.toDouble() ?? 0.0;
         final String pago = pagoDouble.toStringAsFixed(2);
 
+        // Validar si los campos existen antes de acceder a ellos
         Map<String, dynamic>? data = cuadro.data() as Map<String, dynamic>?;
+        String experiencia = (data != null && data.containsKey('experiencia'))
+            ? data['experiencia'] ?? ''
+            : '';
+        String requerimientos =
+            (data != null && data.containsKey('requerimientos'))
+                ? data['requerimientos'] ?? ''
+                : '';
+
         List<dynamic> fotos = [];
         if (data != null && data.containsKey('fotos')) {
           fotos = data['fotos'];
         }
 
         return SizedBox(
-          height: 240,
+          height: 280,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 25.0),
             child: buildCuadro(context, titulo, contenido, idS, tipoOferta,
-                direccion, pago, uid, fotos),
+                direccion, pago, uid, fotos, experiencia, requerimientos),
           ),
         );
       }).toList(),
@@ -684,10 +726,9 @@ class _HomePageServiceState extends State<HomePageService> {
                         padding: const EdgeInsets.symmetric(vertical: 10.0),
                         child: Image.network(
                           fotoUrl,
-                          width: 300, // Ajustar el ancho de la imagen
-                          height: 200, // Ajustar el alto de la imagen
-                          fit: BoxFit
-                              .cover, // Ajustar cómo la imagen se adapta al espacio
+                          width: 300,
+                          height: 200,
+                          fit: BoxFit.cover,
                           loadingBuilder: (BuildContext context, Widget child,
                               ImageChunkEvent? loadingProgress) {
                             if (loadingProgress == null) return child;
