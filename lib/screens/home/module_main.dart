@@ -42,15 +42,33 @@ class _ModuleMainState extends State<ModuleMain> {
           itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
             const PopupMenuItem<String>(
               value: 'Todos',
-              child: Text('Todos'),
+              child: Row(
+                children: [
+                  Icon(Icons.filter_list, color: Colors.black),
+                  SizedBox(width: 8),
+                  Text('Todos'),
+                ],
+              ),
             ),
             const PopupMenuItem<String>(
               value: 'Pendiente',
-              child: Text('Pendiente'),
+              child: Row(
+                children: [
+                  Icon(Icons.pending, color: Colors.redAccent),
+                  SizedBox(width: 8),
+                  Text('Pendiente'),
+                ],
+              ),
             ),
             const PopupMenuItem<String>(
               value: 'En Proceso',
-              child: Text('En Proceso'),
+              child: Row(
+                children: [
+                  Icon(Icons.work, color: Colors.blueAccent),
+                  SizedBox(width: 8),
+                  Text('En Proceso'),
+                ],
+              ),
             ),
           ],
         ),

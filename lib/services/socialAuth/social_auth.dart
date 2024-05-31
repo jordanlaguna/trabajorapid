@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:quickalert/models/quickalert_type.dart';
 import 'package:quickalert/widgets/quickalert_dialog.dart';
-import 'package:trabajorapid/screens/home/moduleMain.dart';
+import 'package:trabajorapid/screens/home/module_main.dart';
 
 class SocialAuth {
   static final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;

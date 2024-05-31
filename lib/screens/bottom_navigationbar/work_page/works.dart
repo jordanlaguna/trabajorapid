@@ -1,23 +1,14 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
-
-class Job {
-  final String name;
-  final String status;
-  final String date;
-  final double price;
-  final String detail;
-
-  Job(this.name, this.status, this.date, this.price, this.detail);
-}
+import 'works_services.dart';
+import 'job.dart';
+import 'badge_status.dart';
 
 class WorksPage extends StatefulWidget {
   const WorksPage({Key? key}) : super(key: key);
 
   // ignore: library_private_types_in_public_api
-  static final GlobalKey<_WorksPageState> pageKey =
-      GlobalKey<_WorksPageState>();
+  static final GlobalKey<_WorksPageState> pageKey = GlobalKey<_WorksPageState>();
 
   @override
   // ignore: library_private_types_in_public_api
@@ -39,66 +30,22 @@ class _WorksPageState extends State<WorksPage> {
   String selectedFilter = 'Todos';
   List<Job> trabajosFiltrados = [];
   bool showAll = false;
-  final TextStyle pendingStyle = const TextStyle(color: Colors.redAccent);
-  final TextStyle inProcessStyle = const TextStyle(color: Colors.blueAccent);
 
-  final List<Job> trabajos = [
-    Job('Transporte', 'En Proceso', '2023-01-01', 100.0,
-        'Servicio de viajes de carga'),
-    Job('Mecánica', 'Pendiente', '2023-02-01', 150.0,
-        'Servicio de reparación de vehículos'),
-    Job('Asistente', 'En Proceso', '2023-03-01', 200.0,
-        'Servicio de asistente'),
-    Job('Manicura', 'En Proceso', '2023-04-01', 250.0, 'Servicio de uñas'),
-    Job('Limpieza', 'Pendiente', '2023-05-01', 300.0, 'Servicio de limpieza'),
-    Job('Jardinería', 'En Proceso', '2023-06-01', 350.0,
-        'Servicio de jardinería'),
-    Job('Pintura', 'En Proceso', '2023-07-01', 400.0,
-        'Servicio de pintura de casas'),
-    Job('Carpintería', 'Pendiente', '2023-08-01', 450.0,
-        'Servicio de reparación de muebles'),
-    Job('Electricidad', 'En Proceso', '2023-09-01', 500.0,
-        'Servicio de reparación de instalaciones eléctricas'),
-    Job('Plomería', 'En Proceso', '2023-10-01', 550.0,
-        'Servicio de reparación de tuberías'),
-    Job('Cerrajería', 'Pendiente', '2023-11-01', 600.0,
-        'Servicio de reparación de cerraduras'),
-    Job('Cocina', 'En Proceso', '2023-12-01', 650.0, 'Servicio de cocina'),
-  ];
+  List<Job> trabajos = [];
 
   @override
   void initState() {
     super.initState();
-    aplicarFiltros();
+    fetchJobs();
   }
 
-  void showJobDetails(Job job) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(job.name),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('Status: ${job.status}'),
-                Text('Date: ${job.date}'),
-                Text('Price: \$${job.price.toStringAsFixed(2)}'),
-                Text('Details: ${job.detail}'),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Close'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
+  Future<void> fetchJobs() async {
+    final List<Job> fetchedJobs = await FirebaseService.fetchJobs();
+
+    setState(() {
+      trabajos = fetchedJobs;
+      aplicarFiltros();
+    });
   }
 
   void buscarTrabajos(String query) {
@@ -129,14 +76,14 @@ class _WorksPageState extends State<WorksPage> {
 
   void aplicarFiltros() {
     List<Job> resultados = trabajos.where((trabajo) {
-      final tituloTrabajo = trabajo.name.toLowerCase();
+      final tituloTrabajo = trabajo.tipoServicio.toLowerCase();
       final input = searchQuery.toLowerCase();
       return tituloTrabajo.contains(input);
     }).toList();
 
     if (selectedFilter.toLowerCase() != 'todos') {
       resultados = resultados.where((trabajo) {
-        return trabajo.status.toLowerCase() == selectedFilter.toLowerCase();
+        return trabajo.estado.toLowerCase() == selectedFilter.toLowerCase();
       }).toList();
     }
 
@@ -146,19 +93,48 @@ class _WorksPageState extends State<WorksPage> {
     });
   }
 
+  void showJobDetails(Job job) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            job.tipoServicio,
+            style: const TextStyle(fontWeight: FontWeight.bold)),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Tipo de oferta: ${job.tipoOferta}'),
+                Text('Tipo de servicio: ${job.tipoServicio}'),
+                Text('Detalles: ${job.detalles}'),
+                Text('Estado: ${job.estado}'),
+                Text('Fecha: ${job.fecha}'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cerrar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // La cantidad de ítems se ajusta según si showAll es true o false
-    int itemCount =
-        showAll ? trabajosFiltrados.length : min(trabajosFiltrados.length, 7);
+    int itemCount = showAll ? trabajosFiltrados.length : min(trabajosFiltrados.length, 7);
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: ListView.builder(
-          itemCount: itemCount + 1, // Se agrega uno para el botón "Mostrar más"
+          itemCount: itemCount + 1,
           itemBuilder: (context, index) {
             if (index == itemCount) {
-              // Si es el ítem del botón "Mostrar más"
               if (!showAll && trabajosFiltrados.length > 7) {
                 return Center(
                   child: TextButton(
@@ -171,28 +147,26 @@ class _WorksPageState extends State<WorksPage> {
                   ),
                 );
               } else {
-                return const SizedBox
-                    .shrink(); // No mostrar botón si ya están todos visibles
+                return const SizedBox.shrink();
               }
             }
             final job = trabajosFiltrados[index];
-            TextStyle statusStyle =
-                job.status == 'Pendiente' ? pendingStyle : inProcessStyle;
+            final Color badgeColor = job.estado == 'Pendiente'
+                ? Colors.redAccent
+                : Colors.blueAccent;
+
             return Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
               child: ListTile(
-                title: Text(job.name),
-                subtitle: RichText(
-                  text: TextSpan(
-                    style: const TextStyle(
-                        color: Colors.black), // Estilo base para el texto
-                    children: <TextSpan>[
-                      TextSpan(text: '${job.status} • ', style: statusStyle),
-                      TextSpan(text: job.date), // Fecha sin estilo especial
-                    ],
-                  ),
+                title: Text(job.tipoServicio, style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Row(
+                  children: [
+                    BadgeStatus(text: job.estado, color: badgeColor),
+                    const SizedBox(width: 8.0),
+                    Text(job.fecha),
+                  ],
                 ),
                 trailing: TextButton(
                   child: const Text('Ver Detalles'),
@@ -245,7 +219,7 @@ class JobSearchDelegate extends SearchDelegate<String> {
     final suggestions = query.isEmpty
         ? trabajos
         : trabajos.where((job) {
-            return job.name.toLowerCase().contains(query.toLowerCase());
+            return job.tipoServicio.toLowerCase().contains(query.toLowerCase());
           }).toList();
 
     return ListView.builder(
@@ -253,8 +227,8 @@ class JobSearchDelegate extends SearchDelegate<String> {
       itemBuilder: (context, index) {
         final suggestion = suggestions[index];
         return ListTile(
-          title: Text(suggestion.name),
-          subtitle: Text('${suggestion.status} • ${suggestion.date}'),
+          title: Text(suggestion.tipoServicio),
+          subtitle: Text('${suggestion.estado} • ${suggestion.fecha}'),
           onTap: () {
             showJobDetails(context, suggestion);
           },
@@ -273,20 +247,21 @@ class JobSearchDelegate extends SearchDelegate<String> {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: Text(job.name),
+          title: Text(job.tipoServicio),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('Status: ${job.status}'),
-                Text('Date: ${job.date}'),
-                Text('Price: \$${job.price.toStringAsFixed(2)}'),
-                Text('Details: ${job.detail}'),
+                Text('Tipo de oferta: ${job.tipoOferta}'),
+                Text('Tipo de servicio: ${job.tipoServicio}'),
+                Text('Detalles: ${job.detalles}'),
+                Text('Estado: ${job.estado}'),
+                Text('Fecha: ${job.fecha}'),
               ],
             ),
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Close'),
+              child: const Text('Cerrar'),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
               },

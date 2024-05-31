@@ -12,7 +12,7 @@ import 'package:trabajorapid/authentication/screens/login/login.dart';
 import 'package:trabajorapid/authentication/screens/onboarding/onboarding.dart';
 import 'package:trabajorapid/authentication/screens/signup/widgets/verify_email.dart';
 import 'package:trabajorapid/data/repositiories/exceptions/firebase_auth_exceptions.dart';
-import 'package:trabajorapid/screens/home/moduleMain.dart';
+import 'package:trabajorapid/screens/home/module_main.dart';
 import 'exceptions/firebase_exceptions.dart';
 import 'exceptions/format_exceptions.dart';
 import 'exceptions/platform_exceptions.dart';
