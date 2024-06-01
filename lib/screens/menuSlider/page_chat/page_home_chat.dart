@@ -129,6 +129,9 @@ class _PageChatState extends State<PageChat> {
               ),
             ),
           ),
+          const SizedBox(
+            height: 5,
+          ),
           Expanded(child: _buildUserList()),
         ],
       ),
@@ -136,233 +139,285 @@ class _PageChatState extends State<PageChat> {
     );
   }
 
+  Future<Set<String>> _getChatUserIds() async {
+    String currentUserID = _auth.currentUser!.uid;
+    QuerySnapshot trabajosSnapshot = await FirebaseFirestore.instance
+        .collection('trabajos')
+        .where('uidEmisor', isEqualTo: currentUserID)
+        .get();
+
+    Set<String> userIds = trabajosSnapshot.docs
+        .map((doc) => doc['uidReceptor'] as String)
+        .toSet();
+
+    print("User IDs from trabajos as uidEmisor: $userIds");
+
+    QuerySnapshot trabajosSnapshotReceptor = await FirebaseFirestore.instance
+        .collection('trabajos')
+        .where('uidReceptor', isEqualTo: currentUserID)
+        .get();
+
+    userIds.addAll(trabajosSnapshotReceptor.docs
+        .map((doc) => doc['uidEmisor'] as String)
+        .toSet());
+
+    print(
+        "User IDs from trabajos as uidReceptor: ${trabajosSnapshotReceptor.docs.map((doc) => doc['uidEmisor'] as String).toSet()}");
+
+    return userIds;
+  }
+
   Widget _buildUserList() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('users').snapshots(),
+    return FutureBuilder<Set<String>>(
+      future: _getChatUserIds(),
       builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
         if (snapshot.hasError) {
           return const Text('Error');
         }
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Text('Loading..');
-        }
+        Set<String> chatUserIds = snapshot.data ?? {};
 
-        String currentUserID = _auth.currentUser!.uid;
+        print("Filtered chat user IDs: $chatUserIds");
 
-        final filteredDocs = snapshot.data!.docs.where((doc) {
-          return (doc['name'] as String)
-                  .toLowerCase()
-                  .contains(searchQuery.toLowerCase()) &&
-              doc['uid'] != currentUserID;
-        }).toList();
+        return StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance.collection('users').snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return const Text('Error');
+            }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-        return ListView(
-          children: filteredDocs.map(
-            (doc) {
-              List<String> chatRoomParticipants =
-                  [currentUserID, doc['uid']].cast<String>().toList();
-              chatRoomParticipants.sort();
-              String chatRoomID = chatRoomParticipants.join('_');
+            String currentUserID = _auth.currentUser!.uid;
 
-              return Slidable(
-                key: Key(doc['uid']),
-                endActionPane: ActionPane(
-                  motion: const ScrollMotion(),
-                  children: [
-                    SlidableAction(
-                      onPressed: (context) async {
-                        bool confirmed = await _showConfirmationDialog(context);
-                        if (confirmed) {
-                          await _deleteMessages(chatRoomID, doc['name']);
-                        }
-                      },
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      icon: Icons.delete,
-                      label: 'Eliminar',
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                  ],
-                ),
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('chatRooms')
-                      .doc(chatRoomID)
-                      .collection('messages')
-                      .orderBy('timestamp', descending: true)
-                      .limit(1)
-                      .snapshots(),
-                  builder: (context, messageSnapshot) {
-                    if (messageSnapshot.hasError) {
-                      return const Text('Error');
-                    }
-                    if (messageSnapshot.connectionState ==
-                        ConnectionState.waiting) {
-                      return const Text('Loading..');
-                    }
+            final filteredDocs = snapshot.data!.docs.where((doc) {
+              return (doc['name'] as String)
+                      .toLowerCase()
+                      .contains(searchQuery.toLowerCase()) &&
+                  doc['uid'] != currentUserID &&
+                  chatUserIds.contains(doc['uid']);
+            }).toList();
 
-                    String lastMessageTime = '';
-                    if (messageSnapshot.hasData &&
-                        messageSnapshot.data!.docs.isNotEmpty) {
-                      var lastMessage = messageSnapshot.data!.docs.first;
-                      lastMessageTime =
-                          formatTimestamp(lastMessage['timestamp']);
-                    }
+            print(
+                "Filtered docs based on search query and chatUserIds: ${filteredDocs.map((doc) => doc['uid']).toList()}");
 
-                    int unreadMessageCount = messageSnapshot.data!.docs
-                        .where((msg) =>
-                            msg['senderId'] != currentUserID && !msg['read'])
-                        .length;
+            return ListView(
+              children: filteredDocs.map(
+                (doc) {
+                  List<String> chatRoomParticipants =
+                      [currentUserID, doc['uid']].cast<String>().toList();
+                  chatRoomParticipants.sort();
+                  String chatRoomID = chatRoomParticipants.join('_');
 
-                    return Column(
+                  return Slidable(
+                    key: Key(doc['uid']),
+                    endActionPane: ActionPane(
+                      motion: const ScrollMotion(),
                       children: [
-                        Container(
-                          margin: const EdgeInsets.symmetric(vertical: 2.0),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(0),
-                          ),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 15),
-                            title: Row(
-                              children: [
-                                FutureBuilder<String?>(
-                                  future: getUserPhotoColletion(doc['uid']),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState ==
-                                        ConnectionState.waiting) {
-                                      return CircleAvatar(
-                                        radius: 25,
-                                        backgroundColor: Colors.grey.shade200,
-                                        child: const CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      );
-                                    } else if (snapshot.hasError) {
-                                      return CircleAvatar(
-                                        radius: 25,
-                                        backgroundColor: Colors.blue[50],
-                                        child: const Icon(Icons.error),
-                                      );
-                                    } else if (snapshot.hasData &&
-                                        snapshot.data != null &&
-                                        snapshot.data!.isNotEmpty) {
-                                      return GestureDetector(
-                                        onTap: () {
-                                          _showImageDialog(
-                                              context, snapshot.data!);
-                                        },
-                                        child: Hero(
-                                          tag: doc['uid'],
-                                          child: CircleAvatar(
-                                            radius: 25,
-                                            backgroundImage: NetworkImage(
-                                              snapshot.data!,
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    } else {
-                                      return GestureDetector(
-                                        onTap: () {
-                                          _showDefaultIconDialog(context);
-                                        },
-                                        child: Hero(
-                                          tag: doc['uid'],
-                                          child: CircleAvatar(
-                                            radius: 25,
-                                            backgroundColor: Colors.blue[50],
-                                            child: const Icon(
-                                              Icons.account_circle,
-                                              size: 50,
-                                              color: Colors.blue,
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Text(
-                                            doc['name'],
-                                            style: const TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w400,
-                                              fontFamily: 'Montserrat',
-                                            ),
-                                          ),
-                                          const SizedBox(width: 5),
-                                          if (doc.data() is Map &&
-                                              (doc.data() as Map)
-                                                  .containsKey('isActive'))
-                                            CircleAvatar(
-                                              backgroundColor:
-                                                  doc['isActive'] == true
-                                                      ? Colors.green
-                                                      : Colors.red,
-                                              radius: 6,
-                                            ),
-                                        ],
-                                      ),
-                                      Text(
-                                        lastMessageTime,
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                if (unreadMessageCount > 0)
-                                  CircleAvatar(
-                                    backgroundColor: Colors.red,
-                                    radius: 10,
-                                    child: Text(
-                                      unreadMessageCount.toString(),
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ChatHome(
-                                    receiverUserEmail: doc['name'],
-                                    receiverUserID: doc['uid'],
-                                    idS: '',
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        const Divider(
-                          color: Colors.white,
-                          height: 0.0,
-                          thickness: 2.0,
+                        SlidableAction(
+                          onPressed: (context) async {
+                            bool confirmed =
+                                await _showConfirmationDialog(context);
+                            if (confirmed) {
+                              await _deleteMessages(chatRoomID, doc['name']);
+                            }
+                          },
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          icon: Icons.delete,
+                          label: 'Eliminar',
+                          borderRadius: BorderRadius.circular(5),
                         ),
                       ],
-                    );
-                  },
-                ),
-              );
-            },
-          ).toList(),
+                    ),
+                    child: StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('chatRooms')
+                          .doc(chatRoomID)
+                          .collection('messages')
+                          .orderBy('timestamp', descending: true)
+                          .limit(1)
+                          .snapshots(),
+                      builder: (context, messageSnapshot) {
+                        if (messageSnapshot.hasError) {
+                          return const Text('Error');
+                        }
+                        if (messageSnapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Text('Loading..');
+                        }
+
+                        String lastMessageTime = '';
+                        if (messageSnapshot.hasData &&
+                            messageSnapshot.data!.docs.isNotEmpty) {
+                          var lastMessage = messageSnapshot.data!.docs.first;
+                          lastMessageTime =
+                              formatTimestamp(lastMessage['timestamp']);
+                        }
+
+                        int unreadMessageCount = messageSnapshot.data!.docs
+                            .where((msg) =>
+                                msg['senderId'] != currentUserID &&
+                                !msg['read'])
+                            .length;
+
+                        return Column(
+                          children: [
+                            Container(
+                              margin: const EdgeInsets.symmetric(vertical: 2.0),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(0),
+                              ),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 20, vertical: 15),
+                                title: Row(
+                                  children: [
+                                    FutureBuilder<String?>(
+                                      future: getUserPhotoColletion(doc['uid']),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return CircleAvatar(
+                                            radius: 25,
+                                            backgroundColor:
+                                                Colors.grey.shade200,
+                                            child:
+                                                const CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
+                                          );
+                                        } else if (snapshot.hasError) {
+                                          return CircleAvatar(
+                                            radius: 25,
+                                            backgroundColor: Colors.blue[50],
+                                            child: const Icon(Icons.error),
+                                          );
+                                        } else if (snapshot.hasData &&
+                                            snapshot.data != null &&
+                                            snapshot.data!.isNotEmpty) {
+                                          return GestureDetector(
+                                            onTap: () {
+                                              _showImageDialog(
+                                                  context, snapshot.data!);
+                                            },
+                                            child: Hero(
+                                              tag: doc['uid'],
+                                              child: CircleAvatar(
+                                                radius: 25,
+                                                backgroundImage: NetworkImage(
+                                                  snapshot.data!,
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        } else {
+                                          return GestureDetector(
+                                            onTap: () {
+                                              _showDefaultIconDialog(context);
+                                            },
+                                            child: Hero(
+                                              tag: doc['uid'],
+                                              child: CircleAvatar(
+                                                radius: 25,
+                                                backgroundColor:
+                                                    Colors.blue[50],
+                                                child: const Icon(
+                                                  Icons.account_circle,
+                                                  size: 50,
+                                                  color: Colors.blue,
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Text(
+                                                doc['name'],
+                                                style: const TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.w400,
+                                                  fontFamily: 'Montserrat',
+                                                ),
+                                              ),
+                                              const SizedBox(width: 5),
+                                              if (doc.data() is Map &&
+                                                  (doc.data() as Map)
+                                                      .containsKey('isActive'))
+                                                CircleAvatar(
+                                                  backgroundColor:
+                                                      doc['isActive'] == true
+                                                          ? Colors.green
+                                                          : Colors.red,
+                                                  radius: 6,
+                                                ),
+                                            ],
+                                          ),
+                                          Text(
+                                            lastMessageTime,
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    if (unreadMessageCount > 0)
+                                      CircleAvatar(
+                                        backgroundColor: Colors.red,
+                                        radius: 10,
+                                        child: Text(
+                                          unreadMessageCount.toString(),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ChatHome(
+                                        receiverUserEmail: doc['name'],
+                                        receiverUserID: doc['uid'],
+                                        idS: '',
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            const Divider(
+                              color: Colors.white,
+                              height: 0.0,
+                              thickness: 2.0,
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  );
+                },
+              ).toList(),
+            );
+          },
         );
       },
     );
@@ -487,9 +542,10 @@ class _PageChatState extends State<PageChat> {
             content: const Text(
               '¿Estás seguro de que deseas eliminar esta conversación?',
               style: TextStyle(
-                  fontFamily: 'Monserrat',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400),
+                fontFamily: 'Monserrat',
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+              ),
             ),
             actions: [
               TextButton(
