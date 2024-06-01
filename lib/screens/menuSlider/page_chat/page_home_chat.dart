@@ -31,14 +31,14 @@ class _PageChatState extends State<PageChat> {
     super.dispose();
   }
 
-// start the once a day timer to delete old messages
+  // start the once a day timer to delete old messages
   void _startAutoDeleteOldMessages() {
     _timer = Timer.periodic(const Duration(days: 1), (timer) {
       _deleteOldMessages();
     });
   }
 
-// delete messages older than 8 days
+  // delete messages older than 8 days
   Future<void> _deleteOldMessages() async {
     var chatRooms =
         await FirebaseFirestore.instance.collection('chatRooms').get();
@@ -56,7 +56,7 @@ class _PageChatState extends State<PageChat> {
     }
   }
 
-// check if a message is older than 8 days and to delete it
+  // check if a message is older than 8 days and to delete it
   bool _isMessageOlderThanEightDays(Timestamp timestamp) {
     var now = DateTime.now();
     var messageDate = timestamp.toDate();
@@ -147,16 +147,18 @@ class _PageChatState extends State<PageChat> {
           return const Text('Loading..');
         }
 
+        String currentUserID = _auth.currentUser!.uid;
+
         final filteredDocs = snapshot.data!.docs.where((doc) {
           return (doc['name'] as String)
-              .toLowerCase()
-              .contains(searchQuery.toLowerCase());
+                  .toLowerCase()
+                  .contains(searchQuery.toLowerCase()) &&
+              doc['uid'] != currentUserID;
         }).toList();
 
         return ListView(
           children: filteredDocs.map(
             (doc) {
-              String currentUserID = _auth.currentUser!.uid;
               List<String> chatRoomParticipants =
                   [currentUserID, doc['uid']].cast<String>().toList();
               chatRoomParticipants.sort();
@@ -244,21 +246,39 @@ class _PageChatState extends State<PageChat> {
                                         child: const Icon(Icons.error),
                                       );
                                     } else if (snapshot.hasData &&
-                                        snapshot.data != null) {
-                                      return CircleAvatar(
-                                        radius: 25,
-                                        backgroundImage: NetworkImage(
-                                          snapshot.data!,
+                                        snapshot.data != null &&
+                                        snapshot.data!.isNotEmpty) {
+                                      return GestureDetector(
+                                        onTap: () {
+                                          _showImageDialog(
+                                              context, snapshot.data!);
+                                        },
+                                        child: Hero(
+                                          tag: doc['uid'],
+                                          child: CircleAvatar(
+                                            radius: 25,
+                                            backgroundImage: NetworkImage(
+                                              snapshot.data!,
+                                            ),
+                                          ),
                                         ),
                                       );
                                     } else {
-                                      return CircleAvatar(
-                                        radius: 25,
-                                        backgroundColor: Colors.blue[50],
-                                        child: const Icon(
-                                          Icons.account_circle,
-                                          size: 50,
-                                          color: Colors.blue,
+                                      return GestureDetector(
+                                        onTap: () {
+                                          _showDefaultIconDialog(context);
+                                        },
+                                        child: Hero(
+                                          tag: doc['uid'],
+                                          child: CircleAvatar(
+                                            radius: 25,
+                                            backgroundColor: Colors.blue[50],
+                                            child: const Icon(
+                                              Icons.account_circle,
+                                              size: 50,
+                                              color: Colors.blue,
+                                            ),
+                                          ),
                                         ),
                                       );
                                     }
@@ -348,7 +368,55 @@ class _PageChatState extends State<PageChat> {
     );
   }
 
-// get the photo of a user from the database
+  Future<void> _showImageDialog(BuildContext context, String imageUrl) {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: GestureDetector(
+            onTap: () {
+              Navigator.of(context).pop();
+            },
+            child: Hero(
+              tag: imageUrl,
+              child: Image.network(imageUrl),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showDefaultIconDialog(BuildContext context) {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: GestureDetector(
+            onTap: () {
+              Navigator.of(context).pop();
+            },
+            child: Hero(
+              tag: 'defaultIcon',
+              child: CircleAvatar(
+                radius: 100,
+                backgroundColor: Colors.blue[50],
+                child: const Icon(
+                  Icons.account_circle,
+                  size: 200,
+                  color: Colors.blue,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // get the photo of a user from the database
   Future<String?> getUserPhotoColletion(String userID) async {
     if (userID.isEmpty) {
       return null;
@@ -363,7 +431,9 @@ class _PageChatState extends State<PageChat> {
         Map<String, dynamic>? userData =
             document.data() as Map<String, dynamic>?;
 
-        if (userData != null && userData['photoURL'] != null) {
+        if (userData != null &&
+            userData['photoURL'] != null &&
+            userData['photoURL'].isNotEmpty) {
           return userData['photoURL'];
         } else {
           return null;
@@ -377,7 +447,7 @@ class _PageChatState extends State<PageChat> {
     }
   }
 
-// format the timestamp of a message
+  // format the timestamp of a message
   String formatTimestamp(Timestamp timestamp) {
     initializeDateFormatting('es_ES', null);
     var now = DateTime.now();
@@ -395,13 +465,13 @@ class _PageChatState extends State<PageChat> {
     }
   }
 
-// capitalize the first letter of a string
+  // capitalize the first letter of a string
   String capitalize(String input) {
     if (input.isEmpty) return input;
     return input[0].toUpperCase() + input.substring(1).toLowerCase();
   }
 
-// modal of confirmation to delete a chat
+  // modal of confirmation to delete a chat
   Future<bool> _showConfirmationDialog(BuildContext context) async {
     return await showDialog<bool>(
           context: context,
@@ -450,7 +520,7 @@ class _PageChatState extends State<PageChat> {
         false;
   }
 
-// delete messages and show a snackbar
+  // delete messages and show a snackbar
   Future<void> _deleteMessages(String chatRoomID, String userName) async {
     var messagesRef = FirebaseFirestore.instance
         .collection('chatRooms')

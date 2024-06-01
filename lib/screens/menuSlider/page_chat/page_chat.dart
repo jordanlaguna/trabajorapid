@@ -173,7 +173,6 @@ class _ChatHomeState extends State<ChatHome> {
       String tipoServicio = servicioData['tipoServicio']?.toString() ??
           'Tipo de servicio no especificado';
 
-       
       if (existingTrabajos.docs.isEmpty) {
         await FirebaseFirestore.instance.collection('trabajos').add({
           'estado': estado,
@@ -713,7 +712,7 @@ class _ChatHomeState extends State<ChatHome> {
           isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(right: 4.0, top: 7.0),
+          padding: const EdgeInsets.only(right: 4.0, top: 5.0),
           child: Text(
             data['senderName'],
             style: const TextStyle(
@@ -722,7 +721,7 @@ class _ChatHomeState extends State<ChatHome> {
             ),
           ),
         ),
-        const SizedBox(height: 3.0),
+        const SizedBox(height: 1.0),
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -784,6 +783,9 @@ class _ChatHomeState extends State<ChatHome> {
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
               ),
+              onTap: () => {
+                _scrollToBottom(),
+              },
             ),
           ),
           IconButton(
