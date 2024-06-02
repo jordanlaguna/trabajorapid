@@ -193,164 +193,159 @@ class _ProfilePageState extends State<ProfilePage> {
     int fullStars = rating.floor(); // Estrellas completas
     double fraction = rating - fullStars; // Parte fraccionaria
     return SingleChildScrollView(
-      child: Center(
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: <Widget>[
-              Text(
-                'Perfil',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: <Widget>[
+            Text(
+              'Perfil',
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
               ),
-              CircleAvatar(
-                radius: 80,
-                backgroundColor: Colors.transparent,
-                child: Container(
-                  width: 150,
-                  height: 150,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.grey,
-                      width: 1,
-                    ),
+            ),
+            CircleAvatar(
+              radius: 80,
+              backgroundColor: Colors.transparent,
+              child: Container(
+                width: 150,
+                height: 150,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.grey,
+                    width: 1,
                   ),
-                  child: ClipOval(
-                    child: FutureBuilder<String?>(
-                      future: getUserPhotoUrl(
-                          FirebaseAuth.instance.currentUser!.uid),
-                      builder: (context, photoSnapshot) {
-                        if (photoSnapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
-                        } else if (photoSnapshot.hasError) {
-                          return const Icon(Icons.error_outline,
-                              size: 30, color: Colors.red);
+                ),
+                child: ClipOval(
+                  child: FutureBuilder<String?>(
+                    future:
+                        getUserPhotoUrl(FirebaseAuth.instance.currentUser!.uid),
+                    builder: (context, photoSnapshot) {
+                      if (photoSnapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return const CircularProgressIndicator();
+                      } else if (photoSnapshot.hasError) {
+                        return const Icon(Icons.error_outline,
+                            size: 30, color: Colors.red);
+                      } else {
+                        if (photoSnapshot.hasData &&
+                            photoSnapshot.data!.isNotEmpty) {
+                          return Image.network(
+                            photoSnapshot.data!,
+                            fit: BoxFit.cover,
+                            width: 100,
+                            height: 100,
+                          );
                         } else {
-                          if (photoSnapshot.hasData &&
-                              photoSnapshot.data!.isNotEmpty) {
-                            return Image.network(
-                              photoSnapshot.data!,
-                              fit: BoxFit.cover,
-                              width: 100,
-                              height: 100,
-                            );
-                          } else {
-                            return const Icon(Icons.account_circle, size: 30);
-                          }
+                          return const Icon(Icons.account_circle, size: 30);
                         }
-                      },
-                    ),
+                      }
+                    },
                   ),
                 ),
               ),
-              const SizedBox(height: 15),
-              FutureBuilder<DocumentSnapshot>(
-                future: FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(FirebaseAuth.instance.currentUser!.uid)
-                    .get(),
-                builder: (BuildContext context,
-                    AsyncSnapshot<DocumentSnapshot> snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (snapshot.hasError) {
-                    return const Text("Error al cargar los datos");
-                  }
-                  if (snapshot.hasData && snapshot.data!.exists) {
-                    Map<String, dynamic> userData =
-                        snapshot.data!.data() as Map<String, dynamic>;
-                    return Text(
-                      userData['name'] ?? 'Nombre no disponible',
-                      style: const TextStyle(
-                        fontSize: 25,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    );
-                  } else {
-                    return const Text("Usuario no encontrado");
-                  }
-                },
-              ),
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      rating.toString(),
-                      style: const TextStyle(fontSize: 20),
+            ),
+            const SizedBox(height: 15),
+            FutureBuilder<DocumentSnapshot>(
+              future: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(FirebaseAuth.instance.currentUser!.uid)
+                  .get(),
+              builder: (BuildContext context,
+                  AsyncSnapshot<DocumentSnapshot> snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return const Text("Error al cargar los datos");
+                }
+                if (snapshot.hasData && snapshot.data!.exists) {
+                  Map<String, dynamic> userData =
+                      snapshot.data!.data() as Map<String, dynamic>;
+                  return Text(
+                    userData['name'] ?? 'Nombre no disponible',
+                    style: const TextStyle(
+                      fontSize: 25,
+                      fontWeight: FontWeight.bold,
                     ),
+                  );
+                } else {
+                  return const Text("Usuario no encontrado");
+                }
+              },
+            ),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    rating.toString(),
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                  const Icon(
+                    Icons.star,
+                    color: Colors.amber,
+                    size: 25,
+                  ),
+                  if (fraction > 0)
                     const Icon(
-                      Icons.star,
+                      Icons.star_half,
                       color: Colors.amber,
                       size: 25,
                     ),
-                    if (fraction > 0)
-                      const Icon(
-                        Icons.star_half,
-                        color: Colors.amber,
-                        size: 25,
-                      ),
-                    for (int i = 0;
-                        i < 5 - fullStars - (fraction > 0 ? 1 : 0);
-                        i++)
-                      const Icon(
-                        Icons.star_border,
-                        color: Colors.amber,
-                        size: 25,
-                      ),
-                  ],
+                  for (int i = 0;
+                      i < 5 - fullStars - (fraction > 0 ? 1 : 0);
+                      i++)
+                    const Icon(
+                      Icons.star_border,
+                      color: Colors.amber,
+                      size: 25,
+                    ),
+                ],
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _showWorkHistory = !_showWorkHistory;
+                  _showJobForm = false;
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.zero,
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _showWorkHistory = !_showWorkHistory;
-                    _showJobForm = false;
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+              child: _buildButtonContent(Icons.history_rounded,
+                  _showWorkHistory ? 'Ocultar servicios' : 'Mostrar servicios'),
+            ),
+            const SizedBox(height: 18),
+            if (_showWorkHistory) _buildWorkHistory(),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _showJobForm = !_showJobForm;
+                  _showWorkHistory = false;
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.zero,
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: _buildButtonContent(
-                    Icons.history_rounded,
-                    _showWorkHistory
-                        ? 'Ocultar servicios'
-                        : 'Mostrar servicios'),
               ),
-              const SizedBox(height: 18),
-              if (_showWorkHistory) _buildWorkHistory(),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _showJobForm = !_showJobForm;
-                    _showWorkHistory = false;
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: _buildButtonContent(
-                    Icons.work_outline_rounded, 'Ofrecer servicios'),
-              ),
-              if (_showJobForm) _buildJobForm(),
-            ],
-          ),
+              child: _buildButtonContent(
+                  Icons.work_outline_rounded, 'Ofrecer servicios'),
+            ),
+            if (_showJobForm) _buildJobForm(),
+          ],
         ),
       ),
     );
@@ -468,11 +463,12 @@ class _ProfilePageState extends State<ProfilePage> {
             children: _documentList.map((DocumentSnapshot document) {
               var servicio = document.data() as Map<String, dynamic>;
               return _buildWorkHistoryItem(
-                (servicio as Map<String, dynamic>)['tipoServicio'] ?? '',
-                (servicio as Map<String, dynamic>)['contenido'] ?? '',
-                (servicio as Map<String, dynamic>)['fecha'].toDate(),
-                (servicio as Map<String, dynamic>)['tipoOferta'] ?? '',
-                (servicio as Map<String, dynamic>)['fotos'] ?? [],
+                (servicio)['tipoServicio'] ?? '',
+                (servicio)['contenido'] ?? '',
+                (servicio)['fecha'].toDate(),
+                (servicio)['tipoOferta'] ?? '',
+                (servicio)['fotos'] ?? [],
+                document.id, // Pasar el id del documento
               );
             }).toList(),
           ),
@@ -501,7 +497,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildWorkHistoryItem(String tipoServicio, String contenido,
-      DateTime fecha, String otroDato, List<dynamic> fotos) {
+      DateTime fecha, String otroDato, List<dynamic> fotos, String documentId) {
     Duration difference = DateTime.now().difference(fecha);
     String tiempoTranscurrido = '';
 
@@ -797,6 +793,50 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                       actions: <Widget>[
+                        ElevatedButton(
+                          onPressed: () async {
+                            Navigator.of(context).pop();
+                            try {
+                              // Actualizar el estado del documento en Firestore
+                              await FirebaseFirestore.instance
+                                  .collection('servicios')
+                                  .doc(documentId)
+                                  .update({'Disponibilidad': 'Desactivo'});
+
+                              // Mostrar un mensaje de éxito
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(const SnackBar(
+                                content: Text(
+                                    'El servicio ha sido archivado con éxito.'),
+                              ));
+                            } catch (e) {
+                              // Manejar cualquier error que ocurra durante la actualización
+                              print('Error al archivar el servicio: $e');
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(const SnackBar(
+                                content: Text('Error al archivar el servicio.'),
+                                backgroundColor: Colors.red,
+                              ));
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 35, vertical: 15),
+                            textStyle: const TextStyle(fontSize: 18),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 5,
+                            shadowColor: Colors.blue,
+                            backgroundColor: Colors.white,
+                          ),
+                          child: const Text(
+                            'Archivar',
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 65, 111, 223),
+                            ),
+                          ),
+                        ),
                         ElevatedButton(
                           onPressed: () {
                             Navigator.of(context).pop();
@@ -1100,10 +1140,12 @@ class _ProfilePageState extends State<ProfilePage> {
                             'fecha': currentDate,
                             'id': servicioId,
                             'uid': uid,
-                            'experiencia': _experienciaController.text,
+                            'Disponibilidad': "Activo",
+                            if (_selectedOfferType == 'Oferta de servicio')
+                              'experiencia': _experienciaController.text,
                             if (downloadUrls.isNotEmpty) 'fotos': downloadUrls,
                             if (_selectedOfferType == 'Oferta de empleo')
-                              'requerimiento': _requerimientoController.text,
+                              'requerimientos': _requerimientoController.text,
                           });
 
                           _resetForm();

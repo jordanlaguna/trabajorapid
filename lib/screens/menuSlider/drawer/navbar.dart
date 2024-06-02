@@ -154,7 +154,7 @@ class _NavBarState extends State<NavBar> {
             buildListTile(
                 Icons.attach_money_rounded, 'Pagos', const PaymentPage()),
             buildListTile(
-                Icons.work_history_rounded, 'Trabajos', const WorksPage()),
+                Icons.work_history_rounded, 'Archivados', const WorksPage()),
             const Divider(
               height: 30,
               color: Color.fromARGB(255, 65, 111, 223),

@@ -123,6 +123,7 @@ class _HomePageServiceState extends State<HomePageService> {
         QuerySnapshot snapshot = await FirebaseFirestore.instance
             .collection('servicios')
             .where('tipoServicio', isEqualTo: widget.servicio)
+            .where('Disponibilidad', isEqualTo: 'Activo')
             .get();
 
         setState(() {
