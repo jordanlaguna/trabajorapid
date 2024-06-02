@@ -1,4 +1,3 @@
-// ignore: file_names
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
@@ -64,4 +63,5 @@ class Job {
       'direccion': direccion,
     };
   }
+  DateTime get fechaDateTime => DateFormat('dd-MM-yyyy').parse(fecha);
 }

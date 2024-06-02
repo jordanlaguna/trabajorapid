@@ -97,19 +97,16 @@ class _WorksPageState extends State<WorksPage> {
       final input = searchQuery.toLowerCase();
       final estadoTrabajo = trabajo.estado.toLowerCase();
       return tituloTrabajo.contains(input) &&
-          estadoTrabajo != '' &&
-          estadoTrabajo != '';
+          (selectedFilter.toLowerCase() == 'todos' ||
+              estadoTrabajo == selectedFilter.toLowerCase());
     }).toList();
 
-    if (selectedFilter.toLowerCase() != 'todos') {
-      resultados = resultados.where((trabajo) {
-        return trabajo.estado.toLowerCase() == selectedFilter.toLowerCase();
-      }).toList();
-    }
+    // Ordenar por fecha descendente
+    resultados.sort((a, b) => b.fechaDateTime.compareTo(a.fechaDateTime));
 
     setState(() {
       trabajosFiltrados = resultados;
-      showAll = false; // Reinicia showAll
+      showAll = false;
     });
   }
 
