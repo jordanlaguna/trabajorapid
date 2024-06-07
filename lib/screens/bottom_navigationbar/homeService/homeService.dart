@@ -124,6 +124,7 @@ class _HomePageServiceState extends State<HomePageService> {
             .collection('servicios')
             .where('tipoServicio', isEqualTo: widget.servicio)
             .where('Disponibilidad', isEqualTo: 'Activo')
+            .where('Administrador', isEqualTo: 'Aceptado')
             .get();
 
         setState(() {
@@ -614,7 +615,7 @@ class _HomePageServiceState extends State<HomePageService> {
                                         Icon(Icons.photo,
                                             size: 16, color: Colors.white),
                                         SizedBox(width: 4),
-                                        Text('Ver Fotos',
+                                        Text('Fotos',
                                             style: TextStyle(
                                                 fontSize: 14,
                                                 color: Colors.white)),

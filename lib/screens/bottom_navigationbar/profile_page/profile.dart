@@ -793,70 +793,82 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                       actions: <Widget>[
-                        ElevatedButton(
-                          onPressed: () async {
-                            Navigator.of(context).pop();
-                            try {
-                              // Actualizar el estado del documento en Firestore
-                              await FirebaseFirestore.instance
-                                  .collection('servicios')
-                                  .doc(documentId)
-                                  .update({'Disponibilidad': 'Desactivo'});
+                        Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize
+                                .min, // Ajustar el tamaño de la columna
+                            children: <Widget>[
+                              ElevatedButton(
+                                onPressed: () async {
+                                  Navigator.of(context).pop();
+                                  try {
+                                    // Actualizar el estado del documento en Firestore
+                                    await FirebaseFirestore.instance
+                                        .collection('servicios')
+                                        .doc(documentId)
+                                        .update(
+                                            {'Disponibilidad': 'Desactivo'});
 
-                              // Mostrar un mensaje de éxito
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(const SnackBar(
-                                content: Text(
-                                    'El servicio ha sido archivado con éxito.'),
-                              ));
-                            } catch (e) {
-                              // Manejar cualquier error que ocurra durante la actualización
-                              print('Error al archivar el servicio: $e');
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(const SnackBar(
-                                content: Text('Error al archivar el servicio.'),
-                                backgroundColor: Colors.red,
-                              ));
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 35, vertical: 15),
-                            textStyle: const TextStyle(fontSize: 18),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            elevation: 5,
-                            shadowColor: Colors.blue,
-                            backgroundColor: Colors.white,
-                          ),
-                          child: const Text(
-                            'Archivar',
-                            style: TextStyle(
-                              color: Color.fromARGB(255, 65, 111, 223),
-                            ),
-                          ),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 35, vertical: 15),
-                            textStyle: const TextStyle(fontSize: 18),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            elevation: 5,
-                            shadowColor: Colors.blue,
-                            backgroundColor: Colors.white,
-                          ),
-                          child: const Text(
-                            'Cerrar',
-                            style: TextStyle(
-                              color: Color.fromARGB(255, 65, 111, 223),
-                            ),
+                                    // Mostrar un mensaje de éxito
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(const SnackBar(
+                                      content: Text(
+                                          'El servicio ha sido archivado con éxito.'),
+                                    ));
+                                  } catch (e) {
+                                    // Manejar cualquier error que ocurra durante la actualización
+                                    print('Error al archivar el servicio: $e');
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(const SnackBar(
+                                      content: Text(
+                                          'Error al archivar el servicio.'),
+                                      backgroundColor: Colors.red,
+                                    ));
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 35, vertical: 15),
+                                  textStyle: const TextStyle(fontSize: 18),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  elevation: 5,
+                                  shadowColor: Colors.blue,
+                                  backgroundColor: Colors.white,
+                                ),
+                                child: const Text(
+                                  'Archivar',
+                                  style: TextStyle(
+                                    color: Color.fromARGB(255, 65, 111, 223),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                  height: 20), // Espacio entre los botones
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 35, vertical: 15),
+                                  textStyle: const TextStyle(fontSize: 18),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  elevation: 5,
+                                  shadowColor: Colors.blue,
+                                  backgroundColor: Colors.white,
+                                ),
+                                child: const Text(
+                                  'Cerrar',
+                                  style: TextStyle(
+                                    color: Color.fromARGB(255, 65, 111, 223),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -1141,6 +1153,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             'id': servicioId,
                             'uid': uid,
                             'Disponibilidad': "Activo",
+                            'Administrador': "Aceptado",
                             if (_selectedOfferType == 'Oferta de servicio')
                               'experiencia': _experienciaController.text,
                             if (downloadUrls.isNotEmpty) 'fotos': downloadUrls,

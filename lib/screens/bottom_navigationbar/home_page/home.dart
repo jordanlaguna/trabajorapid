@@ -72,9 +72,11 @@ class HomePage extends StatelessWidget {
       'kitchen': Icons.kitchen,
       'directions_car': Icons.directions_car,
       'format_paint': Icons.format_paint,
-      'landscape': Icons.landscape,
-      'apartment': Icons.apartment,
-      'child_care': Icons.child_care
+      'grass': Icons.grass,
+      'cleaning_services': Icons.cleaning_services,
+      'child_care': Icons.child_care,
+      'construction': Icons.construction,
+      'book': Icons.book
     };
 
     IconData iconData = iconos[icon] ?? Icons.error;
@@ -124,18 +126,18 @@ class HomePage extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 8.0),
+                            const SizedBox(width: 5.0),
                             RichText(
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               text: TextSpan(
-                                text: titulo.length > 23
-                                    ? '${titulo.substring(0, 21)}...'
+                                text: titulo.length > 10
+                                    ? '${titulo.substring(0, 10)}...'
                                     : titulo,
                                 style: const TextStyle(
                                   color: Colors.black,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 20.0,
+                                  fontSize: 18.0,
                                 ),
                               ),
                             ),
