@@ -7,6 +7,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:trabajorapid/screens/menuSlider/profile_drawer/profile_drawer.dart';
+import 'package:trabajorapid/utils/constans/loaders.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -328,11 +330,20 @@ class _ProfilePageState extends State<ProfilePage> {
             const SizedBox(height: 18),
             if (_showWorkHistory) _buildWorkHistory(),
             ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _showJobForm = !_showJobForm;
-                  _showWorkHistory = false;
-                });
+              onPressed: () async {
+                bool isComplete = await isUserProfileComplete(context);
+                if (isComplete) {
+                  setState(() {
+                    _showJobForm = !_showJobForm;
+                    _showWorkHistory = false;
+                  });
+                } else {
+                  // ignore: use_build_context_synchronously
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text(
+                        'No puedes publicar aun porque no has completado tu perfil de usuario.!'),
+                  ));
+                }
               },
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.zero,
@@ -349,6 +360,50 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       ),
     );
+  }
+
+  Future<bool> isUserProfileComplete(BuildContext context) async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      if (userSnapshot.exists) {
+        Map<String, dynamic>? userData =
+            userSnapshot.data() as Map<String, dynamic>?;
+        if (userData != null) {
+          // comprobar que los campos requeridos no se esten nuloss
+          if (userData.containsKey('name') &&
+              userData['name'] != '' &&
+              userData.containsKey('identification') &&
+              userData['identification'] != '' &&
+              userData.containsKey('gender') &&
+              userData['gender'] != '' &&
+              userData.containsKey('address') &&
+              userData['address'] != '' &&
+              userData.containsKey('phone') &&
+              userData['phone'] != '') {
+            return true;
+          }
+        }
+      }
+    }
+
+    // advertencia si el perfil esta incompleto
+    TLoaders.warningSnackBar(
+      title: 'Perfil Incompleto',
+      message: 'Debes completar tu perfil antes de continuar.',
+    );
+
+    // mandar al usuario a completar el perfil
+    await Future.delayed(const Duration(seconds: 2));
+    Navigator.push(
+      // ignore: use_build_context_synchronously
+      context,
+      MaterialPageRoute(builder: (context) => const ProfileDrawer()),
+    );
+    return false;
   }
 
   Widget _buildButtonContent(IconData icon, String text) {
