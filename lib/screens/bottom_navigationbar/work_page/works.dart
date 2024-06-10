@@ -173,7 +173,9 @@ class _WorksPageState extends State<WorksPage> {
                 },
               ),
             ),
-            if (job.uidEmisor == currentUserUid) ...[
+            if (job.uidEmisor == currentUserUid &&
+                job.estado != 'Terminado' &&
+                job.estado != 'Cancelado') ...[
               Center(
                 child: TextButton(
                   child: const Text(
