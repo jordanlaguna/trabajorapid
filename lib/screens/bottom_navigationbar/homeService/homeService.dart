@@ -25,17 +25,33 @@ class _HomePageServiceState extends State<HomePageService> {
   List<DocumentSnapshot> _servicios = [];
 
   late final PageController _pageController;
-  final StreamController<List<DocumentSnapshot>> _controller =
-      StreamController<List<DocumentSnapshot>>();
-  final StreamController<List<DocumentSnapshot>> _star =
-      StreamController<List<DocumentSnapshot>>();
 
   @override
   void initState() {
     super.initState();
-    _fetchDataFromFirebase();
-    _StarDataFromFirebase();
+    _subscribeToDataChanges();
     _loadUserRatingsFromFirebase();
+  }
+
+  void _subscribeToDataChanges() {
+    FirebaseFirestore.instance
+        .collection('servicios')
+        .where('tipoServicio', isEqualTo: widget.servicio)
+        .where('Disponibilidad', isEqualTo: 'Activo')
+        .where('Administrador', isEqualTo: 'Aceptado')
+        .snapshots()
+        .listen((snapshot) {
+      setState(() {
+        _servicios = snapshot.docs;
+      });
+    });
+
+    FirebaseFirestore.instance
+        .collection('calificacion')
+        .snapshots()
+        .listen((snapshot) {
+      _loadUserRatingsFromFirebase();
+    });
   }
 
   double degreesToRadians(double degrees) {
@@ -106,37 +122,6 @@ class _HomePageServiceState extends State<HomePageService> {
     }
   }
 
-  void _StarDataFromFirebase() async {
-    try {
-      QuerySnapshot snapshot =
-          await FirebaseFirestore.instance.collection('calificacion').get();
-      _star.add(snapshot.docs);
-    } catch (e) {
-      print('Error fetching data: $e');
-    }
-  }
-
-  Future<void> _fetchDataFromFirebase() async {
-    try {
-      String? userId = FirebaseAuth.instance.currentUser?.uid;
-      if (userId != null) {
-        QuerySnapshot snapshot = await FirebaseFirestore.instance
-            .collection('servicios')
-            .where('tipoServicio', isEqualTo: widget.servicio)
-            .where('Disponibilidad', isEqualTo: 'Activo')
-            .where('Administrador', isEqualTo: 'Aceptado')
-            .get();
-
-        setState(() {
-          _servicios =
-              snapshot.docs.where((doc) => doc['uid'] != userId).toList();
-        });
-      }
-    } catch (e) {
-      print('Error fetching data: $e');
-    }
-  }
-
   List<DocumentSnapshot> _filtrarServiciosPorTipo(String tipo) {
     return _servicios.where((cuadro) {
       return cuadro['tipoServicio'] == tipo;
@@ -198,13 +183,11 @@ class _HomePageServiceState extends State<HomePageService> {
 
   @override
   void dispose() {
-    _controller.close();
-    _star.close();
     _pageController.dispose();
     super.dispose();
   }
 
-  void _fetchRecentServices() async {
+  Future<void> _fetchRecentServices() async {
     DateTime oneDayAgoUtc =
         DateTime.now().toUtc().subtract(const Duration(days: 1));
 
@@ -218,7 +201,9 @@ class _HomePageServiceState extends State<HomePageService> {
           .get();
 
       if (snapshot.docs.isNotEmpty) {
-        setState(() {});
+        setState(() {
+          _servicios = snapshot.docs;
+        });
       } else {
         print("No se encontraron servicios recientes.");
       }
@@ -864,13 +849,7 @@ class _HomePageServiceState extends State<HomePageService> {
             onSelected: (value) async {
               switch (value) {
                 case 'Mejor calificados':
-                  await _fetchDataFromFirebase();
-
-                  List<DocumentSnapshot> servicios = await FirebaseFirestore
-                      .instance
-                      .collection('servicios')
-                      .get()
-                      .then((snapshot) => snapshot.docs);
+                  List<DocumentSnapshot> servicios = _servicios;
 
                   servicios.sort((a, b) {
                     double mediaEstrellasA = userRatings[a['id']] ?? 0.00;
@@ -892,7 +871,6 @@ class _HomePageServiceState extends State<HomePageService> {
                   });
                   break;
                 case 'Más cerca':
-                  await _fetchDataFromFirebase();
                   Position currentPosition =
                       await Geolocator.getCurrentPosition(
                           desiredAccuracy: LocationAccuracy.high);
@@ -918,24 +896,20 @@ class _HomePageServiceState extends State<HomePageService> {
                   });
                   break;
                 case 'Más nuevo':
-                  await _fetchDataFromFirebase();
-                  _fetchRecentServices();
+                  await _fetchRecentServices();
                   setState(() {
                     tituloText = 'Más nuevo';
                   });
                   break;
                 case 'Ofertas':
-                  await _fetchDataFromFirebase();
                   showOffersMenu(context);
                   break;
                 case 'Todos':
-                  await _fetchDataFromFirebase();
                   setState(() {
                     tituloText = 'Todos';
                   });
                   break;
                 default:
-                  await _fetchDataFromFirebase();
                   setState(() {
                     tituloText = 'Todos';
                   });
@@ -1052,6 +1026,7 @@ class _HomePageServiceState extends State<HomePageService> {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  FirebaseFirestore.instance.settings = Settings(persistenceEnabled: true);
 
   runApp(const MaterialApp(
     home: HomePageService(servicio: 'tipoServicio'),

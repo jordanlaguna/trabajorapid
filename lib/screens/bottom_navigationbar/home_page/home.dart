@@ -7,6 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  FirebaseFirestore.instance.settings = Settings(persistenceEnabled: true);
   runApp(const MaterialApp(
     home: HomePage(),
   ));
@@ -16,6 +17,20 @@ class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
 
   Future<List<DocumentSnapshot>> _getServicios() async {
+    try {
+      // Primero intenta obtener los datos del caché
+      final snapshot = await FirebaseFirestore.instance
+          .collection('ofertasServicios')
+          .get(const GetOptions(source: Source.cache));
+      if (snapshot.docs.isNotEmpty) {
+        return snapshot.docs;
+      }
+    } catch (e) {
+      // Maneja cualquier error de caché
+      print('Error obteniendo datos del caché: $e');
+    }
+
+    // Si no hay datos en caché o hay un error, obtén los datos del servidor
     final snapshot =
         await FirebaseFirestore.instance.collection('ofertasServicios').get();
     return snapshot.docs;
@@ -37,8 +52,7 @@ class HomePage extends StatelessWidget {
             return _buildCuadro(context, titulo, contenido, icon);
           })
           .map((widget) => Container(
-                margin: const EdgeInsets.symmetric(
-                    horizontal: 6.0), // Ajusta el espacio entre los cuadros
+                margin: const EdgeInsets.symmetric(horizontal: 6.0),
                 child: widget,
               ))
           .toList(),
@@ -48,13 +62,12 @@ class HomePage extends StatelessWidget {
   Widget _buildCuadrosDesdeFirestore(
       BuildContext context, List<DocumentSnapshot> servicios) {
     return GridView.count(
-      crossAxisCount: 2, // Esto dividirá los elementos en dos columnas
-      crossAxisSpacing: 10.0, // Espacio entre columnas
-      mainAxisSpacing: 10.0, // Espacio entre filas
+      crossAxisCount: 2,
+      crossAxisSpacing: 10.0,
+      mainAxisSpacing: 10.0,
       shrinkWrap: true,
-      physics:
-          const NeverScrollableScrollPhysics(), // Para deshabilitar el desplazamiento de GridView
-      childAspectRatio: 1.2, // Ajusta el aspect ratio de los cuadros
+      physics: const NeverScrollableScrollPhysics(),
+      childAspectRatio: 1.2,
       children: servicios.map((servicio) {
         String titulo = servicio['titulo'];
         String contenido = servicio['contenido'];
@@ -110,7 +123,6 @@ class HomePage extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            // Ajusta el espacio entre el texto y el contenedor del icono
                             Container(
                               width: 30,
                               height: 30,
@@ -143,9 +155,7 @@ class HomePage extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(
-                            height:
-                                8.0), // Espacio entre el texto e información adicional si la hay
+                        const SizedBox(height: 8.0),
                         RichText(
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
