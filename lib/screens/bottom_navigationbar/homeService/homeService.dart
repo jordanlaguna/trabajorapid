@@ -25,33 +25,18 @@ class _HomePageServiceState extends State<HomePageService> {
   List<DocumentSnapshot> _servicios = [];
 
   late final PageController _pageController;
+  final StreamController<List<DocumentSnapshot>> _controller =
+      StreamController<List<DocumentSnapshot>>();
+  final StreamController<List<DocumentSnapshot>> _star =
+      StreamController<List<DocumentSnapshot>>();
 
   @override
   void initState() {
     super.initState();
-    _subscribeToDataChanges();
+    _fetchDataFromFirebase();
+    _StarDataFromFirebase();
     _loadUserRatingsFromFirebase();
-  }
-
-  void _subscribeToDataChanges() {
-    FirebaseFirestore.instance
-        .collection('servicios')
-        .where('tipoServicio', isEqualTo: widget.servicio)
-        .where('Disponibilidad', isEqualTo: 'Activo')
-        .where('Administrador', isEqualTo: 'Aceptado')
-        .snapshots()
-        .listen((snapshot) {
-      setState(() {
-        _servicios = snapshot.docs;
-      });
-    });
-
-    FirebaseFirestore.instance
-        .collection('calificacion')
-        .snapshots()
-        .listen((snapshot) {
-      _loadUserRatingsFromFirebase();
-    });
+    _setupRealTimeUpdates();
   }
 
   double degreesToRadians(double degrees) {
@@ -122,6 +107,54 @@ class _HomePageServiceState extends State<HomePageService> {
     }
   }
 
+  void _StarDataFromFirebase() async {
+    try {
+      QuerySnapshot snapshot =
+          await FirebaseFirestore.instance.collection('calificacion').get();
+      _star.add(snapshot.docs);
+    } catch (e) {
+      print('Error fetching data: $e');
+    }
+  }
+
+  Future<void> _fetchDataFromFirebase() async {
+    try {
+      String? userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId != null) {
+        QuerySnapshot snapshot = await FirebaseFirestore.instance
+            .collection('servicios')
+            .where('tipoServicio', isEqualTo: widget.servicio)
+            .where('Disponibilidad', isEqualTo: 'Activo')
+            .where('Administrador', isEqualTo: 'Aceptado')
+            .get();
+
+        setState(() {
+          _servicios =
+              snapshot.docs.where((doc) => doc['uid'] != userId).toList();
+        });
+      }
+    } catch (e) {
+      print('Error fetching data: $e');
+    }
+  }
+
+  void _setupRealTimeUpdates() {
+    FirebaseFirestore.instance
+        .collection('servicios')
+        .where('tipoServicio', isEqualTo: widget.servicio)
+        .where('Disponibilidad', isEqualTo: 'Activo')
+        .where('Administrador', isEqualTo: 'Aceptado')
+        .snapshots()
+        .listen((snapshot) {
+      setState(() {
+        _servicios = snapshot.docs
+            .where(
+                (doc) => doc['uid'] != FirebaseAuth.instance.currentUser?.uid)
+            .toList();
+      });
+    });
+  }
+
   List<DocumentSnapshot> _filtrarServiciosPorTipo(String tipo) {
     return _servicios.where((cuadro) {
       return cuadro['tipoServicio'] == tipo;
@@ -183,11 +216,13 @@ class _HomePageServiceState extends State<HomePageService> {
 
   @override
   void dispose() {
+    _controller.close();
+    _star.close();
     _pageController.dispose();
     super.dispose();
   }
 
-  Future<void> _fetchRecentServices() async {
+  void _fetchRecentServices() async {
     DateTime oneDayAgoUtc =
         DateTime.now().toUtc().subtract(const Duration(days: 1));
 
@@ -201,9 +236,7 @@ class _HomePageServiceState extends State<HomePageService> {
           .get();
 
       if (snapshot.docs.isNotEmpty) {
-        setState(() {
-          _servicios = snapshot.docs;
-        });
+        setState(() {});
       } else {
         print("No se encontraron servicios recientes.");
       }
@@ -809,9 +842,6 @@ class _HomePageServiceState extends State<HomePageService> {
 
   @override
   Widget build(BuildContext context) {
-    List<DocumentSnapshot> serviciosFiltrados =
-        _filtrarServiciosPorTipo(widget.servicio);
-
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 227, 242, 253),
       appBar: AppBar(
@@ -849,7 +879,13 @@ class _HomePageServiceState extends State<HomePageService> {
             onSelected: (value) async {
               switch (value) {
                 case 'Mejor calificados':
-                  List<DocumentSnapshot> servicios = _servicios;
+                  await _fetchDataFromFirebase();
+
+                  List<DocumentSnapshot> servicios = await FirebaseFirestore
+                      .instance
+                      .collection('servicios')
+                      .get()
+                      .then((snapshot) => snapshot.docs);
 
                   servicios.sort((a, b) {
                     double mediaEstrellasA = userRatings[a['id']] ?? 0.00;
@@ -871,6 +907,7 @@ class _HomePageServiceState extends State<HomePageService> {
                   });
                   break;
                 case 'Más cerca':
+                  await _fetchDataFromFirebase();
                   Position currentPosition =
                       await Geolocator.getCurrentPosition(
                           desiredAccuracy: LocationAccuracy.high);
@@ -896,20 +933,24 @@ class _HomePageServiceState extends State<HomePageService> {
                   });
                   break;
                 case 'Más nuevo':
-                  await _fetchRecentServices();
+                  await _fetchDataFromFirebase();
+                  _fetchRecentServices();
                   setState(() {
                     tituloText = 'Más nuevo';
                   });
                   break;
                 case 'Ofertas':
+                  await _fetchDataFromFirebase();
                   showOffersMenu(context);
                   break;
                 case 'Todos':
+                  await _fetchDataFromFirebase();
                   setState(() {
                     tituloText = 'Todos';
                   });
                   break;
                 default:
+                  await _fetchDataFromFirebase();
                   setState(() {
                     tituloText = 'Todos';
                   });
@@ -965,59 +1006,80 @@ class _HomePageServiceState extends State<HomePageService> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(5.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('servicios')
+            .where('tipoServicio', isEqualTo: widget.servicio)
+            .where('Disponibilidad', isEqualTo: 'Activo')
+            .where('Administrador', isEqualTo: 'Aceptado')
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else {
+            String? userId = FirebaseAuth.instance.currentUser?.uid;
+            List<DocumentSnapshot> servicios = snapshot.data!.docs
+                .where((doc) => doc['uid'] != userId)
+                .toList();
+            return SingleChildScrollView(
+              child: Column(
                 children: [
-                  Text(
-                    tituloText,
-                    style: const TextStyle(
-                      fontSize: 18.0,
-                      fontWeight: FontWeight.bold,
+                  Padding(
+                    padding: const EdgeInsets.all(5.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          tituloText,
+                          style: const TextStyle(
+                            fontSize: 18.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 5.0),
+                        const Center(),
+                        if (tituloText == 'Más contratados')
+                          const Icon(Icons.thumb_up, color: Colors.black),
+                        if (tituloText == 'Mejor calificados')
+                          const Icon(Icons.star, color: Colors.black),
+                        if (tituloText == 'Más cerca')
+                          const Icon(Icons.location_on, color: Colors.black),
+                        if (tituloText == 'Más nuevo')
+                          const Icon(Icons.new_releases, color: Colors.black),
+                        if (tituloText == 'Todos')
+                          const Icon(Icons.list, color: Colors.black),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 5.0),
-                  const Center(),
-                  if (tituloText == 'Más contratados')
-                    const Icon(Icons.thumb_up, color: Colors.black),
-                  if (tituloText == 'Mejor calificados')
-                    const Icon(Icons.star, color: Colors.black),
-                  if (tituloText == 'Más cerca')
-                    const Icon(Icons.location_on, color: Colors.black),
-                  if (tituloText == 'Más nuevo')
-                    const Icon(Icons.new_releases, color: Colors.black),
-                  if (tituloText == 'Todos')
-                    const Icon(Icons.list, color: Colors.black),
+                  const Divider(
+                    color: Colors.white,
+                    thickness: 3.0,
+                  ),
+                  buildCarousel(context, servicios),
+                  if (servicios.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.all(20.0),
+                      child: Text(
+                        'No se encontraron servicios disponibles.',
+                        style: TextStyle(
+                            fontSize: 16.0, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  const SizedBox(height: 3.0),
+                  const Divider(
+                    color: Colors.white,
+                    thickness: 3.0,
+                  ),
+                  if (servicios.isNotEmpty)
+                    buildCuadrosFromDatabase(context, servicios),
+                  const SizedBox(height: 3.0),
                 ],
               ),
-            ),
-            const Divider(
-              color: Colors.white,
-              thickness: 3.0,
-            ),
-            buildCarousel(context, serviciosFiltrados),
-            if (serviciosFiltrados.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(20.0),
-                child: Text(
-                  'No se encontraron servicios disponibles.',
-                  style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                ),
-              ),
-            const SizedBox(height: 3.0),
-            const Divider(
-              color: Colors.white,
-              thickness: 3.0,
-            ),
-            if (serviciosFiltrados.isNotEmpty)
-              buildCuadrosFromDatabase(context, serviciosFiltrados),
-            const SizedBox(height: 3.0),
-          ],
-        ),
+            );
+          }
+        },
       ),
     );
   }
@@ -1026,7 +1088,6 @@ class _HomePageServiceState extends State<HomePageService> {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  FirebaseFirestore.instance.settings = Settings(persistenceEnabled: true);
 
   runApp(const MaterialApp(
     home: HomePageService(servicio: 'tipoServicio'),
