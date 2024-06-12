@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -18,6 +20,7 @@ class LoginController extends GetxController {
   final password = TextEditingController();
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final userController = Get.put(UserController());
+  final _firestore = FirebaseFirestore.instance;
 
   @override
   void onInit() {
@@ -93,23 +96,53 @@ class LoginController extends GetxController {
         return;
       }
       // Google Auth
-      await AuthRepository.instance.signInWithGoogle();
+      UserCredential? userCredentials =
+          await AuthRepository.instance.signInWithGoogle();
 
       // Guardar el usuario
       //await userController.saveUserRecord(userCredentials);
+      if (userCredentials != null) {
+        await _saveUserToFirestore(userCredentials);
+        // update FCM Token
+        await updateFCMToken();
 
-      // update FCM Token
-      await updateFCMToken();
+        // Detener el loader
+        TFullScreenLoader.stopLoading();
 
-      // Detener el loader
-      TFullScreenLoader.stopLoading();
+        // Redireccionar al usuario
+        AuthRepository.instance.screenRedirect();
 
-      // Redireccionar al usuario
-      AuthRepository.instance.screenRedirect();
+        await updateUserActive(userCredentials.user!.uid, true);
+      } else {
+        print('Error al iniciar sesión con Google');
+      }
     } catch (e) {
       TFullScreenLoader.stopLoading();
       TLoaders.errorSnackBar(
           title: 'Error al iniciar sesión', message: e.toString());
     }
+  }
+
+  // Method to add data to the user
+  Future<void> _saveUserToFirestore(UserCredential userCredential) async {
+    final User? user = userCredential.user;
+    if (user != null) {
+      final userRef = _firestore.collection('users').doc(user.uid);
+      final doc = await userRef.get();
+      if (!doc.exists) {
+        await userRef.set({
+          'uid': user.uid,
+          'email': user.email,
+          'name': user.displayName,
+          'photoURL': user.photoURL,
+        });
+      }
+    }
+  }
+
+  // Method to update status of user
+  Future<void> updateUserActive(String uid, bool isActive) async {
+    final userRef = _firestore.collection('users').doc(uid);
+    await userRef.update({'isActive': isActive});
   }
 }

@@ -148,12 +148,6 @@ class AuthRepository extends GetxController {
       final userCredential = await _auth.signInWithCredential(credentials);
 
       // Verificar si el inicio de sesión fue exitoso
-      if (userCredential.user != null) {
-        String uid = userCredential.user!.uid;
-        await updateUserActive(uid, true);
-        print('Usuario activo');
-        print('Usuario activo!');
-      }
 
       return userCredential;
     } on FirebaseException catch (e) {
