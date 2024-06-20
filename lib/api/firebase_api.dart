@@ -62,6 +62,53 @@ class FirebaseApi {
     }
   }
 
+  Future<void> sendNotificationToAllUsers(String title, String message) async {
+    final usersSnapshot =
+        await FirebaseFirestore.instance.collection('users').get();
+    final tokens = usersSnapshot.docs
+        .map((doc) => doc.data()['fcmToken'] as String?)
+        .where((token) => token != null)
+        .toList();
+
+    for (String? token in tokens) {
+      if (token != null) {
+        final payload = constructGeneralFCMPayload(token, title, message);
+
+        try {
+          final accessToken = await _getAccessToken();
+          await http.post(
+            Uri.parse(
+                'https://fcm.googleapis.com/v1/projects/trabajosrapid-f63a2/messages:send'),
+            headers: <String, String>{
+              'Content-Type': 'application/json; charset=UTF-8',
+              'Authorization': 'Bearer $accessToken',
+            },
+            body: payload,
+          );
+          print('FCM request for device sent!');
+        } catch (e) {
+          print('Error sending FCM message: $e');
+        }
+      }
+    }
+  }
+
+  String constructGeneralFCMPayload(
+      String token, String title, String message) {
+    return jsonEncode({
+      'message': {
+        'token': token,
+        'notification': {
+          'title': title,
+          'body': message,
+        },
+        'data': {
+          'via': 'FlutterFire Cloud Messaging!!!',
+        },
+      },
+    });
+  }
+
   String constructFCMPayload(String token, String senderName, String message) {
     return jsonEncode({
       'message': {

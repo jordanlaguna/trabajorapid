@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -9,6 +11,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:trabajorapid/screens/menuSlider/profile_drawer/profile_drawer.dart';
 import 'package:trabajorapid/utils/constans/loaders.dart';
+
+import 'package:trabajorapid/api/firebase_api.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -338,7 +342,6 @@ class _ProfilePageState extends State<ProfilePage> {
                     _showWorkHistory = false;
                   });
                 } else {
-                  // ignore: use_build_context_synchronously
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                     content: Text(
                         'No puedes publicar aun porque no has completado tu perfil de usuario.!'),
@@ -373,7 +376,6 @@ class _ProfilePageState extends State<ProfilePage> {
         Map<String, dynamic>? userData =
             userSnapshot.data() as Map<String, dynamic>?;
         if (userData != null) {
-          // comprobar que los campos requeridos no se esten nuloss
           if (userData.containsKey('name') &&
               userData['name'] != '' &&
               userData.containsKey('identification') &&
@@ -390,16 +392,13 @@ class _ProfilePageState extends State<ProfilePage> {
       }
     }
 
-    // advertencia si el perfil esta incompleto
     TLoaders.warningSnackBar(
       title: 'Perfil Incompleto',
       message: 'Debes completar tu perfil antes de continuar.',
     );
 
-    // mandar al usuario a completar el perfil
     await Future.delayed(const Duration(seconds: 2));
     Navigator.push(
-      // ignore: use_build_context_synchronously
       context,
       MaterialPageRoute(builder: (context) => const ProfileDrawer()),
     );
@@ -535,13 +534,11 @@ class _ProfilePageState extends State<ProfilePage> {
               textStyle:
                   const TextStyle(fontSize: 18), // Aumentar tamaño del texto
               shape: RoundedRectangleBorder(
-                // Bordes redondeados más definidos
                 borderRadius: BorderRadius.circular(8),
               ),
-              elevation: 5, // Sombra para dar un efecto elevado
-              shadowColor: Colors.blue, // Cambia el color de fondo si necesario
-              backgroundColor:
-                  Colors.white, // Cambia el color del texto si necesario
+              elevation: 5,
+              shadowColor: Colors.blue,
+              backgroundColor: Colors.white,
             ),
             child: const Text('Cargar más'),
           ),
@@ -857,21 +854,18 @@ class _ProfilePageState extends State<ProfilePage> {
                                 onPressed: () async {
                                   Navigator.of(context).pop();
                                   try {
-                                    // Actualizar el estado del documento en Firestore
                                     await FirebaseFirestore.instance
                                         .collection('servicios')
                                         .doc(documentId)
                                         .update(
                                             {'Disponibilidad': 'Desactivo'});
 
-                                    // Mostrar un mensaje de éxito
                                     ScaffoldMessenger.of(context)
                                         .showSnackBar(const SnackBar(
                                       content: Text(
                                           'El servicio ha sido archivado con éxito.'),
                                     ));
                                   } catch (e) {
-                                    // Manejar cualquier error que ocurra durante la actualización
                                     print('Error al archivar el servicio: $e');
                                     ScaffoldMessenger.of(context)
                                         .showSnackBar(const SnackBar(
@@ -899,8 +893,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   ),
                                 ),
                               ),
-                              const SizedBox(
-                                  height: 20), // Espacio entre los botones
+                              const SizedBox(height: 20),
                               ElevatedButton(
                                 onPressed: () {
                                   Navigator.of(context).pop();
@@ -1122,15 +1115,13 @@ class _ProfilePageState extends State<ProfilePage> {
           Center(
             child: ElevatedButton(
               onPressed: () async {
-                // Verificar si hay un usuario autenticado
                 User? user = FirebaseAuth.instance.currentUser;
                 getCurrentLocation();
 
                 if (!_isValidDireccion(_direccionController.text)) {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                     content: Text(
-                        'La dirección no tiene un formato válido. Por ejemplo: '
-                        'Provincia/Canton/Ciudad'),
+                        'La dirección no tiene un formato válido. Por ejemplo: Provincia/Canton/Ciudad'),
                     backgroundColor: Colors.red,
                   ));
                   return;
@@ -1139,12 +1130,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 if (user != null) {
                   String uid = user.uid;
 
-                  // Generar un ID aleatorio para el servicio
                   String servicioId = FirebaseFirestore.instance
                       .collection('servicios')
                       .doc()
                       .id;
-                  // Verificar si el ID ya existe en la colección de servicios
                   bool idExiste = await FirebaseFirestore.instance
                       .collection('servicios')
                       .doc(servicioId)
@@ -1152,7 +1141,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       .then((doc) => doc.exists);
 
                   if (!idExiste) {
-                    // Buscar el usuario en la colección 'users'
                     DocumentSnapshot userSnapshot = await FirebaseFirestore
                         .instance
                         .collection('users')
@@ -1160,15 +1148,12 @@ class _ProfilePageState extends State<ProfilePage> {
                         .get();
 
                     if (userSnapshot.exists) {
-                      // Convertir el resultado de data() a un Map<String, dynamic>
                       Map<String, dynamic>? userData =
                           userSnapshot.data() as Map<String, dynamic>?;
 
                       if (userData != null && userData.containsKey('name')) {
-                        // Extraer el nombre del usuario si está presente en los datos
                         String userName = userData['name'];
 
-                        // Verificar si el tipo de servicio seleccionado está en la colección ofertasServicio
                         QuerySnapshot querySnapshot = await FirebaseFirestore
                             .instance
                             .collection('ofertasServicios')
@@ -1177,7 +1162,6 @@ class _ProfilePageState extends State<ProfilePage> {
                             .get();
 
                         if (querySnapshot.docs.isNotEmpty) {
-                          // Obtener la descripción, dirección y pago del formulario
                           String descripcion = _descripcionController.text;
                           String direccion = _direccionController.text;
                           String uid = user.uid;
@@ -1191,7 +1175,6 @@ class _ProfilePageState extends State<ProfilePage> {
                             downloadUrls = await uploadImages(files);
                           }
 
-                          // Guardar la información en la colección servicios
                           await FirebaseFirestore.instance
                               .collection('servicios')
                               .doc(servicioId)
@@ -1216,6 +1199,13 @@ class _ProfilePageState extends State<ProfilePage> {
                               'requerimientos': _requerimientoController.text,
                           });
 
+                          // send notification to all users
+                          final firebaseApi = FirebaseApi();
+                          await firebaseApi.sendNotificationToAllUsers(
+                            'Nueva oferta disponible de: $userName',
+                            'Ha agregado un nuevo servicio de: $_selectedJobType',
+                          );
+
                           _resetForm();
 
                           ScaffoldMessenger.of(context)
@@ -1224,7 +1214,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                 'El servicio ha sido publicado con éxito.'),
                           ));
                         } else {
-                          // Si el tipo de servicio no está en la colección ofertasServicio
                           ScaffoldMessenger.of(context)
                               .showSnackBar(const SnackBar(
                             content: Text(
@@ -1232,7 +1221,6 @@ class _ProfilePageState extends State<ProfilePage> {
                           ));
                         }
                       } else {
-                        // Si no se encuentra el nombre del usuario en los datos
                         ScaffoldMessenger.of(context)
                             .showSnackBar(const SnackBar(
                           content:
@@ -1240,20 +1228,17 @@ class _ProfilePageState extends State<ProfilePage> {
                         ));
                       }
                     } else {
-                      // Si no se encuentra el usuario en la colección 'users'
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                         content: Text('El usuario no está registrado.'),
                       ));
                     }
                   } else {
-                    // Si el ID ya existe en la colección de servicios
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                       content: Text(
                           'Error: El servicio no se puede publicar debido a un conflicto de ID.'),
                     ));
                   }
                 } else {
-                  // Si no hay usuario autenticado
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                     content:
                         Text('Debes iniciar sesión para publicar un servicio.'),
