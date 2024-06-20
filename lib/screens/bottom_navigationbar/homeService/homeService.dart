@@ -584,7 +584,7 @@ class _HomePageServiceState extends State<HomePageService> {
                                     fit: BoxFit.scaleDown,
                                     alignment: Alignment.center,
                                     child: Text(
-                                      'Experiencia: $experiencia',
+                                      'Exp: $experiencia',
                                       style: const TextStyle(
                                         color: Colors.black,
                                         fontSize: 15.0,

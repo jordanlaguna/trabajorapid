@@ -9,6 +9,7 @@ class Job {
   String estado; // Cambiar a no final
   final String fecha;
   final String uidEmisor;
+  final String uidReceptor;
   final String nameReceptor;
   final String nameEmisor;
   final String pago;
@@ -21,6 +22,7 @@ class Job {
     required this.detalles,
     required this.estado,
     required this.uidEmisor,
+    required this.uidReceptor,
     required this.fecha,
     required this.nameReceptor,
     required this.nameEmisor,
@@ -41,6 +43,7 @@ class Job {
       detalles: data['contenido'] ?? '',
       estado: data['estado'] ?? '',
       uidEmisor: data['uidEmisor'] ?? '',
+      uidReceptor: data['uidReceptor'] ?? '',
       fecha: formattedDate,
       nameReceptor: data['titulo'] ?? '',
       nameEmisor: data['emisorNombre'] ?? '',
@@ -61,7 +64,9 @@ class Job {
       'nameEmisor': nameEmisor,
       'pago': pago,
       'direccion': direccion,
+      'uidReceptor': uidReceptor,
     };
   }
+
   DateTime get fechaDateTime => DateFormat('dd-MM-yyyy').parse(fecha);
 }

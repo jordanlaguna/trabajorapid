@@ -1,6 +1,9 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:trabajorapid/services/chat/chat_services.dart';
 import 'works_services.dart';
 import 'job.dart';
 import 'badge_status.dart';
@@ -8,12 +11,10 @@ import 'badge_status.dart';
 class WorksPage extends StatefulWidget {
   const WorksPage({Key? key}) : super(key: key);
 
-  // ignore: library_private_types_in_public_api
   static final GlobalKey<_WorksPageState> pageKey =
       GlobalKey<_WorksPageState>();
 
   @override
-  // ignore: library_private_types_in_public_api
   _WorksPageState createState() => _WorksPageState();
 
   static void showJobSearch(BuildContext context) {
@@ -28,6 +29,7 @@ class WorksPage extends StatefulWidget {
 }
 
 class _WorksPageState extends State<WorksPage> {
+  final ChatServices _chatServices = ChatServices();
   String searchQuery = '';
   String selectedFilter = 'Todos';
   List<Job> trabajosFiltrados = [];
@@ -236,6 +238,21 @@ class _WorksPageState extends State<WorksPage> {
       job.estado = newStatus;
       aplicarFiltros(); // Vuelve a aplicar filtros para actualizar la lista
     });
+
+    String message = 'La oferta ha sido $newStatus.';
+    if (newStatus == 'Cancelado') {
+      message = 'La oferta de $job.tipoServicio ha sido cancelada';
+    } else if (newStatus == 'Terminado') {
+      message = 'La oferta ha sido completada';
+    }
+
+    try {
+      await _chatServices.sendMessage(job.uidReceptor, message);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al enviar mensaje: $e')),
+      );
+    }
   }
 
   void showConfirmationDialog(
@@ -315,7 +332,7 @@ class _WorksPageState extends State<WorksPage> {
     int itemCount =
         showAll ? trabajosFiltrados.length : min(trabajosFiltrados.length, 7);
     return Scaffold(
-      backgroundColor: Colors.blue[50], // Cambia el color de fondo aquí
+      backgroundColor: Colors.blue[50],
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: ListView.builder(
@@ -338,8 +355,6 @@ class _WorksPageState extends State<WorksPage> {
               }
             }
             final job = trabajosFiltrados[index];
-            // cambiar el color segun el estado cancelado, pendiente, en proceso, terminado
-            // ignore: unused_local_variable
             final Color badgeColor = job.estado == 'Pendiente'
                 ? Colors.orangeAccent
                 : Colors.blueAccent;
@@ -353,7 +368,6 @@ class _WorksPageState extends State<WorksPage> {
                     style: const TextStyle(fontWeight: FontWeight.bold)),
                 subtitle: Row(
                   children: [
-                    // Aquí usamos getBadgeColor para obtener el color basado en el estado del trabajo
                     BadgeStatus(
                         text: job.estado, color: getBadgeColor(job.estado)),
                     const SizedBox(width: 8.0),

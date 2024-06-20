@@ -1,4 +1,3 @@
-// ignore_for_file: avoid_print, unused_element
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +5,6 @@ import 'package:trabajorapid/data/repositiories/auth_repository.dart';
 import 'package:trabajorapid/screens/menuSlider/configuration/configPage/page_config.dart';
 import 'package:trabajorapid/screens/menuSlider/help/help_page.dart';
 import 'package:trabajorapid/screens/menuSlider/page_chat/page_home_chat.dart';
-import 'package:trabajorapid/screens/menuSlider/payment/payment_page.dart';
 import 'package:trabajorapid/screens/menuSlider/profile_drawer/profile_drawer.dart';
 import 'package:trabajorapid/screens/menuSlider/works/works_page.dart';
 
@@ -46,6 +44,27 @@ class _NavBarState extends State<NavBar> {
       print('Error obteniendo datos del usuario: $e');
       return null;
     }
+  }
+
+  void _showComingSoonModal() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Próximamente'),
+          content: Text(
+              'Esta función estará disponible en la siguiente actualización.'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cerrar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -151,8 +170,8 @@ class _NavBarState extends State<NavBar> {
             buildListTile(
                 Icons.account_circle, 'Perfil', const ProfileDrawer()),
             buildListTile(Icons.message_rounded, 'Mensajes', const PageChat()),
-            buildListTile(
-                Icons.attach_money_rounded, 'Pagos', const PaymentPage()),
+            buildListTile(Icons.attach_money_rounded, 'Pagos', null,
+                onTap: _showComingSoonModal),
             buildListTile(
                 Icons.work_history_rounded, 'Archivados', const WorksPage()),
             const Divider(
