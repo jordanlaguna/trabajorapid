@@ -122,8 +122,7 @@ Sigue estos pasos para ejecutar RapidJobs localmente en tu entorno de desarrollo
 ```bash
 git clone https://github.com/jordanlaguna/trabajorapid.git
 cd trabajorapid
-flutter pub get
-flutter run
+
 
 
 ## 📬 Contacto
