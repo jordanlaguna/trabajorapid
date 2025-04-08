@@ -120,7 +120,9 @@ git clone https://github.com/jordanlaguna/trabajorapid.git
 cd trabajorapid
 flutter pub get
 flutter run
+```
 
+---
 
 ## 📬 Contacto
 
@@ -129,6 +131,5 @@ flutter run
 - 📧 Email: [correo@example.com](mailto:correo@example.com)
 - 🐦 Twitter: [@RapidJobsApp](https://twitter.com/RapidJobsApp)
 - 🌐 Sitio web: [www.rapidjobs.com](http://www.rapidjobs.com)
-```
 
 ---
