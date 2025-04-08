@@ -109,6 +109,23 @@ El proyecto fue iniciado en **2024** con la visión de transformar la forma en q
 
 ---
 
+## 📦 Instalación y Ejecución
+
+Sigue estos pasos para ejecutar RapidJobs localmente en tu entorno de desarrollo:
+
+## 📦 Instalación y Ejecución
+
+Sigue estos pasos para ejecutar RapidJobs localmente en tu entorno de desarrollo:
+
+1. **Clona el repositorio:**
+
+```bash
+git clone https://github.com/jordanlaguna/trabajorapid.git
+cd trabajorapid
+flutter pub get
+flutter run
+
+
 ## 📬 Contacto
 
 ¿Tienes dudas o sugerencias? ¡Contáctanos!
@@ -116,3 +133,4 @@ El proyecto fue iniciado en **2024** con la visión de transformar la forma en q
 - 📧 Email: [correo@example.com](mailto:correo@example.com)
 - 🐦 Twitter: [@RapidJobsApp](https://twitter.com/RapidJobsApp)
 - 🌐 Sitio web: [www.rapidjobs.com](http://www.rapidjobs.com)
+```
