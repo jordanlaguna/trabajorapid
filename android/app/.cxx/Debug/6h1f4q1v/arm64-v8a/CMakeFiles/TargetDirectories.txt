@@ -1,0 +1,2 @@
+C:/Users/jorda/Documents/flutter/trabajorapid/android/app/.cxx/Debug/6h1f4q1v/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/jorda/Documents/flutter/trabajorapid/android/app/.cxx/Debug/6h1f4q1v/arm64-v8a/CMakeFiles/rebuild_cache.dir
